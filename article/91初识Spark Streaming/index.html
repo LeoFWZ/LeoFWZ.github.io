@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark Streaming]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/91初识Spark Streaming/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark Streaming]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>参考官网：<a href="http://spark.apache.org/streaming/" target="_blank" rel="noopener">http://spark.apache.org/streaming/</a></p>
+</blockquote>
+<h1 id="spark-streaming特点">Spark Streaming特点</h1>
+<p>Spark Streaming makes it easy to build scalable fault-tolerant streaming applications.</p>
+<p>Spark Streaming使得 去构建可扩展的能容错的流式应用程序 变得容易。（RDD容错体现在哪些方面？）</p>
+<p>特点：</p>
+<ul>
+<li>Ease of Use易用性<br>
+可以通过高级别的API操作进行构建应用程序，可以像写批处理（离线处理）的job那样去写Streaming job，比如你会core、sql，在这里很相似。</li>
+<li>Fault Tolerance容错机制<br>
+Spark Streaming不需要额外的代码，就可以恢复挂掉的工作流以及操作的状态。</li>
+<li>Spark Integration Spark集成<br>
+能够把Streaming和批处理和交互式查询综合起来使用。通过在Spark上运行，Spark流允许您重用相同的代码进行批处理、根据历史数据连接流，或者对流状态运行即席查询。构建强大的交互式应用程序，而不仅仅是分析。比如假如你之前用的是批处理，现在要修改成流式处理，什么业务逻辑代码都不需要改变，那么只要把代码稍微修改一下，改一下输入输出即可。</li>
+<li>运行模式多种多样，可以从HDFS, Flume, Kafka, Twitter and ZeroMQ上读取数据，也可以自定义数据源，可以跑在standalone上，yarn上等等。</li>
+</ul>
+<p>常用的模式是：Flume→消息队列(比如Kafka)→Spark Streaming</p>
+<h1 id="spark-streaming概览">Spark Streaming概览</h1>
+<blockquote>
+<p>参考官网：<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/streaming-programming-guide.html</a></p>
+</blockquote>
+<p>Spark Streaming是Spark core API的扩展，它的底层还是Spark RDD来实现的，它支持对实时数据流进行可横向扩展、高吞吐量、容错的流处理。</p>
+<p>既然是数据流，肯定有输入、处理和输出。</p>
+<p>输入：Spark Streaming数据可以有很多数据源：Kafka, Flume, Kinesis, or TCP sockets，工作中用的比较多的是Kafka、TCP 。</p>
+<p>处理：数据进来后可以被Spark Streaming的引擎处理，这些进来的数据可以被复杂的算法去处理，这些算法是用高级别的函数来表达的，比如： map, reduce, join and window这些函数。</p>
+<p>输出：最后被处理后的数据，可以被吐到文件系统、数据库、实时dashboards上去。</p>
+<p>另外：在Spark Streaming纸上可以使用机器学习和图计算的处理算法。这也验证了Spark Streaming可以和Spark生态圈里的框架做很好的集成，可以混合起来使用。</p>
+<p>源可以分为有receiver和没有receiver，后面会讲到。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728094816770.png" alt="image"></p>
+<p>实质上，Spark Streaming的<strong>工作原理</strong>如下：Spark Streaming接收实时输入数据流，并将数据分为批（把数据切开，切成一个一个的批次），然后由Spark engine进行处理，最后也是以批次（一批一批的）的形式，产生最终的结果流。（其实就是mini batch微批处理）</p>
+<p><strong>这说明Spark Streaming并不是真正的实时处理的框架，它会每隔多少时间比如10秒，批处理一次，微批处理。<br>
+对于Spark，可以这样说：Spark是以批处理为准，使用微批来解决实时问题。<br>
+而Flink，以Stream实时为主，来解决批处理/离线问题。</strong></p>
+<p><img src="https://img-blog.csdnimg.cn/20190728095446835.png" alt="image"></p>
+<p>上图：一个持续的数据流（就是一个DStream）输入进来，通过Spark Streaming进行设置，比如几秒钟读一次，把数据流按照时间划分为一个一个的批次（就是一个一个的RDD），由Spark engine进行处理，最后以一批一批的输出。</p>
+<p>Internally, a DStream is represented as a sequence of RDDs.</p>
+<p>Spark Streaming提供了一种高级抽象，它叫做discretized stream 或者 DStream，它是Spark Streaming进行开发的时候一个顶级的接口，DStream代表了持续的数据流（数据会源源不断的过来）。DStreams可以从数据源进行创建，比如 Kafka, Flume, and Kinesis，在其它DStreams上面作用于一个高级别的操作来产生一个DStreams。实质上，一个DStream代表了一个RDD的sequence，就是说一个DStream是由n多个RDD的sequence所构成的。</p>
+<p>Spark Streaming：不同的数据源经过Spark Streaming处理之后，将结果输出到某个地方上去。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728110957539.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>小知识点：部署了Spark就不需要再单独部署Spark Streaming，Spark Streaming是Spark里的一个模块。<br>
+面试：有了storm，你为什么还要去使用Spark Streaming？</p>
+<h1 id="spark-streaming应用场景">Spark Streaming应用场景</h1>
+<p>比如电商上面，淘宝、京东、天猫等，上面推荐等（也可以使用storm等）。<br>
+再比如：公司的系统有很多，系统会采用log4j这样的日志框架，把日志输出，输出的日志分布在各个节点之上，节点有很多很多，整个是个大集群。那么如何把这些日志采集过来，用流处理进行分析？比如从log里面，把error的信息给搜集过来，error又分为好多种，这个时候可以为error打个标签，什么样的error做什么样的处理，根据error发送短信或者邮件，a error发送给这些人，b error发送给那些人。</p>
+<h1 id="流处理过程">流处理过程</h1>
+<p>一般用Flume采集来的数据，可以分为两个方向：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728132516637.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>前面Flume通过Kafka sink到Kafka topic是属于Flume，后面Kafka到SparkStreaming，是属于SparkStreaming的内容。</p>
+<h1 id="spark-streaming案例">Spark Streaming案例</h1>
+<p>1、需要添加依赖：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;spark-streaming_2.11&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;$&#123;spark.version&#125;&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>2、先导入相关的类、隐式转换。</p>
+<p>导入包：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.spark._</span><br><span class="line">import org.apache.spark.streaming._</span><br><span class="line">import org.apache.spark.streaming.StreamingContext._</span><br></pre></td></tr></table></figure>
+<p>3、Spark core RDD里面要有一个SparkContext，SparkSQL DF/DS里面有SparkSession，在Spark Streaming里面要有StreamingContext。</p>
+<p>StreamingContext是所有streaming功能的入口点，创建一个StreamingContext，设置成两个执行线程、每秒一个批次。<br>
+（spark2.x之后，可以使用统一的SparkSession）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">object ExampleStreamingApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;ExampleStreamingApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(1))</span><br><span class="line"></span><br><span class="line">//TODO业务逻辑。。。。</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>4、业务逻辑</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line">import org.apache.spark._</span><br><span class="line">import org.apache.spark.streaming._</span><br><span class="line">import org.apache.spark.streaming.StreamingContext._</span><br><span class="line"></span><br><span class="line">//这个作业是一直在跑的，一直在运行的，这个不是离线的，离线是跑完作业就没了，就会停下来</span><br><span class="line">//这个作业要是停掉了，数据就接收不了，就会丢的</span><br><span class="line">object ExampleStreamingApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //这个master要是2个core</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;ExampleStreamingApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line">    //批次的时间是10秒，10秒处理一次</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;,9999)</span><br><span class="line"></span><br><span class="line">    //下面就是之前的wordcount代码</span><br><span class="line">    val words = lines.flatMap(_.split(&quot; &quot;))</span><br><span class="line">    val pairs = words.map(word =&gt; (word, 1))</span><br><span class="line">    val wordCounts = pairs.reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">    //把这个DStream产生的每个RDD的前10个元素打印到控制台上</span><br><span class="line">    wordCounts.print()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    //开始计算</span><br><span class="line">    ssc.start()</span><br><span class="line">    //等待计算结束</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>小知识点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def socketTextStream(</span><br><span class="line">    hostname: String,</span><br><span class="line">    port: Int,</span><br><span class="line">    //默认存储级别为：内存、磁盘序列化 2  ，这个和Spark core里面不一样</span><br><span class="line">    storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK_SER_2</span><br><span class="line">  ): ReceiverInputDStream[String] = withNamedScope(&quot;socket text stream&quot;) &#123;</span><br><span class="line">  socketStream[String](hostname, port, SocketReceiver.bytesToLines, storageLevel)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面运行起来之后，要在命令行启动Netcat，在控制台输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//如果没有nc命令，需要yum install 安装一下</span><br><span class="line">[root@hadoop001 ~]# nc -lk 9999</span><br><span class="line">aaa bbb aaa  bbb</span><br><span class="line">aaa</span><br><span class="line">bb  cc  aaa</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//这个是时间戳，可以转换为我们平时看到的时间的</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564322940000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564322960000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564323020000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(bbb,2)</span><br><span class="line">(,3)</span><br><span class="line">(bb,1)</span><br><span class="line">(cc,1)</span><br><span class="line">(aaa,4)</span><br></pre></td></tr></table></figure>
+<p>看页面：<a href="http://localhost:4040" target="_blank" rel="noopener">http://localhost:4040</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190728221338938.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>下面这个Streaming在调优的时候必须要用到的</p>
+<p>Streaming Statistics 流处理统计信息</p>
+<p>Running batches of 10 seconds for 9 minutes 32 seconds since 2019/07/28 22:05:09 (58 completed batches, 11 records)</p>
+<p>从什么时候开始运行了多少个批次。</p>
+<p>从下面可以看到， Input Rate、SocketReceiver-0、Scheduling Delay、Processing Time、Total Delay信息。这些信息很重要的。</p>
+<p>在生产上面，如果kafka过来的数据太多，可能会有很大的延迟。在生产上面，想办法要去保证一个批次的作业在一个批次里把它完成。如果保证不了，就是说，这个批次没有完成，那么下个批次又来了，那么后面会越积越多。（可以是kafka限速，或者Spark Streaming限流与背压原理）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728221444569.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/92SparkStreaming入门介绍和运行架构/" data-toggle="tooltip" data-placement="top" title="[SparkStreaming入门介绍和运行架构]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/90DataSet那点事/" data-toggle="tooltip" data-placement="top" title="[DataSet那点事]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#spark-streaming特点"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Spark Streaming&#x7279;&#x70B9;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#spark-streaming概览"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Spark Streaming&#x6982;&#x89C8;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#spark-streaming应用场景"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Spark Streaming&#x5E94;&#x7528;&#x573A;&#x666F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#流处理过程"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">&#x6D41;&#x5904;&#x7406;&#x8FC7;&#x7A0B;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#spark-streaming案例"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Spark Streaming&#x6848;&#x4F8B;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

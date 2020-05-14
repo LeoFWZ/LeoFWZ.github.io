@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Linux命令进阶（二）]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/08Linux命令进阶（二）/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                        </div>
+                        <h1>[Linux命令进阶（二）]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2017-11-25
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>对文件夹的操作命令有： mkdir rm mv cp cd</p>
+<p>对文件的操作命令有：   touch rm mv cp</p>
+<p><a href="http://1.vi" target="_blank" rel="noopener">1.vi</a> 文本编辑</p>
+<p>vi xxx.log</p>
+<p><img src="https://img-blog.csdnimg.cn/20190217161358959.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>当修改某个 生产上的 文件 xxx.conf的时候，一般最好先备份一下：</p>
+<p>cp xxx.conf xxx.conf20190123</p>
+<p>vi xxx.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">命令行模式常见快捷键:</span><br><span class="line">dd 删除当前行</span><br><span class="line">dG 删除光标以下的所有行   （当前行也会删除）</span><br><span class="line">ndd 删除光标以下的n行       （当前行也会删除，总共删除n+1行）</span><br><span class="line"></span><br><span class="line">gg 跳转到第一行的第一个字母</span><br><span class="line">G  跳转到最后一行的第一个字母</span><br><span class="line">shift+$ 行尾</span><br></pre></td></tr></table></figure>
+<p>生产场景:</p>
+<p>1.这个文件内容很多很多 我想要清空，重新开始编辑，清空的三种方式：</p>
+<p>①用vi 编辑模式：gg  dG           先gg跳到首行首字母，再dG删除光标以下所有行，保存</p>
+<p>②echo “” &gt; ruoze.log.1              伪清空 1字节的</p>
+<p>echo ‘’ &gt; ruoze.log.1                   伪清空 1字节的  shell判断文件是否清空 一般是根据字节大小来判断 这时就错了</p>
+<p>③cat /dev/null &gt; ruoze.log.2       真正清空</p>
+<p>2.这个文件内容很多很多 我想要追加写文件<br>
+G   shift+$   i   朝右箭头按一次+回车 到新的一行</p>
+<p>3.当一个文本内容非常多 比如系统的log  想搜索定位某个词</p>
+<p>3.1 我想要快速定位到error关键词<br>
+搜索: 尾行模式输入/error    n下一个  N上一个</p>
+<p>行号:  尾行模式输入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">set nu</span><br><span class="line">set nonu</span><br></pre></td></tr></table></figure>
+<p>3.2 cat jepson.log |grep filesystem<br>
+grep filesystem jepson.log  （这样也可以查看定位，注意位置顺序）</p>
+<p>3.3 上传到window/mac<br>
+EditPlus编辑器里查看搜索定位</p>
+<p>linux vi命令掌握透，生产配置文件、别人的服务的配置，不要随便修改，如果修改最好备份一下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp 1.conf 1.conf.20190123</span><br><span class="line">cp 1.conf.20190123  1.conf</span><br></pre></td></tr></table></figure>
+<p>2.权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ruozedata]# ll</span><br><span class="line">total 96</span><br><span class="line">drwxr-xr-x. 3 root root  4096 Jan 19 20:42 1</span><br><span class="line">drwxr-xr-x. 2 root root  4096 Jan 19 20:44 4</span><br><span class="line">drwxr-xr-x. 2 root root  4096 Jan 19 20:44 5</span><br><span class="line">drwxr-xr-x. 2 root root  4096 Jan 19 20:44 6</span><br><span class="line">-rw-r--r--. 1 root root 10033 Jan 19 20:57 install.log.syslog</span><br><span class="line">-rw-r--r--. 1 root root 10033 Jan 19 20:57 install.log.syslog20190119</span><br><span class="line">-rw-r--r--. 1 root root 49566 Jan 23 21:37 jepson.log</span><br><span class="line">-rw-r--r--. 1 root root     1 Jan 23 21:30 ruoze.log.1</span><br><span class="line">-rw-r--r--. 1 root root     0 Jan 23 21:30 ruoze.log.2</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">d rwxr-xr-x</span><br><span class="line">第一个: d文件夹   -文件     l连接</span><br><span class="line">r: 读 4</span><br><span class="line">w: 写 2</span><br><span class="line">x: 执行 shell脚本 1</span><br><span class="line">-: 0</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rwxr-xr-x 755</span><br><span class="line">rwxr--r-- 744</span><br><span class="line">r--r--r-- 444</span><br><span class="line">r-xrwxrw- 576</span><br><span class="line">766 rwxrw-rw-</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rwxr-xr-x :三组</span><br><span class="line">  第一组: rwx 7 代表文件夹或文件所属的用户的权限: 读写执行</span><br><span class="line">  第二组: r-x 5 代表文件夹或文件所属的用户组的权限: 读执行</span><br><span class="line">  第三组: r-x 5 代表其他组的所有用户对这个文件或文件夹的权限: 读执行</span><br></pre></td></tr></table></figure>
+<p>root root<br>
+第三列:  所属的用户<br>
+第四列:  所属的用户组</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">第五列: 字节(文件，文件夹大小是不准的)</span><br><span class="line">ll -h                                     只能看文件大小</span><br><span class="line">du -sh 6                              文件夹大小</span><br><span class="line">du -sh install.log.syslog      文件大小</span><br></pre></td></tr></table></figure>
+<p><strong>面试题：</strong></p>
+<p>查看文件大小的命令：ll -h 或者 du -sh</p>
+<p>查看文件夹的大小的命令：只能是 du -sh</p>
+<p>第六列: 文件时间<br>
+Jan 19 20:42</p>
+<p>生产:<br>
+一般软件安装mysql数据库 都有自己的所属用户 mysqladmin  用户组 mysqladmin</p>
+<p>su - mysqladmin :  有权限创建 读 写 执行</p>
+<p>目录 755    一般来说，给一个目录755权限就够了。</p>
+<p>chmod -R 755 mysqladmin</p>
+<p>Linux用户 jepson ： 读<br>
+<a href="http://github.com/hackeruncle/mysql" target="_blank" rel="noopener">github.com/hackeruncle/mysql</a></p>
+<p>chmod -R 777 目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">chown -R jepso:jepson 目录</span><br><span class="line">chmod -R 755 目录</span><br><span class="line">chown  jepson:jepson 目录/文件          把这个目录/文件的用户用户组修改为jepson和jepson</span><br><span class="line">chmod  755  目录/文件</span><br></pre></td></tr></table></figure>
+<p>整套Linux学习过程<br>
+-R参数的命令你们就记住这两个（chmod、chown） 其他都是小r</p>
+<p>下面两个可执行文件需要赋予一个x权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./xxx.sh        可执行      shell脚本   第一行为：      #!/bin/bash </span><br><span class="line">sh xxx.sh     可执行</span><br></pre></td></tr></table></figure>
+<p><a href="http://xn--xxx-tu9dt6u6m3acw5a.sh" target="_blank" rel="noopener">文件名称xxx.sh</a>  第一行 #!/bin/bash</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">软连接: 快捷键 删除目标路径 原始路径不删除</span><br><span class="line">ln -s 原始路径 目标路径</span><br><span class="line">      /xxx/1</span><br><span class="line">      /xxx/1.log</span><br><span class="line">      1</span><br><span class="line">      1.log</span><br><span class="line"></span><br><span class="line">硬连接可以了解</span><br></pre></td></tr></table></figure>
+<p>3.上传下载命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">yum install lrzsz                先安装lrzsz  rpm包</span><br><span class="line">rz window ==&gt;linux           rz命令是从Windows系统上传到linux系统</span><br><span class="line">sz  linux ==&gt;  window       sz命令是从Linux系统下载到Windows系统</span><br></pre></td></tr></table></figure>
+<p>下载到Windows哪地方，可以在CRT软件，设置，设置如下：上面有个download路径可以看到的：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190217233531143.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>上传如下，rz后会弹出一个对话框，选择就可：</p>
+<p><img src="https://img-blog.csdnimg.cn/2019021723313847.png" alt="image"></p>
+<p>4.系统命令</p>
+<p>top  查看负载情况<br>
+load average:    0.00,    0.00,    0.00</p>
+<p>机器到底忙不忙就看：      1分钟    5分钟   15分钟<br>
+生产服务器 不要超过10         （之前的经验积累）</p>
+<p>这个是实时动态的</p>
+<p>如果超过了10 就说明机器非常的繁忙<br>
+ps -ef|grep pid</p>
+<p>查看僵尸进程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@mongodb001 etc]# ps -A -o stat,ppid,pid,cmd | grep -e &apos;^[Zz]&apos;</span><br><span class="line">Zl       1 23141 [HPSS_SDCA] &lt;defunct&gt;</span><br><span class="line">[root@mongodb001 etc]#</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190217234833364.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>free -m   查看磁盘 查看内存</p>
+<p><img src="https://img-blog.csdnimg.cn/20190217235220835.png" alt="image"></p>
+<p>总共多少M   已经用了多少M 还剩多少M</p>
+<p>df -h  查看硬盘</p>
+<p><img src="https://img-blog.csdnimg.cn/20190217235506526.png" alt="image"></p>
+<p>5.压缩 解压</p>
+<p>zip unzip</p>
+<p>首先安装着两个软件包：yum install  -y zip unzip</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">zip -r test_zip.zip test_zip/*       表示压缩test_zip文件夹，到test_zip.zip压缩包里。   </span><br><span class="line">unzip test_zip.zip                       表示解压test_zip.zip这个压缩包</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190218000609756.png" alt="image"></p>
+<p>tar.gz   还有些压缩包为tar.gz   用法可以看命令帮助</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Examples:</span><br><span class="line">  tar -cf archive.tar foo bar  # Create archive.tar from files foo and bar.    创建一个tar包</span><br><span class="line">  tar -tvf archive.tar         # List all files in archive.tar verbosely.                 查看tar包里的所有文件，把包里的所有文件列出来</span><br><span class="line">  tar -xf archive.tar          # Extract all files from archive.tar.                        解压tar包</span><br><span class="line"></span><br><span class="line">注意上面：参数横杠后面没有‘z’，所以是    .tar    ，如果有‘z’ 的话，就是  .tar.gz   了（如果以后看到带有 gz 的 ，就加个‘z’参数即可）：</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">tar -czf 6.tar.gz 6/*        表示：把文件夹 6 压缩为   6.tar.gz</span><br><span class="line">tar -xzf 6.tar.gz              表示：解压 6.tar.gz</span><br><span class="line"></span><br><span class="line">如果压缩、解压的过程想看到的话，就再加个 ‘v’  就可以了：</span><br><span class="line">tar -czvf 6.tar.gz 6/*</span><br><span class="line">tar -xzvf 6.tar.gz</span><br></pre></td></tr></table></figure>
+<p>6.wget</p>
+<p>从网页上下载文件：wget   +   链接</p>
+<p>（如果某个文件名称有空格，那么cat的时候，需要把文件名称用双引号引起来）</p>
+<p>7.调度   命令：crontab</p>
+<p>Linux    crontab是用来定期执行程序的命令。</p>
+<p>当安装完成操作系统之后，默认便会启动此任务调度命令。</p>
+<p>crond命令每分锺会定期检查是否有要执行的工作，如果有要执行的工作便会自动执行该工作。</p>
+<p>而linux任务调度的工作主要分为以下两类：</p>
+<ul>
+<li>1、系统执行的工作：系统周期性所要执行的工作，如备份系统数据、清理缓存</li>
+<li>2、个人执行的工作：某个用户定期要做的工作，例如每隔10分钟检查邮件服务器是否有新信，这些工作可由每个用户自行设置</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# crontab -e</span><br><span class="line">* * * * * /root/test.sh &gt;&gt; /root/test.log</span><br></pre></td></tr></table></figure>
+<p>-e  表示编辑  -l表示查看   （如果注释的话，最前面加上 #  就可以了）</p>
+<p>总共有五个’*’  ：*代表 每   ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">第1个: 分钟</span><br><span class="line">第2个: 小时</span><br><span class="line">第3个: 日</span><br><span class="line">第4个: 月</span><br><span class="line">第5个: 周</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190218004519877.png" alt="image"></p>
+<p>==如果想 每10秒执行某个程序  怎么办==？用这个：sleep 10s  （面试题）</p>
+<p><a href="http://xn--shelltest1-pf2pypl2f2vpi6ignnxl0e2swf.sh" target="_blank" rel="noopener">可以在写一个shell脚本test1.sh</a>（写完之后记得赋  执行 的权限  chmod +x <a href="http://test1.sh" target="_blank" rel="noopener">test1.sh</a>  )：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# cat test1.sh</span><br><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">for((i=1;i&lt;=6;i++));</span><br><span class="line">do</span><br><span class="line">        date</span><br><span class="line">        sleep 10s</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+<p>以上这个脚本是有个for循环，循环6次，每次执行一次date命令，然后休眠10秒，再执行下一次循环；</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# cat test.sh</span><br><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">date</span><br></pre></td></tr></table></figure>
+<p>以上这个脚本打印时间。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190218162722293.png" alt="image"></p>
+<p>以上这个截图，可以看出，用crontab -l 可以查看调度了哪些程序。</p>
+<p>第一个行：每两分钟运行一次test.sh脚本，结果就是每两分钟打印一次时间。（如果把“/2”去掉的话，就是每一分钟运行一次脚本）</p>
+<p>第二行：每1分钟运行一次test1.sh脚本，再结合test.sh脚本内容，可以得出结果：每一分钟运行一次脚本，每一次脚本打印6次时间，时间间隔是10秒，所以结果就是没10秒钟打印一次时间。</p>
+<p>8.后台执行命令 不交互（希望某个进程在后台执行）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">./test.sh &amp;</span><br><span class="line">nohup  ./test.sh &amp;</span><br><span class="line">nohup  ./test.sh &gt; /root/test.log 2&gt;&amp;1  &amp;</span><br></pre></td></tr></table></figure>
+<p>（本句话转自其他博客）nohup命令：如果你正在运行一个进程，而且你觉得在退出帐户时该进程还不会结束，那么可以使用nohup命令。该命令可以在你退出帐户/关闭终端之后继续运行相应的进程。</p>
+<p>在缺省情况下该作业的所有输出都被重定向到一个名为nohup.out的文件中。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190218170632461.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>nohup和&amp;的区别</p>
+<p>nohup ： 不挂断的运行，注意并没有后台运行的功能，，就是指，用nohup运行命令可以使命令永久的执行下去，和用户终端没有关系，例如我们断开SSH连接都不会影响他的运行，注意了nohup没有后台运行的意思；&amp;才是后台运行</p>
+<p>&amp;是指在后台运行，但当用户推出(挂起)的时候，命令自动也跟着退出</p>
+<p>那么，我们可以巧妙的吧他们结合起来用就是<br>
+nohup COMMAND &amp;<br>
+这样就能使命令永久的在后台执行</p>
+<p>（以上一段话引用自博客：<a href="https://www.cnblogs.com/jinxiao-pu/p/9131057.html%EF%BC%89" target="_blank" rel="noopener">https://www.cnblogs.com/jinxiao-pu/p/9131057.html）</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/09MySQL部署/" data-toggle="tooltip" data-placement="top" title="[MySQL部署]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/07which，whereis 的区别（Linux ）/" data-toggle="tooltip" data-placement="top" title="[which，whereis 的区别（Linux ）]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

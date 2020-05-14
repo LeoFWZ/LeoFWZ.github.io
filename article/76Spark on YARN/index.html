@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark on YARN]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/76Spark on YARN/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark on YARN]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-08-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="前言">前言</h1>
+<p>Spark 可以跑在很多集群上，比如跑在local上，跑在Standalone上，跑在Apache Mesos上，跑在Hadoop YARN上等等。不管你Spark跑在什么上面，它的代码都是一样的，区别只是–master的时候不一样。其中Spark on YARN是工作中或生产上用的非常多的一种运行模式。</p>
+<h1 id="yarn产生背景">YARN产生背景</h1>
+<p>以前没有YARN的时候，每个分布式框架都要跑在一个集群上面，比如说Hadoop要跑在一个集群上，Spark用集群的时候跑在standalone上，MPI要跑在一个集群上面，等等。<br>
+而且每个分布式框架在各自的集群上跑的时候，都有高峰期低峰期的时候，每个时间点也可能不一样。<br>
+这样的话整个集群的资源的利用率非常的低。而且管理起来比较麻烦，因为每个框架都跑在各自的集群上，要去分别管理。</p>
+<p>那么能不能进行统一的资源管理和调度？这样YARN就产生了。</p>
+<p>那么在YARN上面能跑哪些框架呢？</p>
+<h1 id="在yarn上面能运行的框架">在YARN上面能运行的框架</h1>
+<p>==有了YARN之后，下图所有的框架都可以跑在YARN集群之上，所有的集群管理都由YARN来负责，可以把YARN理解为：一个操作系统级别的资源管理和调度的框架。==</p>
+<p>==可以在YARN之上跑各种不同的框架，只要它符合YARN的标准就行。这样做的好处，多种计算框架可以共享集群资源，按需分配，你需要多少资源，就取YARN上面申请多少资源，这样可以提升整个资源的利用率。这就是要把各种框架跑在YARN上面的根本原因。==</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630111508957.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>备注：Hive可以跑在MR上面，Tez上面，Spark上面。</p>
+<h1 id="yarn架构简单介绍">YARN架构简单介绍</h1>
+<p>之前对YARN架构有详细介绍，这里简单说一下。</p>
+<p>角色：RM、NM、AM、Container。</p>
+<p>面试题必考：各个角色的职责？一个作业挂掉了之后，它怎么重试的，重试的机制？YARN的执行流程？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line">Spark on YARN Overview</span><br><span class="line">    MR：base-process</span><br><span class="line">        each task in its own process：MapTask   ReduceTask   process</span><br><span class="line">        when a task completes，the process goes away</span><br><span class="line">    Spark: base-thread</span><br><span class="line">        many tasks can run concurrently in a single process</span><br><span class="line">        this process sticks around for the lifetime of the Spark Application</span><br><span class="line">        even no jobs are running</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">Spark带来的好处 advantage:</span><br><span class="line">            speed   MR进程起来的时候资源全部要去申请，跑完就销毁，而Spark要用的时候可以直接取来用</span><br><span class="line">			</span><br><span class="line">            tasks can start up very quickly</span><br><span class="line">            in-memory</span><br><span class="line">            </span><br><span class="line">Cluster Manager</span><br><span class="line">        Spark Application ==&gt; Cluster Manager</span><br><span class="line">        Local  standalone  YARN  Mesos K8S ==&gt; Pluggable可插拔，适配各种运行模式</span><br><span class="line"></span><br><span class="line">    ApplicationMaster: AM</span><br><span class="line">	</span><br><span class="line">    YARN Application  ==&gt; 都有AM(first container)进程</span><br><span class="line">	</span><br><span class="line">    Worker的概念，在YARN上面是没有的       YARN X  </span><br><span class="line">	</span><br><span class="line">   executor runs in container(memory of container &gt; executor memory)</span><br><span class="line">   </span><br><span class="line">   </span><br><span class="line">   Worker的是存在在Standalone上卖弄的，我们不关注</span><br><span class="line"></span><br><span class="line">Spark on YARN的模式，Spark仅仅只是一个客户端而已，只要有gateway权限就行</span><br><span class="line">```   </span><br><span class="line"></span><br><span class="line">![iamge](https://img-blog.csdnimg.cn/20190630111601487.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70)</span><br><span class="line"></span><br><span class="line">1.client（比如spark）提交一个作业到RM上；</span><br><span class="line"></span><br><span class="line">2.RM会找一个NM，并在上面启动一个Container；</span><br><span class="line"></span><br><span class="line">3.在Container里面跑AM(作业的主程序)；</span><br><span class="line"></span><br><span class="line">4.一个作业如果要跑的话要申请资源的，所以AM要到RM上面去申请资源。假如说现在拿到了资源：可以在三个NM上面分别启动Container。</span><br><span class="line"></span><br><span class="line">5.拿到了资源列表后，去三个NM上面启动分别启动Container来运行task。</span><br><span class="line"></span><br><span class="line">上面是一个通用的执行流程。</span><br><span class="line"></span><br><span class="line">对于MR来说，这个task是map task或者reduce</span><br><span class="line">task；对于Spark来说，这个task就是executor。</span><br><span class="line"></span><br><span class="line">如果是MR的话，那么AM就是MapReduce的Application</span><br><span class="line"></span><br><span class="line">Master主程序（main函数驱动程序），如果是Spark的话就是Spark的的Application Master主程序（main函数驱动程序）。</span><br><span class="line"></span><br><span class="line"># Spark on Yarn 概述</span><br><span class="line">直接上图:</span><br><span class="line"></span><br><span class="line">![image](https://img-blog.csdnimg.cn/201906301117182.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70)</span><br><span class="line"></span><br><span class="line">关于之前讲的Spark的核心概念：</span><br><span class="line"></span><br><span class="line">一个Spark应用程序包含一个driver和多个executor。</span><br><span class="line"></span><br><span class="line">Driver program是一个进程，它运行应用程序application里面的main()函数，并在main函数里面创建SparkContext。在main函数里面创建了一堆RDD，遇到action的时候会触发job，所以程序会有很多job。</span><br><span class="line"></span><br><span class="line">job：由Spark action触发的由多个tasks组成的并行计算。当一个Spark action（如save, collect）被触发，一个包含很多个tasks的并行计算的job将会生成。</span><br><span class="line"></span><br><span class="line">每个job被切分成小的任务集，这些小的任务集叫做stages。</span><br><span class="line"></span><br><span class="line">task是被发送给一个executor的最小工作单元。每个executor上面可以跑多个task。</span><br><span class="line"></span><br><span class="line">Executor：在worker node上启动应用程序的进程，这个进程可以运行多个任务并将数据保存在内存或磁盘存储中。每个Spark应用程序都有它自己的一组executors。executor运行在Container里面。</span><br><span class="line"></span><br><span class="line">executor是进程级别，一个进程上面可以并行的跑多个线程的，所以每个executor上面可以跑多个task。</span><br><span class="line"></span><br><span class="line">MapReduce和Spark一个本质的区别：</span><br><span class="line"></span><br><span class="line">在MapReduce里，每一个task都在它自己的进程里，map对应maptask，reduce对应reducetask，这些都是进程，当一个task完成（maptask或者reducetask）后，这个task进程就结束了。</span><br><span class="line"></span><br><span class="line">但是在Spark里面是不一样的，==在Spark里面，它的task能够并发的运行在一个进程里，就是说一个进程里面可以运行多个task，而且这个进程会在Spark Application的整个生命周期一直存在，== Spark Application是包含一个driver和多个executor的，即使你的作业不再运行了，job运行完了，没有作业在running，它的executor还是一直在的，</span><br><span class="line">对比MapReduce和Spark可知，MapReduce是基于进程的base-process，Spark是基于线程的base-thread。</span><br><span class="line"></span><br><span class="line">这样的话，Spark带来的好处就是：</span><br><span class="line"></span><br><span class="line">如果是MR的话，你跑task的进程资源都要去申请，用完之后就销毁；但是Spark的话，只要一开始拿到了这些进程资源，后面所有的作业，不需要申请资源，就可以直接快速的启动，是非常的快。用内存的方式进行计算。</span><br><span class="line"></span><br><span class="line">当Spark Application去运行的时候，第一步是向Cluster Manager申请资源。</span><br><span class="line">Spark 可以跑在local、Standalone、Apache Mesos、YARN、K8S上。</span><br><span class="line"></span><br><span class="line">Cluster Manager可以适配以上各种模式，是Pluggable可插拔的。</span><br><span class="line"></span><br><span class="line">![image](https://img-blog.csdnimg.cn/20190630111926178.png)</span><br><span class="line"></span><br><span class="line">ApplicationMaster：AM</span><br><span class="line"></span><br><span class="line">每一个YARN上面的Application都有一个AM，这个AM进程，是在第一个Container里运行的，就是说第一个Container就是来运行AM的，AM去和RM互相通信请求资源，然后拿到资源后告诉NM，让NM启动其它的Container，给我们的进程使用，比如去跑executor。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">在YARN里面，没有worker Node概念的，因为在YARN里面，executor是运行在container里面的，worker概念在standalone存在的。executor是在Container里运行的，所以Container的内存的设置要大于executor的内存的，不然跑不起来的。</span><br><span class="line"></span><br><span class="line">Spark on yarn模式下，spark仅仅是一个客户端而已，生产中只需要在有gateway权限机器上直接解压部署spark即可，非常的方便，并不需要装一个集群。</span><br><span class="line"></span><br><span class="line"># Spark on Yarn</span><br><span class="line"></span><br><span class="line">如何提交Spark应用程序，之前已经讲过，官网也有：http://spark.apache.org/docs/latest/submitting-applications.html</span><br><span class="line"></span><br><span class="line">Spark Running on Yarn看官网：</span><br><span class="line">http://spark.apache.org/docs/latest/running-on-yarn.html</span><br><span class="line"></span><br><span class="line">支持YARN上运行spark是在版本Spark 0.6.0上添加的，并在后续版本中进行了一些改善。</span><br><span class="line"></span><br><span class="line"># YARN上面启动Spark–理论</span><br><span class="line"></span><br><span class="line">确保HADOOP_CONF_DIR或YARN_CONF_DIR指向包含hadoop集群配置文件的文件夹(hdfs-site、core-site、yarn-site....)这些配置用来写数据到hdfs，连接到YARN的resourceManager。（就是说要在配置文件中配置一下，告诉Spark，你要跑在YARN上面，怎么连接到集群上面等）。此目录中包含的配置将分发到YARN群集，以便应用程序使用的所有容器都使用相同的配置。（比如说，你启动了后，会有很多executor，那么这些executor的配置都是一样的，一样是因为读取的都是相同的文件配置）。如果配置引用了不受YARN管理的Java系统属性或环境变量，那么也应该在Spark应用程序的配置（driver，executors和AM在客户端模式下运行时）中进行设置。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">（举例：export HADOOP_CONF_DIR=/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/etc/hadoop/）</span><br><span class="line">There are two deploy modes that can be used to launch Spark applications on YARN. In cluster mode, the Spark driver runs inside an application master process which is managed by YARN on the cluster, and the client can go away after initiating the application. In client mode, the driver runs in the client process, and the application master is only used for requesting resources from YARN.</span><br><span class="line"></span><br><span class="line">有两种模式可以在YARN上启动Spark 应用。在集群模式下，Spark驱动程序运行在由集群上的YARN管理的application master进程（AM进程）内部，客户端可以在启动应用程序后关闭。在客户端模式下，驱动程序在客户端进程中运行， application master仅用于从YARN请求资源，客户端是不能关闭的，关掉的话作业就会挂掉。</span><br></pre></td></tr></table></figure>
+<p>两种Deploy Mode：</p>
+<pre><code>    client： Driver local
+    cluster：Driver Cluster  AM
+</code></pre>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">Unlike other cluster managers supported by Spark in which the master’s address is specified in the --master parameter, in YARN mode the ResourceManager’s address is picked up from the Hadoop configuration. Thus, the --master parameter is yarn.</span><br><span class="line"></span><br><span class="line">与Spark支持的其他集群管理器不同比如Spark standalone和Mesos模式，主节点地址在–master参数中指定，在YARN模式下，ResourceManager的地址从Hadoop配置中提取。因此，==–master的参数是yarn。==</span><br><span class="line"></span><br><span class="line">To launch a Spark application in cluster mode:</span><br></pre></td></tr></table></figure>
+<p>$ ./bin/spark-submit --class path.to.your.Class --master yarn --deploy-mode cluster [options] <app jar=""> [app options]</app></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">For example:</span><br></pre></td></tr></table></figure>
+<p>$ ./bin/spark-submit --class org.apache.spark.examples.SparkPi <br>
+–master yarn <br>
+–deploy-mode cluster <br>
+–driver-memory 4g <br>
+–executor-memory 2g <br>
+–executor-cores 1 <br>
+–queue thequeue <br>
+examples/jars/spark-examples*.jar <br>
+10</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">以上启动了运行默认Application Master的YARN客户端程序。SparkPi 将作为Application Master的一个子线程运行。客户端将定期轮询Application Master的状态更新并将其显示在控制台中。一旦你的应用结束运行，客户端将退出。</span><br><span class="line">To launch a Spark application in client mode, do the same, but replace cluster with client. The following shows how you can run spark-shell in client mode:</span><br></pre></td></tr></table></figure>
+<p>$ ./bin/spark-shell --master yarn --deploy-mode client</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">–deploy-mode client不写的话默认就是client</span><br><span class="line"></span><br><span class="line"># YARN上面启动Spark–测试</span><br><span class="line"></span><br><span class="line">在我自己的云主机上（4G内存，2个core）</span><br><span class="line">先执行：export HADOOP_CONF_DIR=/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/etc/hadoop/</span><br><span class="line">运行命令：</span><br></pre></td></tr></table></figure>
+<p>spark-shell --master yarn --deploy-mode client</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">发现报错，修改下，把executor改成1个，内存改小一些，运行下面这个命令：</span><br></pre></td></tr></table></figure>
+<p>spark-shell --master yarn --deploy-mode client <br>
+–executor-memory 500M <br>
+–num-executors 1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">还是报错，如下。一直没有解决，可能是云主机资源太少了的缘故。跑不起来。待解决。。。。。。</span><br></pre></td></tr></table></figure>
+<p>ERROR YarnClientSchedulerBackend: The YARN application has already ended! It might have been killed or the Application Master may have failed to start. Check the YARN application logs for more details.<br>
+ERROR SparkContext: Error initializing SparkContext.<br>
+org.apache.spark.SparkException: Application application_1559720994730_0007 failed 2 times due to AM Container for appattempt_1559720994730_0007_000002 exited with  exitCode: 1<br>
+For more detailed output, check application tracking page:<a href="http://hadoop001:18088/proxy/application_1559720994730_0007/Then" target="_blank" rel="noopener">http://hadoop001:18088/proxy/application_1559720994730_0007/Then</a>, click on links to logs of each attempt.<br>
+Diagnostics: Exception from container-launch.<br>
+Container id: container_1559720994730_0007_02_000001<br>
+Exit code: 1<br>
+Stack trace: ExitCodeException exitCode=1:<br>
+…<br>
+org.apache.spark.SparkException: Application application_1559720994730_0007 failed 2 times due to AM Container for appattempt_1559720994730_0007_000002 exited with  exitCode: 1<br>
+…<br>
+Container exited with a non-zero exit code 1<br>
+Failing this attempt. Failing the application.<br>
+…</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">如果跑起来之后，可以通过web界面去看相应的job等等，上面有很多信息。</span><br><span class="line"></span><br><span class="line">比如：一个job下面有多个stage，一个stage下面有多个task。</span><br><span class="line"></span><br><span class="line">举例：</span><br></pre></td></tr></table></figure>
+<p>//在spark-shell上执行这个命令：<br>
+sc.textFile(“hdfs://文件路径”).flatMap(<em>.split(&quot;\t&quot;).map((</em>,1)).reduceByKey(<em>+</em>).collect</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然后可以去界面上看DAG图：</span><br><span class="line"></span><br><span class="line">![image](https://img-blog.csdnimg.cn/20190614001442730.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70)</span><br><span class="line"></span><br><span class="line">可以看出，collect是一个action，遇到collect的时候触发了这个job；reduceByKey含有shuffle，遇到reduceByKey的时候拆分成两个stage。</span><br><span class="line"></span><br><span class="line">然后deploy-mode为 cluster来启动，报错：</span><br></pre></td></tr></table></figure>
+<p>[hadoop@hadoop001 ~]$ spark-shell --master yarn --deploy-mode cluster<br>
+Exception in thread “main” org.apache.spark.SparkException: Cluster deploy mode is not applicable to Spark shells.<br>
+at org.apache.spark.deploy.SparkSubmit.error(SparkSubmit.scala:857)<br>
+at org.apache.spark.deploy.SparkSubmit.prepareSubmitEnvironment(SparkSubmit.scala:292)<br>
+at org.apache.spark.deploy.SparkSubmit.submit(SparkSubmit.scala:143)<br>
+at org.apache.spark.deploy.SparkSubmit.doSubmit(SparkSubmit.scala:86)<br>
+at org.apache.spark.deploy.SparkSubmit$$anon$2.doSubmit(SparkSubmit.scala:924)<br>
+at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:933)<br>
+at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)<br>
+[hadoop@hadoop001 ~]$</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">之前在yarn的运行架构的时候，提到过：由于driver是在集群上调度各个任务的，所以它应该靠近工作节点运行，最好是在同一局域网上运行。如果你想发送请求给远端的集群，最好向驱动程序打开RPC并让它从附近提交操作，而不是远离工作节点运行驱动程序。</span><br><span class="line"></span><br><span class="line">所以把driver运行在集群里面，这样driver靠近工作节点（executor节点）运行，性能会更好一点。</span><br><span class="line">但是，如果driver运行在本地local，它的日志就在本地，但是如果运行在集群里面，不知道AM运行在哪个节点上，日志不知道在哪里，你需要怎么看日志？</span><br><span class="line"></span><br><span class="line">可通过yarn logs -applicationId 命令查询yarn上作业日志。</span><br></pre></td></tr></table></figure>
+<p>yarn logs -applicationId <app id=""></app></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"># Spark Properties 属性</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Spark on YARN 模式的executor个数默认是2</span><br><span class="line"></span><br><span class="line">可以通过spark-shell  --help看到</span><br><span class="line"></span><br><span class="line">Spark的属性有：</span><br><span class="line"></span><br><span class="line">spark.yarn.am.memory、spark.yarn.max.executor.failures、spark.executor.instances、spark.yarn.am.cores等等</span><br><span class="line">这些都有默认值，也都是可以调的。</span><br><span class="line"></span><br><span class="line">当这样启动spark-shell的时候：</span><br></pre></td></tr></table></figure>
+<p>[hadoop@hadoop001 ~]$ spark-shell --master yarn --deploy-mode client<br>
+WARN NativeCodeLoader: Unable to load native-hadoop library for your platform… using builtin-java classes where applicable<br>
+Setting default log level to “WARN”.<br>
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).<br>
+WARN Client: Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.<br>
+。。。。。</p>
+<pre><code>
+里面的这个：
+
+Neither spark.yarn.jars nor spark.yarn.archive is set, falling back to uploading libraries under SPARK_HOME.
+spark.yarn.jars和spark.yarn.archive没有被设置，会把SPARK_HOME下面的这些东西打个包上传到HDFS上面去，这个过程是非常耗性能的。
+
+看一下SPARK_HOME下面，jars和conf路径下面有很多东西，如果打包上传到HDFS上面肯定要耗性能的。
+可以通过下面这些参数进行设置，不让它上传（你可以自己先上传到HDFS上面去）
+
+spark.yarn.dist.archives
+
+spark.yarn.dist.files
+
+spark.yarn.dist.jars
+
+这个在生产上是一个调优点，很有用的。
+
+
+Spark Properties	default	
+
+spark.yarn.am.memory	512m
+
+spark.yarn.am.cores 1
+
+spark.yarn.max.executor.failures	numExecutors * 2, with minimum of 3（二者最小值） executor执行多少次失败算程序失败
+
+spark.yarn.jars	none	（重要且有用）配置spark的相关jars在hdfs上的位置，如果不配置，每次启动会上传到hdfs，非常耗时间的
+
+spark.yarn.archive	none	（重要且有用）配置spark的相关配置文件在hdfs上的位置，如果不配置，每次启动会上传到hdfs，非常耗时间的
+
+spark.yarn.queue	default	默认使用默认的队列
+
+
+### 作业资源计算：
+
+![image](https://s2.ax1x.com/2019/05/17/EbvY1e.png)
+
+
+3个container：1个AM容器+2个Executor容器 ,spark on yarn下默认Executor数是2
+
+3个vcore：AM和Executor默认vcore都是1，故总共3个vcore
+
+5120M（5G）:? 个人认为是3G
+
+
+思考：cluster:  Cluster deploy mode is not applicable to Spark shells.
+
+
+### Understanding closures
+
+将要作用到RDD上的操作，不管它们是一个函数还是一段代码片段，它们都是“闭包”，Spark会把这个闭包副本分发到各个worker节点上去执行，但是diver端不会变，即所有executor以及diver的闭包结果互不影响。但是local模式有些区别，是和diver共享的。
+
+
+## spark on yarn总结：
+
+1）如果是local模式，driver跑在本地，driver调度task，把task任务发送给executor，如果是cluster模式，driver跑在集群里。
+
+2）如果是local模式，客户端不可以在启动应用程序后关闭。如果是cluster模式，客户端可以在启动应用程序后关闭
+
+3）AM：Application Master
+本地local模式：AM仅仅用于申请资源
+cluster集群模式：AM不仅仅用于申请资源，还有task的调度（这个调度本来是driver来做的，但是现在driver是跑在Cluster模式的，所以资源申请和task调度就在一块了）
+（cluster集群模式：driver跑在AM进程里面，driver的对task的调度就由AM来执行了）
+
+什么时候选择client，什么什么选择cluster？都可以的，你可以选择cluster，但是很多场景都是选择client模式的。
+
+
+**PS补充：**
+
+在Spark配置文件里有有slaves配置文件的，那么在Spark on Yarn模式里需要配置吗？
+
+不需要，对于Spark on Yarn，只有一个条件，那就是有 GATEWAY权限，能拿到Hadoop那一堆配置文件，所以他是一个客户端
+  
+ 在$SPARK_HOME目录下/sbin/start-all.sh    /start-master.sh       start-slaves.sh
+Spark on Yarn模式需不需要启动这些命令
+ 或者说slaves里需不需要配置，答案是不需要的，这种模式我们在生产上几乎用不到
+ 
+比如：Spark on Yarn集群模式下是不会起任何节点的，不需要起任何的Spark进程
+
+
+
+
+</code></pre>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/77Spark-Core之map与mapPartitions/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之map与mapPartitions]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/75Spark的driver理解和executor理解/" data-toggle="tooltip" data-placement="top" title="[Spark的driver理解和executor理解]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#前言"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x524D;&#x8A00;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#yarn产生背景"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">YARN&#x4EA7;&#x751F;&#x80CC;&#x666F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#在yarn上面能运行的框架"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x5728;YARN&#x4E0A;&#x9762;&#x80FD;&#x8FD0;&#x884C;&#x7684;&#x6846;&#x67B6;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#yarn架构简单介绍"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">YARN&#x67B6;&#x6784;&#x7B80;&#x5355;&#x4ECB;&#x7ECD;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

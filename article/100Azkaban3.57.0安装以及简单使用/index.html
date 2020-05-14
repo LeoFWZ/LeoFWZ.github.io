@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Azkaban3.57.0安装以及简单使用]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/100Azkaban3.57.0安装以及简单使用/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Azkaban" title="Azkaban">Azkaban</a>
+                            
+                        </div>
+                        <h1>[Azkaban3.57.0安装以及简单使用]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2019-02-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="1为啥什么要使用workflow">1.为啥什么要使用WorkFlow？</h1>
+<p>生产中<strong>ETL、以及HIve sql等作业都是通过shell命令触发运行的</strong>，我们知道Linux有自带的Crontab调度器，通过它可以进行简单作业的调度，但是对于一些依赖的作业，比如作业B依赖于作业A完成后才能开始，这是Crontab很难去配置了，因为配置Crontab人根本不知道作业具体是何时完成的，全凭经验感觉，这是不可取的。此时我们需要Work Flow来规划好作业的执行调度。</p>
+<p>市场主流的工作流有两种：<strong>Oozie以及Azkzban</strong>。</p>
+<h1 id="2常用工作流对比">2.常用工作流对比</h1>
+<ul>
+<li>Oozie：重量级的，不推荐使用，开发需要写一堆XML配置，非常的麻烦，生产上面如果用CM的话，Oozie可以直接配的(在HUE里)</li>
+<li>Azkzban：轻量级的，推荐使用，具有很好的WEBUI交互设计，但是也是比较难用，部分功能需要自定义开发，如无短信通知功能。</li>
+</ul>
+<h1 id="3azkaban简介">3.Azkaban简介</h1>
+<p>Scheduler调度框架</p>
+<ul>
+<li>首先它不是apache项目，但属于开源项目，官网地址：<a href="https://azkaban.github.io/" target="_blank" rel="noopener">https://azkaban.github.io/</a></li>
+<li>它是用于运行hadoop生态圈相关作业的批量工作流调度器，主要用于解决作业间的依赖关系来解决顺序问题，它提供了- 一个良好的Web操作界面。</li>
+<li>两种部署模式：无论哪一种部署模式都会包含所有的特性</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">solo-server mode :单机模式，内置了H2数据库，web和executor服务运行在一个进程上，可用于测试，本次测试部署的是单机模式，</span><br><span class="line">multiple-executor mode:集群模式，DB使用的是有主备的mysql，升级维护不影响使用，用于生产</span><br></pre></td></tr></table></figure>
+<p>这里引申出来一个问题：生产上web server and executor server需不需要HA</p>
+<p>executor server是可以配多个</p>
+<ul>
+<li>具体特性可参考官网</li>
+</ul>
+<h1 id="4安装azkabab">4.安装Azkabab</h1>
+<p>安装以3.81.0版本的Azkabab需要有jdk1.8、gradle、git环境，gradle是类似于maven一样的jar依赖管理工具。</p>
+<h2 id="41下在安装包">4.1下在安装包</h2>
+<ul>
+<li>
+<p>下载Azkabab：前往github，注意不要选择pre-XXX开头的版本包，这里我选的是最新的3.81.0<br>
+<img src="https://img-blog.csdnimg.cn/20200416154223441.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+</li>
+<li>
+<p>下载gradle:<a href="https://gradle.org/releases/" target="_blank" rel="noopener">官网地址</a>,我这里下载的是4.6版本</p>
+</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/2020041615472672.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="42配置gradle安装包">4.2配置gradle安装包</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#解压</span><br><span class="line">[hadoop@hadoop001 ~]$ tar -zxvf ~/soft/azkaban-3.81.0.tar.gz -C ~/source/ </span><br><span class="line"></span><br><span class="line">#使用gradlew编译时会自动下载的gradle，但是太慢了，我们选择手动下载然后拷贝到wrapper目录</span><br><span class="line">[hadoop@hadoop001 source]$ cp ~/soft/gradle-4.6-all.zip ~/source/azkaban-3.81.0/gradle/wrapper/</span><br><span class="line">[hadoop@hadoop001 ~]$ cd ~/source/azkaban-3.81.0/gradle/wrapper/</span><br><span class="line">[hadoop@hadoop001 wrapper]$ ll</span><br><span class="line">total 104284</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop 106724289 Apr 16 07:52 gradle-4.6-all.zip</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop     54708 Dec  5 20:06 gradle-wrapper.jar</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop       779 Dec  5 20:06 gradle-wrapper.properties</span><br><span class="line"></span><br><span class="line">#修改distributionUrl配置</span><br><span class="line">[hadoop@hadoop001 wrapper]$  vi gradle-wrapper.properties </span><br><span class="line">distributionUrl=gradle-4.6-all.zip</span><br></pre></td></tr></table></figure>
+<h2 id="43安装git">4.3安装git</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#注意使用root</span><br><span class="line">[root@hadoop001 ~]$ yum install -y git</span><br><span class="line">[root@hadoop001 ~]# git --version</span><br><span class="line">git version 1.7.1</span><br></pre></td></tr></table></figure>
+<h2 id="44编译以及安装">4.4编译以及安装</h2>
+<p>编译命令：./gradlew build installDist -x test，-x test表示跳过测试，跳过测试可大大降低编译所需要的时间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">#编译，编译需要下载依赖的包，故需要等待会儿，首先要装gradlew</span><br><span class="line">[hadoop@hadoop001 ~]$ cd /home/hadoop/source/azkaban-3.81.0/</span><br><span class="line">[hadoop@hadoop001 azkaban-3.81.0]$ ./gradlew build installDist -x test</span><br><span class="line"></span><br><span class="line">#若遇到如下异常</span><br><span class="line">FAILURE: Build failed with an exception.</span><br><span class="line"> What went wrong:</span><br><span class="line">Execution failed for task &apos;:az-crypto:test&apos;.</span><br><span class="line">&gt; There were failing tests. See the report at: file:///home/hadoop/source/azkaban-3.57.0/az-crypto/build/reports/tests/test/index.html</span><br><span class="line">#通过查阅子资料分析得知，缺少了jce，下载地址：https://www.oracle.com/technetwork/cn/java/javase/downloads/jce8-download-2133166-zhs.html ，解压并放在jre相关目录</span><br><span class="line">[root@hadoop001 soft]# unzip jce_policy-8.zip</span><br><span class="line">[root@hadoop001 soft]# cd UnlimitedJCEPolicyJDK8/</span><br><span class="line">[root@hadoop001 UnlimitedJCEPolicyJDK8]# ll</span><br><span class="line">total 16</span><br><span class="line">-rw-rw-r--. 1 root root 3035 Dec 21  2013 local_policy.jar</span><br><span class="line">-rw-r--r--. 1 root root 7323 Dec 21  2013 README.txt</span><br><span class="line">-rw-rw-r--. 1 root root 3023 Dec 21  2013 US_export_policy.jar</span><br><span class="line">[root@hadoop001 soft]# cp UnlimitedJCEPolicyJDK8/* /usr/java/jdk1.8.0_45/jre/lib/security/</span><br><span class="line"></span><br><span class="line">还有报错的话可以使用以下方法：</span><br><span class="line">安装 ca-certificates ：yum install ca-certificates</span><br><span class="line">更新本地证书库： update-ca-trust -h</span><br><span class="line"></span><br><span class="line"> update-ca-trust check</span><br><span class="line"></span><br><span class="line"> update-ca-trust enable</span><br><span class="line"></span><br><span class="line">//以上的问题都是服务器配置混乱，网络不通畅导致</span><br><span class="line"></span><br><span class="line">#重新编译</span><br><span class="line">[hadoop@hadoop001 azkaban-3.57.0]# ./gradlew build installDist -x test</span><br><span class="line"></span><br><span class="line">BUILD SUCCESSFUL in 49m 42s</span><br><span class="line">105 actionable tasks: 105 executed</span><br><span class="line">[hadoop@hadoop001 azkaban-3.81.0]$ </span><br><span class="line"></span><br><span class="line">#查看部署包，azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz为单机部署的包</span><br><span class="line">[hadoop@hadoop001 azkaban-3.81.0]$ cd azkaban-solo-server/build/distributions/</span><br><span class="line">[hadoop@hadoop001 distributions]$ ll</span><br><span class="line">total 71060</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 36313361 Apr 16 09:17 azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 36449964 Apr</span><br><span class="line"></span><br><span class="line">#解压</span><br><span class="line">[hadoop@hadoop001 distributions]$ mv azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz ~/soft/</span><br><span class="line">[hadoop@hadoop001 distributions]$ cd ~/soft/</span><br><span class="line">[hadoop@hadoop001 soft]$ tar -zxvf azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz -C ~/app/</span><br><span class="line"></span><br><span class="line">#启动，注意要在安装目录启动，踩坑</span><br><span class="line">[hadoop@hadoop001 azkaban-solo-server-0.1.0-SNAPSHOT]$ bin/start-solo.sh</span><br><span class="line">[hadoop@hadoop001 azkaban-solo-server-0.1.0-SNAPSHOT]$ jps</span><br><span class="line">7882 AzkabanSingleServer</span><br><span class="line">7899 Jps</span><br><span class="line">#关闭命令</span><br><span class="line">[hadoop@hadoop001 azkaban-solo-server-0.1.0-SNAPSHOT]$ bin/shutdown-solo.sh</span><br><span class="line"></span><br><span class="line">#(可选操作)修改配置文件，修改首页显示信息</span><br><span class="line">azkaban.name=FWZ Test</span><br><span class="line">azkaban.label=FWZ study Azkaban</span><br><span class="line"></span><br><span class="line">#(可选操作)修改配置文件，添加登录的用户fwz</span><br><span class="line">[hadoop@hadoop001 conf]$ vi azkaban-users.xml </span><br><span class="line">  &lt;user password=&quot;123456&quot; roles=&quot;admin&quot; username=&quot;fwz&quot;/&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="5简单使用azkabab">5.简单使用Azkabab</h1>
+<p>Azkabab的主页地址：<a href="http://hadoop001:8081/" target="_blank" rel="noopener">http://hadoop001:8081/</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20200416172441633.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200416181708347.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="51创建项目">5.1创建项目</h2>
+<p>创建了一个personal类型项目,名称为fwztestProject</p>
+<p><img src="https://img-blog.csdnimg.cn/20200416181839623.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="52创建一个简单flow">5.2创建一个简单flow</h2>
+<p>一个flow是由.project以及.flow两个文件构成</p>
+<p>创建一个first目录，下面存放两个两个文件，也是Azkaban需要的两个文件：basic.flow和flow20.project<br>
+<img src="https://img-blog.csdnimg.cn/20200416182331287.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>
+flow20.project的文件内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">azkaban-flow-version: 2.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编辑basic.flow,basic则是flow的名称配置具体作业信息,作业名jobA,作业的类型命令，作业配置，执行的命令<br>
+basic.flow的文件内容：<br>
+name：作业名<br>
+type：命令类型，比如comand<br>
+commond：这里输出了一句话This is an echoed text</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nodes:</span><br><span class="line">  - name: jobA</span><br><span class="line">    type: command</span><br><span class="line">    config:</span><br><span class="line">      command: echo &quot;This is an echoed text.&quot; &gt;&gt; /home/hadoop/data/azkabantest/job1.txt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将first目录打成zip包上传到Azkaban</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/2020041618351037.png" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200416184032389.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200416183626550.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<ul>
+<li>运行flow,succeeded表示运行成功</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20200416183710351.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="[外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传(img-zmvGF1Mn-1587023110562)(https://s2.ax1x.com/2019/05/14/EomPFs.md.png)]"></p>
+<p>比较奇怪，我的文件并没有输出到文本中，但是我换了一个其它命令是可以运行的。</p>
+<h2 id="52创建一个多job的flow">5.2创建一个多job的flow</h2>
+<p>新建一个dependency目录，下面两个文件，主要编辑basic.flow文件</p>
+<ul>
+<li>编辑flow文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">nodes:</span><br><span class="line">  - name: jobC</span><br><span class="line">    type: noop</span><br><span class="line">    # jobC depends on jobA and jobB</span><br><span class="line">    dependsOn:</span><br><span class="line">      - jobA</span><br><span class="line">      - jobB</span><br><span class="line"></span><br><span class="line">  - name: jobA</span><br><span class="line">    type: command</span><br><span class="line">    config:</span><br><span class="line">      command: echo &quot;This is an echoed text.&quot;</span><br><span class="line"></span><br><span class="line">  - name: jobB</span><br><span class="line">    type: command</span><br><span class="line">    config:</span><br><span class="line">      command: pwd</span><br></pre></td></tr></table></figure>
+<p>type：noop表示无操作，dependson表示作业的依赖关系</p>
+<ul>
+<li>编辑project文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">azkaban-flow-version: 2.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>运行flow,succeeded表示运行成功,下图是作业间的依赖关系<br>
+<img src="https://img-blog.csdnimg.cn/20200416184414720.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></li>
+</ul>
+<h2 id="53创建一个wc的mr任务的flow">5.3创建一个wc的MR任务的flow</h2>
+<p>wc使用的是hadoop自带的example的jar包</p>
+<ul>
+<li>编辑flow文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nodes:</span><br><span class="line">  - name: jobA</span><br><span class="line">    type: command</span><br><span class="line">    config:</span><br><span class="line">      command: /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/bin/hadoop jar /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.6.0-cdh5.7.0.jar wordcount file:///home/hadoop/data/azkabantest/word.txt file:///home/hadoop/data/azkabantest/output1</span><br></pre></td></tr></table></figure>
+<p>type：noop表示无操作，dependson表示作业的依赖关系</p>
+<ul>
+<li>编辑project文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">azkaban-flow-version: 2.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将文件夹打zip包上传运行。WC是MR任务，运行时启动是需要一定时间的</li>
+<li>查看结果</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 azkabantest]$ ll output1/</span><br><span class="line">total 4</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop 65 May  3 00:27 part-r-00000.bz2</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop  0 May  3 00:27 _SUCCESS</span><br><span class="line">[hadoop@hadoop001 azkabantest]$ vim output1/part-r-00000.bz2</span><br><span class="line">hao     2</span><br><span class="line">he      1</span><br><span class="line">hello   1</span><br><span class="line">hellow  1</span><br><span class="line">ni      1</span><br><span class="line">word    3 、</span><br></pre></td></tr></table></figure>
+<h2 id="54-如何修改已经上传的flow">5.4 如何修改已经上传的flow？</h2>
+<p><img src="https://img-blog.csdnimg.cn/20200416184814712.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>
+<img src="https://img-blog.csdnimg.cn/20200416184826454.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="55-如何给flow添加调度">5.5 如何给flow添加调度？</h2>
+<p>如下图,可非常方便的为flow添加相应的调度</p>
+<p><img src="https://img-blog.csdnimg.cn/20200416184918293.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>
+<img src="https://img-blog.csdnimg.cn/20200416184959351.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200416185102533.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="56-如何给调度配置邮箱告警">5.6 如何给调度配置邮箱告警？</h2>
+<p>如下图，可以根据不同的规则配置告警信息.</p>
+<p><img src="https://img-blog.csdnimg.cn/20200416185131361.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>
+<img src="https://img-blog.csdnimg.cn/20200416185150268.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="57-如何只跑flow中的某个作业">5.7 如何只跑flow中的某个作业？</h2>
+<p>如下图，下来列表中的job点击相应的run即可，在某个作业跑挂了，修复数据是方便。</p>
+<p><img src="https://img-blog.csdnimg.cn/20200416185227984.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h2 id="58关于flow执行的一些有用的配置">5.8关于flow执行的一些有用的配置</h2>
+<p><img src="https://img-blog.csdnimg.cn/20200416185319660.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<ul>
+<li><strong>Page View</strong>:（重要）作业的执行视图，可知设置哪些作业执行哪些不执行</li>
+<li>Notification：设置邮件通知，在workfow执行成功或者失败时都可以设置邮件通知</li>
+<li><strong>Failure Option</strong>:（重要）某个作业执行失败时操作，生产上选择Cancel - - All，kill所有的作业不管跑没跑</li>
+<li>concurrent：设置工作流的并发</li>
+<li>Flow Parameters:设置工作流的参数，覆盖是全局的setting</li>
+</ul>
+<h1 id="总结">总结：</h1>
+<ul>
+<li>以上是Azkaban的安装以及简单使用的过程，无论是学习还是生产使用都是有很大的帮助，</li>
+<li>对于生产上Oozie与Azkaban的选择，个人倾向于更加轻量简单的后者</li>
+<li>两种工作流框架都是有个致命的缺点，不能完全的面向用户，用户是不知道hadoop.jar那些东西的，若用户能够在页面拖拽拉实现flow的配置那就更加的完美了，而且还要集成短信，故大公司都是自研工作流框架。</li>
+</ul>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/101ElesticSearch6.6.2入门和安装部署/" data-toggle="tooltip" data-placement="top" title="[ElesticSearch6.6.2入门和安装部署]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/99ZooKeeper介绍及基本操作/" data-toggle="tooltip" data-placement="top" title="[ZooKeeper介绍及基本操作]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1为啥什么要使用workflow"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1.&#x4E3A;&#x5565;&#x4EC0;&#x4E48;&#x8981;&#x4F7F;&#x7528;WorkFlow&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2常用工作流对比"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2.&#x5E38;&#x7528;&#x5DE5;&#x4F5C;&#x6D41;&#x5BF9;&#x6BD4;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3azkaban简介"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3.Azkaban&#x7B80;&#x4ECB;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#4安装azkabab"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4.&#x5B89;&#x88C5;Azkabab</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#41下在安装包"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">4.1&#x4E0B;&#x5728;&#x5B89;&#x88C5;&#x5305;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#42配置gradle安装包"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">4.2&#x914D;&#x7F6E;gradle&#x5B89;&#x88C5;&#x5305;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#43安装git"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">4.3&#x5B89;&#x88C5;git</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#44编译以及安装"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">4.4&#x7F16;&#x8BD1;&#x4EE5;&#x53CA;&#x5B89;&#x88C5;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#5简单使用azkabab"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5.&#x7B80;&#x5355;&#x4F7F;&#x7528;Azkabab</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#51创建项目"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">5.1&#x521B;&#x5EFA;&#x9879;&#x76EE;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#52创建一个简单flow"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">5.2&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x7B80;&#x5355;flow</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#52创建一个多job的flow"><span class="toc-nav-number">5.3.</span> <span class="toc-nav-text">5.2&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x591A;job&#x7684;flow</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#53创建一个wc的mr任务的flow"><span class="toc-nav-number">5.4.</span> <span class="toc-nav-text">5.3&#x521B;&#x5EFA;&#x4E00;&#x4E2A;wc&#x7684;MR&#x4EFB;&#x52A1;&#x7684;flow</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#54-如何修改已经上传的flow"><span class="toc-nav-number">5.5.</span> <span class="toc-nav-text">5.4 &#x5982;&#x4F55;&#x4FEE;&#x6539;&#x5DF2;&#x7ECF;&#x4E0A;&#x4F20;&#x7684;flow&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#55-如何给flow添加调度"><span class="toc-nav-number">5.6.</span> <span class="toc-nav-text">5.5 &#x5982;&#x4F55;&#x7ED9;flow&#x6DFB;&#x52A0;&#x8C03;&#x5EA6;&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#56-如何给调度配置邮箱告警"><span class="toc-nav-number">5.7.</span> <span class="toc-nav-text">5.6 &#x5982;&#x4F55;&#x7ED9;&#x8C03;&#x5EA6;&#x914D;&#x7F6E;&#x90AE;&#x7BB1;&#x544A;&#x8B66;&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#57-如何只跑flow中的某个作业"><span class="toc-nav-number">5.8.</span> <span class="toc-nav-text">5.7 &#x5982;&#x4F55;&#x53EA;&#x8DD1;flow&#x4E2D;&#x7684;&#x67D0;&#x4E2A;&#x4F5C;&#x4E1A;&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#58关于flow执行的一些有用的配置"><span class="toc-nav-number">5.9.</span> <span class="toc-nav-text">5.8&#x5173;&#x4E8E;flow&#x6267;&#x884C;&#x7684;&#x4E00;&#x4E9B;&#x6709;&#x7528;&#x7684;&#x914D;&#x7F6E;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">&#x603B;&#x7ED3;&#xFF1A;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Azkaban" title="Azkaban">Azkaban</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

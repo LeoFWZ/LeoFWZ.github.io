@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [HDFS HA 架构]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/38HDFS HA 架构/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                            
+                        </div>
+                        <h1>[HDFS HA 架构]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-03-10
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="ha背景">HA背景</h1>
+<p>对于HDFS、YARN的每个角色都是一个进程，</p>
+<p>比如HDFS：NN/SNN/DN   老大是NN</p>
+<p>YARN：RM/NM   老大是RM</p>
+<p>对于上面，都会存在单点故障的问题，假如老大NN或者RM挂了，那么就不能提供对外服务了，会导致整个集群都不能使用</p>
+<p>大数据几乎所有的组建都是主从架构（master-slave）。比如hdfs的读写请求都是先经过NN节点。（但是hbase的读写请求不是经过老大的master）。</p>
+<p>hdfs：由NN/SNN/DN组成，SNN每小时会做一次checkpoint的操作，如果NN挂了，只能恢复到上次checkpoint的那一刻，不能实时。现在如果把SNN的角色再提升一个等级，让它和NN一样，如果NN挂了，SNN能立即切换过来就好了。</p>
+<p>HDFS HA 架构 有两个NN节点，一个是active活跃状态，一个是standby准备状态，Active NameNode对外提供服务，比如处理来自客户端的RPC请求，而Standby NameNode则不对外提供服务，仅同步Active NameNode的状态，对Active NameNode进行实时备份，以便能够在它失败时快速进行切换。</p>
+<h1 id="ha介绍">HA介绍</h1>
+<p>HDFS High Availability (HA)</p>
+<p>假定：</p>
+<p>NN1 active       ip1</p>
+<p>NN2 standby      ip2</p>
+<p>假如说在我们代码或者shell脚本里，写了：hdfs dfs -ls hdfs://ip1:9000/   ，那么如果NN1挂了，NN2切换到active状态了，但是在脚本里还是ip1，这个时候不可能手动去修改。肯定有问题。那么该怎么解决？</p>
+<p>用命名空间来解决。nameservice1，命名空间不是进程。比如：命名空间的名称为：RUOZEG6</p>
+<p>这里用到的命名空间是无感知的:NN状态可以随意切</p>
+<p>脚本里可以这样写：hdfs dfs -ls hdfs://RUOZEG6/</p>
+<p>当代码执行到这一行时，它会去core-site.xml、hdfs-site.xml里面查找。在这两个配置文件里面，配置了RUOZEG6命名空间下挂了NN1和NN2。当它找到NN1，它会尝试着连接第一个机器NN1，如果发现它不是active状态，它会尝试着连接第二个机器NN2，如果发现NN1是active状态，就直接用了。</p>
+<p>HA 进程：(假定我们现在有三台机器)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hadoop001:ZK    NN  ZKFC  JN    DN</span><br><span class="line">hadoop002:ZK    NN  ZKFC  JN    DN</span><br><span class="line">hadoop003:ZK              JN    DN</span><br></pre></td></tr></table></figure>
+<p>NN节点有fsimage、editlog(读和写请求的记录)两个文件,有专门的进程去管理的，这个进程是JN（journalnode）日志节点，要保证NN1和NN2能实时同步，需要JN这个角色。</p>
+<p>如果NN1挂了，需要把NN2从standby状态切换到active状态，那它是怎么切换的呢？需要ZKFC。</p>
+<p>ZKFC: 是单独的进程，它监控NN健康状态，向zk集群定期发送心跳，使得自己可以被选举；当自己被zk选举为active的时候，zkfc进程通过RPC协议调用使NN节点的状态变为active。对外提供实时服务，是无感知的。</p>
+<p>所以在上面，需要在三台机器上都部署一下zookeeper，作为一个集群，ZK集群，是用于做选举的。选举谁来做老大（active），谁做standby。集群中ZK的个数是2n+1，这样能投票保证最后有一个胜出。</p>
+<p>生产上zookeeper部署的个数经验：如果集群中有20台节点，那么可以在5台上部署zk。如果总共有七八台，也部署5台zk。如果总共有20~100台节点，可以部署7台/9台/11台 zk。如果大于100台，可以部署11台zk。如果有很多，比如上万台那看情况可以多部署几台。但是，==不是说zk节点越多越好。因为做投票选举动作的时候，投票谁做active，谁做standby是需要时间的，时间间隔太长会影响对外服务，对外服务会很慢，对于即时性服务来说，这是不允许的。==</p>
+<p>对于大公司比如BAT公司，他们的集群有很多台，比如几百台几千台，zk部署的机器上就它一个进程，不部署其它进程了。在这里是学习或者机器很少，所以一台机器上部署多个进程。如果几百台节点，任务很重，如果部署zk的机器上有其它进程，那么它会消耗很多机器上的资源（无外乎cpu、内存、文件数、进程数），这都会影响zk响应的速度，所以一般都会把它独立出来。但是如果机器是256G内存，但是zk只用到32G，那其他的就浪费了，那么买机器的时候，可以单独给zk买32G内存的机器就可以了。</p>
+<p>zk是最底层的，如果zk太繁忙，就可能导致standby状态不能切换到active状态，这个时候机器可能就会夯住。所以当机器夯住，standby不能切换到active的时候，有可能就是zk出问题了。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190329173339523.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>官网：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190330103616395.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>翻译：</p>
+<p>一个典型的HA集群，NameNode会被配置在两台独立的机器上，在任何时间上，一个NameNode处于活动状态，而另一个NameNode处于备份状态，活动状态的NameNode会响应集群中所有的客户端，备份状态的NameNode只是作为一个副本，保证在必要的时候提供一个快速的转移。</p>
+<p>为了让Standby Node与Active Node保持同步，这两个Node都与一组称为JNS的互相独立的进程保持通信(Journal Nodes)。当Active Node上更新了namespace，它将记录修改日志发送给JNS的多数派。Standby noes将会从JNS中读取这些edits，并持续关注它们对日志的变更。Standby Node将日志变更应用在自己的namespace中，当failover发生时，Standby将会在提升自己为Active之前，确保能够从JNS中读取所有的edits，即在failover发生之前Standy持有的namespace应该与Active保持完全同步。</p>
+<p>为了支持快速failover，Standby node持有集群中blocks的最新位置是非常必要的。为了达到这一目的，DataNodes上需要同时配置这两个Namenode的地址，同时和它们都建立心跳链接，并把block位置发送给它们。</p>
+<p>任何时刻，只有一个Active NameNode是非常重要的，否则将会导致集群操作的混乱，那么两个NameNode将会分别有两种不同的数据状态，可能会导致数据丢失，或者状态异常，这种情况通常称为“split-brain”（脑裂，三节点通讯阻断，即集群中不同的Datanodes却看到了两个Active NameNodes）。对于JNS而言，任何时候只允许一个NameNode作为writer；在failover期间，原来的Standby Node将会接管Active的所有职能，并负责向JNS写入日志记录，这就阻止了其他NameNode基于处于Active状态的问题。</p>
+<p>看完以上的翻译</p>
+<p>首先要部署三台zk，然后要两台NN节点，然后三台DN节点。两个NN节点之间的编辑日志需要jn来维护，做共享数据存储。</p>
+<p>journalnode(jn): 部署多少合适？取决于HDFS请求量及数据量，比如说BT级的数据量，或者小文件很多，读写请求很频繁，那么journalnode就部署多一点，如果HDFS很悠闲，那就部署少一点，比如7个、9个这样，可以大致和zk部署的保持一致（见上面）。具体要看实际情况。（也是2n+1，可以看官网上介绍）</p>
+<p><img src="https://img-blog.csdnimg.cn/2019033009544231.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>每个DataNode节点要向两个NameNode都发送心跳报告。（面试，为什么）</p>
+<p>在这里ZKFC是进程，（但是在yarn ha 里，zkfc是线程）</p>
+<p>进程：ps -ef 看到的就是进程，是由1个以上的线程组成。</p>
+<p>线程：线程是进程的一部分</p>
+<p>ZKFC：zookeeperfailovercontrol</p>
+<p>客户端或者程序代码在提交的时候，去namespace找，找NN节点，如果第一次找的NN节点就是active，那么就用这个节点，如果发现它是standby，就到另外一台机器。</p>
+<p>比如说客户端现在执行put、get、ls、cat命令，这些操作命令的记录，active NN节点会写到自己的edit log日志里面。这些操作记录，NN自己会写一份，同时，它会把这些操作记录，写给journalnode的node集群。</p>
+<p>而另外的，standby NN节点，会实时的读journalnode的node集群，读了之后会把这些记录应用到自己的本身。这个大数据的专业名词叫做：重演。 相当于standby NN节点把active NN节点的active状态的操作记录在自己身上重演一遍。</p>
+<p>journalnode：它是一个集群，就是用于active NN节点和standby NN节点之间同步数据的。它是单独的进程。</p>
+<p>NN和ZKFC在同一台机器上面。</p>
+<p>整个过程描述：当通过client端提交请求的时候，无论读和写，我们是通过命名空间RUOZEG6，去找谁是active状态，找到了就在那台机器上面，提交请求，然后就是HDFS的读写流程，读和写的操作记录，edit log，它自己会写一份，同时会把读写请求的操作记录，写一份到journalnode集群日志，进行同步之后，另外一个节点，standby 节点会把它拿过来实时的应用到自己的本身。专业的名称叫重演。同时每个DataNode会向NameNode节点发送心跳的块报告（心跳的间隔时间3600s，就是1小时，参数是什么（面试））。当active NN节点挂了，通过zk集群选举（它存储了NN节点的状态），通知ZKFC，把standby NN节点切换到active状态。ZKFC会定期的发送心跳。</p>
+<p>ps：</p>
+<p>HA是为了解决单点故障问题。</p>
+<p>通过journalnode集群共享状态，也就是共享hdfs读和写的操作记录。</p>
+<p>通过ZKFC集群选举谁是active。</p>
+<p>监控状态，自动备援。</p>
+<p>DN: 同时向NN1 NN2发送心跳和块报告。<br>
+ACTIVE NN: 读写的操作记录写到自己的editlog<br>
+同时写一份到JN集群<br>
+接收DN的心跳和块报告<br>
+STANDBY NN: 同时接收JN集群的日志，显示读取执行log操作(重演)，使得自己的元数据和active nn节点保持一致。<br>
+接收DN的心跳和块报告</p>
+<p>JounalNode: 用于active nn和 standby nn节点的数据同步， 一般部署2n+1</p>
+<p>ZKFC: 单独的进程<br>
+监控NN监控健康状态<br>
+向zk集群定期发送心跳，使得自己可以被选举；<br>
+当自己被zk选举为active的时候，zkfc进程通过RPC协议调用使NN节点的状态变为active，只有是<br>
+active状态才能对外提供服务。<br>
+对外提供实时服务，是无感知的，用户是感觉不到的。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/39YARN HA 架构/" data-toggle="tooltip" data-placement="top" title="[HDFS HA 架构]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/37Hadoop离线项目之数据清洗/" data-toggle="tooltip" data-placement="top" title="[Hadoop离线项目之数据清洗]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#ha背景"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">HA&#x80CC;&#x666F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#ha介绍"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">HA&#x4ECB;&#x7ECD;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

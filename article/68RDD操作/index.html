@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [RDD操作]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/68RDD操作/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[RDD操作]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-07-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>官网http://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-operations</p>
+</blockquote>
+<h1 id="从宏观角度看rdd-operations">从宏观角度看RDD Operations</h1>
+<p>官网写的很清楚：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190526091521151.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>RDD支持两种类型的操作：</p>
+<ul>
+<li>transformations：转换操作 从一个已经存在的数据集里来创建一个新的数据集。<br>
+体现了：RDDA =&gt;RDDB RDD是不可变的，从RDDA产生了RDDB，这两个RDD不是一个东西。RDDB依赖于RDDA。</li>
+<li>actions 一个操作 它在一个数据集之上运行一个计算之后，返回一个值到我们的driver program（可以理解为一个客户端，比如启动的spark-shell）</li>
+<li>cache （这个也可以当做一个算子）</li>
+</ul>
+<p>上面算是三大类</p>
+<p>比如map是一个转换操作，它通过一个函数传递每个数据集元素，就是把这个函数作用到数据集里每一个元素之上，然后返回一个新的RDD，这个新的RDD代表这个结果集。<br>
+reduce是一个操作，它使用一些函数把数据集里所有的元素进行聚合，并返回最终一个结果到我们的客户端。</p>
+<p>Spark 里面所有的transformations 都是lazy的。lazy可以理解为用的时候才去加载。它并不会立刻去计算它们的结果。它们仅仅是记住作用在一个数据集比如文件上面的关系。比如RDDA.map(…).filter(…)，这个，它仅仅是记住了有个map作用在了RDDA上面，有一个filter作用在了RDDA.map(…)的结果这个之上。它记住了这些转换关系。<br>
+只有当一个action需要返回一个结果到客户端上，就是当触发一个action的时候，这个transformations 才会被计算。<strong>这种设计使得spark运行的更加高效。</strong></p>
+<p>为什么会更高效？比如，一个数据集通过一个map被创建，这个map会在一个reduce里被使用。仅仅返回reduce的结果到客户端，而不是更大的map的数据集。比如RDDA.map(…).reduce(…)，这个，它只返回一个reduce的结果，而不是像MapReduce那样，map之后还要输出到本地。（还有一个点是lineage，后面再学）。</p>
+<p>每个transformed RDD在运行一个action的时候有可能会被重新计算。比如你<br>
+某一个RDD的前面一个RDD的某个partition数据丢了或者挂了，它会通过依赖通过血缘关系去找到丢失的那个RDD的上一层父层的RDD的那个partition拿出来重新计算。另外，你也可能会用persist或者 cache方法 把一个RDD保存到内存中，这种情况下，你后面如果再次访问这些数据，会更快的去访问。所以如果你将来还会再用到这些数据，你可以把它cache住。当然，它也支持把RDD保存在磁盘或者以多副本的方式存储在多个节点之上。</p>
+<h1 id="rdd-map算子详解">RDD map算子详解</h1>
+<p>常用的Transformations：</p>
+<p><img src="https://img-blog.csdnimg.cn/201905261039598.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>下面来看一下map(func)<br>
+Return a new distributed dataset formed by passing each element of the source through a function func.<br>
+通过一个函数，作用于数据源里的每个元素，返回一个新的分布式数据集。<br>
+map：对RDD中的每个元素都执行一个函数。</p>
+<p>举例说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val a = sc.parallelize(1 to 9)</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at &lt;console&gt;:24</span><br><span class="line">//a是一个RDD，它是org.apache.spark.rdd下面的RDD，这个RDD里面装的类型是Int类型（自动推导的），是一个并行化集合的方式</span><br><span class="line"></span><br><span class="line">scala&gt; a.map(x =&gt; x * 2)</span><br><span class="line">res1: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[1] at map at &lt;console&gt;:26</span><br><span class="line">//并没有把a.map(x =&gt; x * 2)这个结果赋给一个变量，系统会自动赋给res1</span><br><span class="line"></span><br><span class="line">scala&gt; val b = a.map(x =&gt; x * 2)</span><br><span class="line">b: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[2] at map at &lt;console&gt;:25</span><br><span class="line">//对a这个RDD里的每个元素进行乘以2的操作，并把结果赋值给另一个RDD b</span><br><span class="line"></span><br><span class="line">scala&gt; b.collect</span><br><span class="line">res2: Array[Int] = Array(2, 4, 6, 8, 10, 12, 14, 16, 18) </span><br><span class="line">//把b这个RDD里的元素 以数组的形式 返回给控制台（spark-shell）</span><br></pre></td></tr></table></figure>
+<p>再举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val a = sc.parallelize(List(&quot;zhangsan&quot;,&quot;lisi&quot;,&quot;wangwu&quot;,&quot;zhaoliu&quot;,&quot;sunqi&quot;))</span><br><span class="line">a: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[4] at parallelize at &lt;console&gt;:24</span><br><span class="line">//a这个RDD里的元素类型是String类型</span><br><span class="line"></span><br><span class="line">scala&gt; val b = a.map(x =&gt; (x,1))</span><br><span class="line">b: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[5] at map at &lt;console&gt;:25</span><br><span class="line">//给a里面的每个元素变成(x,1)，b这个RDD里的元素类型是(String, Int)类型 ，它是一个tuple元组</span><br><span class="line"></span><br><span class="line">scala&gt; b.collect</span><br><span class="line">res3: Array[(String, Int)] = Array((zhangsan,1), (lisi,1), (wangwu,1), (zhaoliu,1), (sunqi,1))</span><br><span class="line">//返回数组，元素类型是(String, Int)</span><br><span class="line">//对于map，比如 val b = a.map(x =&gt; (x,1))这个代码，你去使用RDD的api进行编程和你去使用scala进行编程，是一模一样的</span><br></pre></td></tr></table></figure>
+<h1 id="rdd-filter结合map算子详解">RDD filter结合map算子详解</h1>
+<p>filter(func) ： Return a new dataset formed by selecting those elements of the source on which func returns true.<br>
+filter：对元素进行过滤，把需要的给过滤下来。</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val a = sc.parallelize(1 to 10)</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[6] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; a.filter(x =&gt; x%2 == 0).collect</span><br><span class="line">res9: Array[Int] = Array(2, 4, 6, 8, 10)</span><br><span class="line"></span><br><span class="line">scala&gt; a.filter(_%2 == 0).collect</span><br><span class="line">res10: Array[Int] = Array(2, 4, 6, 8, 10)</span><br><span class="line"></span><br><span class="line">scala&gt; a.filter(_ &lt; 4).collect</span><br><span class="line">res12: Array[Int] = Array(1, 2, 3)</span><br><span class="line"></span><br><span class="line">scala&gt; val a = sc.parallelize(1 to 6)</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[13] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; val mapRdd = a.map(_ * 2)</span><br><span class="line">mapRdd: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[14] at map at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; mapRdd.collect</span><br><span class="line">res13: Array[Int] = Array(2, 4, 6, 8, 10, 12)</span><br><span class="line"></span><br><span class="line">scala&gt; val filterRdd = mapRdd.filter(_ &gt; 5)</span><br><span class="line">filterRdd: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[15] at filter at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; filterRdd.collect</span><br><span class="line">res14: Array[Int] = Array(6, 8, 10, 12)</span><br></pre></td></tr></table></figure>
+<p>a.filter(x =&gt; x%2 == 0)</p>
+<p>a.filter(_%2 == 0)</p>
+<p>这两种写法是两种形式，是一样的，下面是上面的简写。</p>
+<p>开发过程中最好采用链式编程。</p>
+<p>比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.parallelize(1 to 10).map(_ * 2).filter(_ &gt; 6).collect</span><br><span class="line">res15: Array[Int] = Array(8, 10, 12, 14, 16, 18, 20)</span><br></pre></td></tr></table></figure>
+<h1 id="rdd-mapvalues算子详解">RDD mapValues算子详解</h1>
+<p>mapValues这个api只对（key，value）中的value做操作，不对key做操作。</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">scala&gt;  val a = sc.parallelize(List(&quot;zhangsan&quot;,&quot;lisi&quot;,&quot;wangwu&quot;,&quot;zhaoliu&quot;,&quot;sunqi&quot;))</span><br><span class="line">a: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[12] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; val b = a.map(x =&gt;(x.length,x))</span><br><span class="line">b: org.apache.spark.rdd.RDD[(Int, String)] = MapPartitionsRDD[13] at map at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; b.collect</span><br><span class="line">res8: Array[(Int, String)] = Array((8,zhangsan), (4,lisi), (6,wangwu), (7,zhaoliu), (5,sunqi))</span><br><span class="line"></span><br><span class="line">scala&gt; b.mapValues(&quot;I love &quot; + _ + &quot; very much&quot;).collect    //_表示里面的每个元素</span><br><span class="line">res10: Array[(Int, String)] = Array((8,I love zhangsan very much), (4,I love lisi very much), (6,I love wangwu very much), (7,I love zhaoliu very much), (5,I love sunqi very much))</span><br></pre></td></tr></table></figure>
+<h1 id="rdd常用action算子详解">RDD常用action算子详解</h1>
+<p><img src="https://img-blog.csdnimg.cn/20190526230534209.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>reduce(func)这个api传进来两个参数，返回一个参数，进行的是两两操作，前面两个做完，得到一个结果，这个结果再与第三个进行操作…</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">scala&gt;  val a = sc.parallelize(List(&quot;zhangsan&quot;,&quot;lisi&quot;,&quot;wangwu&quot;,&quot;zhaoliu&quot;,&quot;sunqi&quot;))</span><br><span class="line">a: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[12] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; a.count</span><br><span class="line">res11: Long = 5</span><br><span class="line"></span><br><span class="line">scala&gt; a.first</span><br><span class="line">res24: String = zhangsan</span><br><span class="line"></span><br><span class="line">scala&gt; a.take(1)</span><br><span class="line">res25: Array[String] = Array(zhangsan)</span><br><span class="line"></span><br><span class="line">//取前2   从大到小逆向取</span><br><span class="line">scala&gt; a.top(2)</span><br><span class="line">res28: Array[String] = Array(zhaoliu, zhangsan)</span><br><span class="line"></span><br><span class="line">scala&gt; val a = sc.parallelize(1 to 100)</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[16] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; a.sum</span><br><span class="line">res12: Double = 5050.0</span><br><span class="line"></span><br><span class="line">scala&gt; a.sum.toInt</span><br><span class="line">res13: Int = 5050</span><br><span class="line"></span><br><span class="line">scala&gt; a.reduce(_ + _)</span><br><span class="line">res14: Int = 5050</span><br><span class="line"></span><br><span class="line">scala&gt; a.reduce((x,y) =&gt; (x+y))</span><br><span class="line">res15: Int = 5050</span><br><span class="line"></span><br><span class="line">//top 取前三个（先做了排序）</span><br><span class="line">scala&gt; sc.parallelize(Array(2,8,5,12,6,3,5)).top(3)</span><br><span class="line">res27: Array[Int] = Array(12, 8, 6)</span><br><span class="line"></span><br><span class="line">//如果想顺序翻转过来，从小到大，取前三个，需要隐式转换一下</span><br><span class="line">//自定义排序的扩展</span><br><span class="line">//隐式转换写太多 可能会乱 也会冲突</span><br><span class="line">scala&gt; implicit val myOrder = implicitly[Ordering[Int]].reverse</span><br><span class="line">myOrder: scala.math.Ordering[Int] = scala.math.Ordering$$anon$4@9ddb540</span><br><span class="line"></span><br><span class="line">scala&gt; sc.parallelize(Array(2,8,5,12,6,3,5)).top(3)</span><br><span class="line">res29: Array[Int] = Array(2, 3, 5)</span><br><span class="line"></span><br><span class="line">scala&gt; val a = sc.parallelize(Array(2,8,5,12,6,3,5))</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[28] at parallelize at &lt;console&gt;:26</span><br><span class="line"></span><br><span class="line">scala&gt; a.max</span><br><span class="line">res31: Int = 2    </span><br><span class="line">//这个不对，是因为上面做了隐式转换，所以需要把spark-shell关掉打开一下</span><br><span class="line">//所以隐式转换不要随意使用</span><br><span class="line"></span><br><span class="line">//重新打开spark-shell后</span><br><span class="line">scala&gt; val a = sc.parallelize(Array(2,8,5,12,6,3,5))</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; a.max</span><br><span class="line">res0: Int = 12</span><br><span class="line"></span><br><span class="line">scala&gt; a.min</span><br><span class="line">res1: Int = 2</span><br></pre></td></tr></table></figure>
+<p>takeSample(boolean, sampleNum,seed)：该函数是抽取随机数。</p>
+<p>takeOrdered</p>
+<p>面试题：flatMap和map的区别？</p>
+<p>map操作，按照Spark里面的说就是，将一个RDD中的每一个元素都执行一个指定的函数，产生一个新的RDD，两个RDD中的元素一 一对应，除此之外，生成新的RDD与原来的RDD分区个数一样。<br>
+map(x =&gt; x2)：x =&gt; x2 是一个函数，x是传入参数即RDD的每个元素，x*2是返回值<br>
+map(x =&gt; (x,1)): 该函数将RDD的每个元素（例如：a,b,c…）变为:(a,1),(b,1),(c,1)…键值对的形式<br>
+map(x =&gt; x.split(&quot;\s+&quot;)): 该函数以行为分割，将每行变为一个array。<br>
+比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val a = sc.parallelize(1 to 6)</span><br><span class="line">a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; a.map(x =&gt; (x,&quot;one&quot;)).collect   //每个元素后加上一个字符串“one”,变成键值对。</span><br><span class="line">res0: Array[(Int, String)] = Array((1,one), (2,one), (3,one), (4,one), (5,one), (6,one))</span><br><span class="line"></span><br><span class="line">//现在HDFS上有个文件是这样的</span><br><span class="line">[hadoop@hadoop001 data]$ hdfs dfs -cat /data/wordcount.txt</span><br><span class="line">world world hello</span><br><span class="line">China hello</span><br><span class="line">people person</span><br><span class="line">love</span><br><span class="line"></span><br><span class="line">scala&gt; val b = sc.textFile(&quot;hdfs://hadoop001:9000/data/wordcount.txt&quot;)</span><br><span class="line">b: org.apache.spark.rdd.RDD[String] = hdfs://hadoop001:9000/data/wordcount.txt MapPartitionsRDD[3] at textFile at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; b.collect</span><br><span class="line">res1: Array[String] = Array(world world hello, China hello, people person, love)</span><br><span class="line"></span><br><span class="line">scala&gt; b.map(x =&gt;x.split(&quot;\\s+&quot;)).collect</span><br><span class="line">res3: Array[Array[String]] = Array(Array(world, world, hello), Array(China, hello), Array(people, person), Array(love))</span><br></pre></td></tr></table></figure>
+<p>flatMap与map有些类似，区别是map将原RDD中的每个元素处理后只生成一个新的元素，而flatMap压压扁，可以生成多个元素。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; b.flatMap(x =&gt;x.split(&quot;\\s+&quot;)).collect</span><br><span class="line">res6: Array[String] = Array(world, world, hello, China, hello, people, person, love)</span><br><span class="line"></span><br><span class="line">scala&gt; b.flatMap(x =&gt;x.split(&quot;\\s+&quot;)).distinct.collect</span><br><span class="line">res7: Array[String] = Array(love, hello, world, people, China, person)</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/69RDD操作续/" data-toggle="tooltip" data-placement="top" title="[RDD操作续]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/67RDD的创建/" data-toggle="tooltip" data-placement="top" title="[RDD的创建]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#从宏观角度看rdd-operations"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x4ECE;&#x5B8F;&#x89C2;&#x89D2;&#x5EA6;&#x770B;RDD Operations</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd-map算子详解"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">RDD map&#x7B97;&#x5B50;&#x8BE6;&#x89E3;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd-filter结合map算子详解"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">RDD filter&#x7ED3;&#x5408;map&#x7B97;&#x5B50;&#x8BE6;&#x89E3;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd-mapvalues算子详解"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">RDD mapValues&#x7B97;&#x5B50;&#x8BE6;&#x89E3;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd常用action算子详解"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">RDD&#x5E38;&#x7528;action&#x7B97;&#x5B50;&#x8BE6;&#x89E3;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

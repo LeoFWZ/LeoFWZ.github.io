@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/94SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-25
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="回顾">回顾：</h1>
+<p>概述<br>
+Spark Streaming是core的扩展，来达到实时处理（并不是真的实时处理）</p>
+<p>接入数据要考虑是否有Receiver</p>
+<p>Spark ： 以批处理为主，用微批处理来处理流数据  可以涉及成1s      流是批的特例<br>
+Flink ： 以流处理为主，用流处理来处理批数据   批是流的特例</p>
+<p>Strutured  Streaming  结构化流是后续发展的趋势，编程方式是DF/DS…</p>
+<p>Source ==&gt; DStream ==&gt; Transformation ==&gt; Ouput</p>
+<p>StreamingContext编程入口</p>
+<p>碰到处理有状态的<br>
+就需要用到updateStateByKey(func)这个操作，以及checkpoint如何处理小文件的问题<br>
+（老版本，新版本里有一个mapWithState算子）</p>
+<h1 id="1mapwithstate-小案列">1.MapWithState 小案列</h1>
+<ul>
+<li>
+<p>Spark Stream： 以批处理为主，用微批处理来处理流数据<br>
+Flink ： 真正的流式处理，以流处理为主，用流处理来处理批数据<br>
+但是Spark的<strong>Sturctured Stream</strong>确实是真正的流式处理，也是未来的Spark 流式处理的未来方向，新的Stream特性也是加在那里了。</p>
+</li>
+<li>
+<p>1）MapWithState可以实现和UpdateStateBykey一样对不同批次的数据的分析，但是它是实验性方法，慎用，可能下一版本就没了</p>
+</li>
+<li>
+<p>2）MapWithState，只有当前批次出现了该key才会显示该key的所有批次的分析数据</p>
+</li>
+<li>
+<p>3）最好的方式还是写DB</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">package com.wsk.spark.stream</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming._</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">object MapWithStateTest &#123;</span><br><span class="line">  def main(args: Array[String]) &#123;</span><br><span class="line"></span><br><span class="line">    //第一个参数是key，第二参数是当前value,第三个参数之前的value</span><br><span class="line">     val mappingFunction = (key: String, value: Option[Int], state: State[Int])=&gt; &#123;</span><br><span class="line">       val sum = value.getOrElse(0)+state.getOption().getOrElse(0)</span><br><span class="line">       state.update(sum)</span><br><span class="line">       (key,sum)</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">    val sparkConf = new SparkConf()</span><br><span class="line">      .setAppName(&quot;StatefulNetworkWordCount&quot;)</span><br><span class="line">      .setMaster(&quot;local[3]&quot;)</span><br><span class="line">    // Create the context with a 5 second batch size</span><br><span class="line">    val ssc = new StreamingContext(sparkConf, Seconds(5))</span><br><span class="line">    ssc.checkpoint(&quot;.&quot;)</span><br><span class="line"></span><br><span class="line">    // Initial RDD input to updateStateByKey</span><br><span class="line">    val initialRDD = ssc.sparkContext.parallelize(List((&quot;hello&quot;, 1), (&quot;world&quot;, 1)))</span><br><span class="line">    // Create a ReceiverInputDStream on target ip:port and count the</span><br><span class="line">    // words in input stream of \n delimited test (eg. generated by &apos;nc&apos;)</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;192.168.76.120&quot;, 1314)</span><br><span class="line">    val words = lines.flatMap(_.split(&quot; &quot;)).map(x =&gt; (x, 1)).reduceByKey(_+_)</span><br><span class="line">    val stateDstream = words.mapWithState(StateSpec.function(mappingFunction))</span><br><span class="line"></span><br><span class="line">    stateDstream.print()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>处理结果：RDBMS/NoSQL</p>
+<p>所以要掌握一个通用的方式</p>
+<p>create table wc(<br>
+word varchar(20) default null,<br>
+cnt int(10)<br>
+);</p>
+<h1 id="2-mysql连接">2、MySQL连接</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def getConnection()=&#123;</span><br><span class="line">  Class.forName(&quot;com.mysql.jdbc.Driver&quot;)</span><br><span class="line">  DriverManager.getConnection(&quot;jdbc:mysql://192.168.137.130:3306/rzdb?useSSL=false&quot;,&quot;root&quot;,&quot;syncdb123!&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-重要foreachrdd小案列">3、(重要)foreachRDD小案列</h1>
+<ul>
+<li>1）foreachRDD是生产中用到的最多的output(egger)函数，通过它可将DStream转换为RDD以及DF\DS，然后进行操作</li>
+<li>2）foreachRDD的方法是在driver中进行的，故写DB时它的获取连接代码必须写在第二层循环的foreachPartition中，不然会报序列化错误。</li>
+<li>3）踩坑 ，在foreachPartition中数据的获取使用的是迭代器，不管是java还是Scala，迭代器只能使用一次，第二次就位空了</li>
+<li>4）踩坑，操作DB时要使用连接池。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">package com.wsk.spark.stream</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.sql.SparkSession</span><br><span class="line">import org.apache.spark.storage.StorageLevel</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object ForeachRDDApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;&#123;</span><br><span class="line">    val sc = new SparkConf()</span><br><span class="line">      .setAppName(&quot;word count&quot;)</span><br><span class="line">      .setMaster(&quot;local[3]&quot;)</span><br><span class="line"></span><br><span class="line">    val ssc = new StreamingContext(sc, Seconds(5))</span><br><span class="line"></span><br><span class="line">    val lines = ssc.socketTextStream(&quot;192.168.76.120&quot;, 1314)</span><br><span class="line">    //当数据多次被使用，数据持久化</span><br><span class="line">//    lines.persist(StorageLevel.MEMORY_ONLY)</span><br><span class="line">    val wordsDStrem = lines.flatMap(_.split(&quot; &quot;))</span><br><span class="line">    wordsDStrem.foreachRDD(rdd =&gt;&#123;</span><br><span class="line">      val spark =  SparkSession</span><br><span class="line">        .builder</span><br><span class="line">        .config(rdd.sparkContext.getConf)</span><br><span class="line">        .getOrCreate()</span><br><span class="line">      import spark.implicits._</span><br><span class="line">      val wordDF = rdd.toDF(&quot;word&quot;)</span><br><span class="line">      wordDF.createOrReplaceGlobalTempView(&quot;words&quot;)</span><br><span class="line">      val countDF = spark.sql(&quot;select word, count(*) as total from words group by word&quot;)</span><br><span class="line">      countDF.show()</span><br><span class="line">    &#125;)</span><br><span class="line">    </span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="4-foreachrddgtforeachpartitiongtforeach">4、foreachRDD=&gt;foreachPartition=&gt;foreach</h1>
+<p>先开启natcat</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@vm01 bin]$ nc -lk 8888</span><br></pre></td></tr></table></figure>
+<p>MySQL创建一张表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create table wc(word varchar(20),cnt int(10));</span><br></pre></td></tr></table></figure>
+<p>然后按照下面4段代码，依次注释和执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark</span><br><span class="line">import java.sql.DriverManager</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object SocketWCApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf=new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCApp&quot;)</span><br><span class="line">    val ssc=new StreamingContext(sparkConf,Seconds(10))</span><br><span class="line"></span><br><span class="line">    //From server ==&gt; DStream</span><br><span class="line">    val lines=ssc.socketTextStream(&quot;vm01&quot;,8888)</span><br><span class="line"></span><br><span class="line">    val result=lines.flatMap(_.split(&quot;,&quot;)).map((_,1)).reduceByKey(_+_)</span><br><span class="line">//    result.print()</span><br><span class="line"></span><br><span class="line">//第一段，foreach，一条数据连接一次MySQL，非常消耗资源</span><br><span class="line">//    result.foreachRDD(rdd=&gt;&#123;</span><br><span class="line">//这里是在driver端执行，跨网络需要序列化，这里会有序列化的问题，要放到foreach里面</span><br><span class="line">//      //val connection=getConnection()  </span><br><span class="line">//      rdd.foreach(kv=&gt;&#123; //foreache是在excutor端执行</span><br><span class="line">//        val connection=getConnection()</span><br><span class="line">//        val sql=s&quot;insert into wc(word,cnt) values (&apos;$&#123;kv._1&#125;&apos;, &apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">//        connection.createStatement().execute(sql)</span><br><span class="line">//        connection.close()</span><br><span class="line">//      &#125;)</span><br><span class="line">//    &#125;)</span><br><span class="line"></span><br><span class="line">//第二段,优化，foreachPartition，连接MySQL是一个高消耗的事情，一个分区连接一次</span><br><span class="line">//        result.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">//          rdd.foreachPartition(partionOfRecords =&gt; &#123;</span><br><span class="line">//              val connection = getConnection()</span><br><span class="line">//              partionOfRecords.foreach(kv =&gt; &#123;</span><br><span class="line">//                val sql = s&quot;insert into wc(word,cnt) values (&apos;$&#123;kv._1&#125;&apos;, &apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">//                connection.createStatement().execute(sql)</span><br><span class="line">//              &#125;)</span><br><span class="line">//              connection.close()</span><br><span class="line">//          &#125;)</span><br><span class="line">//        &#125;)</span><br><span class="line"></span><br><span class="line">//第三段，优化，foreachPartition，增加连接池，执行后不关闭连接，返回到连接池中</span><br><span class="line">    result.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">      rdd.foreachPartition(partionOfRecords =&gt; &#123;</span><br><span class="line">        // if(partionOfRecords.size &gt; 0) &#123;</span><br><span class="line">        val connection = ConnectionPool.getConnection().get</span><br><span class="line">        partionOfRecords.foreach(kv =&gt; &#123;</span><br><span class="line">          val sql = s&quot;insert into wc(word,cnt) values (&apos;$&#123;kv._1&#125;&apos;, &apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">          connection.createStatement().execute(sql)</span><br><span class="line">        &#125;)</span><br><span class="line">        //connection.close()</span><br><span class="line">        ConnectionPool.returnConnection(connection)</span><br><span class="line">        // &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">//第四段，这段了解即可</span><br><span class="line">    //窗口window</span><br><span class="line">//    val windowedWordCounts=result</span><br><span class="line">//      .reduceByKeyAndWindow((a:Int,b:Int)=&gt;(a+b),Seconds(20),Seconds(5))</span><br><span class="line">//    //窗口10秒，每隔5s滑动一次</span><br><span class="line">//    windowedWordCounts.print()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def getConnection()=&#123;</span><br><span class="line">    Class.forName(&quot;com.mysql.jdbc.Driver&quot;)</span><br><span class="line">    DriverManager.getConnection(&quot;jdbc:mysql://192.168.137.130:3306/rzdb?useSSL=false&quot;,&quot;root&quot;,&quot;syncdb123!&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义连接池，需要先添加依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;com.jolbox&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;bonecp&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;0.8.0.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark</span><br><span class="line"></span><br><span class="line">import java.sql.&#123;Connection, DriverManager&#125;</span><br><span class="line"></span><br><span class="line">import com.jolbox.bonecp.&#123;BoneCP, BoneCPConfig&#125;</span><br><span class="line">import org.slf4j.LoggerFactory</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">object ConnectionPool &#123;</span><br><span class="line"></span><br><span class="line">  val logger=LoggerFactory.getLogger(this.getClass())</span><br><span class="line"></span><br><span class="line">  private val pool=&#123;</span><br><span class="line">    try&#123;</span><br><span class="line">      Class.forName(&quot;com.mysql.jdbc.Driver&quot;)</span><br><span class="line">    //  DriverManager.getConnection(&quot;jdbc:mysql://192.168.137.130:3306/rzdb?useSSL=false&quot;,&quot;root&quot;,&quot;syncdb123!&quot;)</span><br><span class="line">      val config = new BoneCPConfig()</span><br><span class="line">      config.setUsername(&quot;root&quot;)</span><br><span class="line">      config.setPassword(&quot;syncdb123!&quot;)</span><br><span class="line">      config.setJdbcUrl(&quot;jdbc:mysql://192.168.137.130:3306/rzdb?useSSL=false&quot;)</span><br><span class="line">      config.setMinConnectionsPerPartition(2) //最小连接数</span><br><span class="line">      config.setMaxConnectionsPerPartition(5) //最大连接数</span><br><span class="line">      config.setCloseConnectionWatch(true)  //关闭的时候要不要监控</span><br><span class="line"></span><br><span class="line">      Some(new BoneCP(config))</span><br><span class="line"></span><br><span class="line">    &#125;catch &#123;</span><br><span class="line">      case e:Exception=&gt;&#123;</span><br><span class="line">        e.printStackTrace()</span><br><span class="line">        None</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def getConnection():Option[Connection]=&#123;</span><br><span class="line">    pool match &#123;</span><br><span class="line">        case  Some(pool)=&gt; Some(pool.getConnection)</span><br><span class="line">        case None=&gt;None</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def  returnConnection(connection:Connection)=&#123;</span><br><span class="line">    if(null != connection)&#123;</span><br><span class="line">      connection.close() //这个地方不能关闭，应该要返回到池里面去吃才行</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="5-验证">5、验证</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@vm01 bin]$ nc -lk 8888</span><br><span class="line">hello,hadoop</span><br><span class="line">hello,spark</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from wc;</span><br><span class="line">+--------+------+</span><br><span class="line">| word   | cnt  |</span><br><span class="line">+--------+------+</span><br><span class="line">| hello  |    1 |</span><br><span class="line">| hadoop |    1 |</span><br><span class="line">| hello  |    1 |</span><br><span class="line">| spark  |    1 |</span><br><span class="line">+--------+------+</span><br><span class="line">12 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>为什么没有看到hello累加呢，因为SparkStreaming是10秒一个批次，输入第一行就执行了第一个批次，然后输入第二行，要等到第二个批次。</p>
+<h1 id="6-window窗口">6、Window窗口</h1>
+<p>window length ： 一个长度为3 ， 比如下图123 345</p>
+<p>window interval ： 滑动间隔 ，上面就是滑动2个间隔开一个窗口</p>
+<p>那么第一个窗口统计的是123的数据，第二个窗口统计的是345</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930095146383.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="61window小案列">6.1Window小案列</h2>
+<ul>
+<li>1)窗口的长度以及滑动时间必须是批处理间隔的整数倍关系</li>
+<li>2）窗口的功能完全可通过每批次存储DB，然后查询多批次来实现</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">package com.wsk.spark.stream</span><br><span class="line"></span><br><span class="line">import javax.sql.ConnectionPoolDataSource</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line">object WindowTFTest &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sc = new SparkConf()</span><br><span class="line">      .setAppName(&quot;word count&quot;)</span><br><span class="line">      .setMaster(&quot;local[3]&quot;)</span><br><span class="line"></span><br><span class="line">    val ssc = new StreamingContext(sc, Seconds(5))</span><br><span class="line"></span><br><span class="line">    val lines = ssc.socketTextStream(&quot;192.168.76.120&quot;, 1314)</span><br><span class="line">    val wordContDS = lines.flatMap(_.split(&quot; &quot;))</span><br><span class="line">      .map((_, 1))</span><br><span class="line">      .reduceByKey(_ + _)</span><br><span class="line">//        wordContDS.print()</span><br><span class="line">    //window</span><br><span class="line">    val windowDS = wordContDS.window(Seconds(20), Seconds(10))</span><br><span class="line">    windowDS.print()</span><br><span class="line"></span><br><span class="line">    //save</span><br><span class="line">//    wordContDS.saveAsTextFiles(&quot;C:\\Users\\admin\\Desktop\\spark学习\\outPutData\\&quot;)</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="7-transform-白名单小案例">7、transform 白名单小案例</h1>
+<ul>
+<li>1）Transform是Transformation(lazy)类型操作，用它可以将DStream转换成RDD，这样我们可以通过<strong>RDD的编程</strong><br>
+去实现业务逻辑，如白名单过滤等。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">package com.wsk.spark.stream</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object TransformApp &#123;</span><br><span class="line"></span><br><span class="line"> def main(args: Array[String]): Unit = &#123;</span><br><span class="line">   val conf = new SparkConf()</span><br><span class="line">     .setMaster(&quot;local[2]&quot;)</span><br><span class="line">     .setAppName(&quot;Transform App&quot;)</span><br><span class="line"></span><br><span class="line">   //每隔一秒的数据为一个batch</span><br><span class="line">   val ssc = new StreamingContext(conf, Seconds(5))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   val whiteRDD = ssc.sparkContext.parallelize(List(&quot;17&quot;)).map((_, true))</span><br><span class="line">   //读取的机器以及端口,读取的数据的格式是：老二,3,1 （姓名，年龄，性别）</span><br><span class="line">   val lines = ssc.socketTextStream(&quot;192.168.43.125&quot;, 1314)</span><br><span class="line"></span><br><span class="line">   val result = lines.map(x =&gt; (x.split(&quot;,&quot;)(0), x))</span><br><span class="line">     .transform(rdd =&gt; &#123;</span><br><span class="line">       //(老二,((老二,3,1),Option[]))</span><br><span class="line">       rdd.leftOuterJoin(whiteRDD)</span><br><span class="line">         .filter(_._2._2.getOrElse(false) != true)</span><br><span class="line">         .map(_._2._1)</span><br><span class="line">     &#125;)</span><br><span class="line">   result.print()</span><br><span class="line">   </span><br><span class="line">   ssc.start() // Start the computation</span><br><span class="line">   ssc.awaitTermination() // Wait for the computation to terminate</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/95Kafka入门介绍、安装部署/" data-toggle="tooltip" data-placement="top" title="[Kafka入门介绍、安装部署]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/93Spark Streaming之基本概念/" data-toggle="tooltip" data-placement="top" title="[Spark Streaming之基本概念]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#回顾"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x56DE;&#x987E;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1mapwithstate-小案列"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">1.MapWithState &#x5C0F;&#x6848;&#x5217;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2-mysql连接"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">2&#x3001;MySQL&#x8FDE;&#x63A5;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3-重要foreachrdd小案列"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">3&#x3001;(&#x91CD;&#x8981;)foreachRDD&#x5C0F;&#x6848;&#x5217;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#4-foreachrddgtforeachpartitiongtforeach"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">4&#x3001;foreachRDD=&gt;foreachPartition=&gt;foreach</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#5-验证"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">5&#x3001;&#x9A8C;&#x8BC1;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#6-window窗口"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">6&#x3001;Window&#x7A97;&#x53E3;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#61window小案列"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">6.1Window&#x5C0F;&#x6848;&#x5217;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#7-transform-白名单小案例"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">7&#x3001;transform &#x767D;&#x540D;&#x5355;&#x5C0F;&#x6848;&#x4F8B;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

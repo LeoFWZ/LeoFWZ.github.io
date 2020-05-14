@@ -7,8 +7,808 @@
     </url>
 
     <url>
+        <loc>https://leofwz.github.io/article/101ElesticSearch6.6.2%E5%85%A5%E9%97%A8%E5%92%8C%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/</loc>
+        <lastmod>2020-05-14T09:54:03.686Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/100Azkaban3.57.0%E5%AE%89%E8%A3%85%E4%BB%A5%E5%8F%8A%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/</loc>
+        <lastmod>2020-05-14T09:52:43.540Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/99ZooKeeper%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/</loc>
+        <lastmod>2020-05-14T09:51:37.255Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/98Flume%E4%B9%8B%E7%94%9F%E4%BA%A7%E6%AD%A3%E7%A1%AE%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F%E4%BA%8C(Multiple%20Agent+%20Multiple%20Channel+Custom)/</loc>
+        <lastmod>2020-05-14T09:50:23.513Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/97Flume%E4%B9%8B%E7%94%9F%E4%BA%A7%E6%AD%A3%E7%A1%AE%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F%E4%B8%80(Singel%20Agent)/</loc>
+        <lastmod>2020-05-14T09:49:12.399Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/96Spark%20Streaming%E6%95%B4%E5%90%88Kafaka/</loc>
+        <lastmod>2020-05-14T09:47:54.905Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/95Kafka%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D%E3%80%81%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/</loc>
+        <lastmod>2020-05-14T09:46:50.110Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/94SparkStreaming%E4%B9%8BforeachRDD%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0MySQL%E3%80%81%E8%BF%9E%E6%8E%A5%E6%B1%A0%E3%80%81Window%E7%AA%97%E5%8F%A3/</loc>
+        <lastmod>2020-05-14T09:45:44.987Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/93Spark%20Streaming%E4%B9%8B%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/</loc>
+        <lastmod>2020-05-14T09:44:47.790Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/92SparkStreaming%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%BF%90%E8%A1%8C%E6%9E%B6%E6%9E%84/</loc>
+        <lastmod>2020-05-14T09:43:40.838Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/91%E5%88%9D%E8%AF%86Spark%20Streaming/</loc>
+        <lastmod>2020-05-14T09:42:44.689Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/90DataSet%E9%82%A3%E7%82%B9%E4%BA%8B/</loc>
+        <lastmod>2020-05-14T09:41:44.035Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/89SparkSQL%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0%E3%80%81UDF%E5%87%BD%E6%95%B0/</loc>
+        <lastmod>2020-05-14T09:40:21.778Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/88SparkSQL%E4%B9%8BDataSource/</loc>
+        <lastmod>2020-05-14T09:39:20.727Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/87SparkSQL%E4%B9%8BDataFrame%E4%BB%A5%E5%8F%8AShuffleManager%E8%A1%A5%E5%85%85/</loc>
+        <lastmod>2020-05-14T09:38:28.301Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/86%E5%88%9D%E8%AF%86SparkSQL/</loc>
+        <lastmod>2020-05-14T09:37:28.203Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/85JVM%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA/</loc>
+        <lastmod>2020-05-14T09:36:21.987Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/84JVM%E6%A6%82%E8%A6%81/</loc>
+        <lastmod>2020-05-14T09:35:30.553Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/83Spark%E4%B9%8BTuning%20Spark%E5%AE%98%E7%BD%91%E7%BF%BB%E8%AF%91/</loc>
+        <lastmod>2020-05-14T09:34:24.330Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/82Spark-Core%E4%B9%8B%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/</loc>
+        <lastmod>2020-05-14T09:33:30.595Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/81Spark-Core%E4%B9%8B%E8%B0%83%E4%BC%98/</loc>
+        <lastmod>2020-05-14T09:32:34.022Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/80Spark%E4%B9%8BMonitor%20%E5%AE%98%E7%BD%91%E7%BF%BB%E8%AF%91/</loc>
+        <lastmod>2020-05-14T09:18:04.378Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/79Spark%20Shuffle%20operations-%E5%AE%98%E7%BD%91%E7%BF%BB%E8%AF%91/</loc>
+        <lastmod>2020-05-14T09:17:02.265Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/78Spark-core%E4%B9%8BShuffle/</loc>
+        <lastmod>2020-05-14T09:16:03.521Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/77Spark-Core%E4%B9%8Bmap%E4%B8%8EmapPartitions/</loc>
+        <lastmod>2020-05-14T09:15:06.804Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/76Spark%20on%20YARN/</loc>
+        <lastmod>2020-05-14T09:14:07.372Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/75Spark%E7%9A%84driver%E7%90%86%E8%A7%A3%E5%92%8Cexecutor%E7%90%86%E8%A7%A3/</loc>
+        <lastmod>2020-05-14T09:13:18.538Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/74SparkCore%E4%B9%8B%E8%BF%90%E8%A1%8C%E6%9E%B6%E6%9E%84(%E7%BB%AD--%E6%9C%AF%E8%AF%AD%E7%9F%A5%E8%AF%86%E7%82%B9)/</loc>
+        <lastmod>2020-05-14T09:09:57.608Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/73SparkCore%E4%B9%8B%E8%BF%90%E8%A1%8C%E6%9E%B6%E6%9E%84/</loc>
+        <lastmod>2020-05-14T09:08:40.023Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/72SparkCore%E7%9A%84Topn%E7%9A%84%E4%BB%A3%E7%A0%81%E4%B9%A6%E5%86%99%E6%A1%88%E4%BE%8B/</loc>
+        <lastmod>2020-05-14T09:07:39.657Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/71IDEA%E5%BC%80%E5%8F%91Spark%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F/</loc>
+        <lastmod>2020-05-14T09:06:52.530Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/70RDD%E6%B7%B1%E5%85%A5%E8%AE%B2%E8%A7%A3/</loc>
+        <lastmod>2020-05-14T09:06:03.507Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/69RDD%E6%93%8D%E4%BD%9C%E7%BB%AD/</loc>
+        <lastmod>2020-05-14T09:05:08.945Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/68RDD%E6%93%8D%E4%BD%9C/</loc>
+        <lastmod>2020-05-14T09:04:13.672Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/67RDD%E7%9A%84%E5%88%9B%E5%BB%BA/</loc>
+        <lastmod>2020-05-14T09:03:15.540Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/66SparkContext%E5%92%8Cspark-shell/</loc>
+        <lastmod>2020-05-14T09:02:11.424Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/65Spark%E6%A6%82%E8%BF%B0/</loc>
+        <lastmod>2020-05-14T09:01:28.243Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/64%E5%88%9D%E8%AF%86Spark/</loc>
+        <lastmod>2020-05-14T09:00:42.668Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/63Spark%E7%BC%96%E8%AF%91hadoop-2.6.0-cdh2.7.0/</loc>
+        <lastmod>2020-05-14T08:59:50.396Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/62Hadoop%E4%B9%8B%E4%BD%BF%E7%94%A8MR%E7%BC%96%E7%A8%8B%E5%AE%9E%E7%8E%B0join%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%B3%95/</loc>
+        <lastmod>2020-05-14T08:58:17.129Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/61Scala%E8%AF%AD%E6%B3%95%EF%BC%88%E5%9B%9B%EF%BC%89/</loc>
+        <lastmod>2020-05-14T08:56:43.646Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/60Scala%E8%AF%AD%E6%B3%95%EF%BC%88%E4%B8%89%EF%BC%89/</loc>
+        <lastmod>2020-05-14T08:55:44.830Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/59Scala%E5%8E%BB%E6%93%8D%E4%BD%9CMySQL%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+        <lastmod>2020-05-14T08:54:52.756Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/58Scala%E8%AF%AD%E6%B3%95%EF%BC%88%E4%BA%8C%EF%BC%89/</loc>
+        <lastmod>2020-05-14T08:53:47.956Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/57Scala%E8%AF%AD%E6%B3%95%EF%BC%88%E4%B8%80%EF%BC%89/</loc>
+        <lastmod>2020-05-14T08:52:53.255Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/56%E5%88%9D%E8%AF%86Scala/</loc>
+        <lastmod>2020-05-14T08:52:08.472Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/54UDF%E5%87%BD%E6%95%B0%E5%9C%A8Hive%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/</loc>
+        <lastmod>2020-05-14T08:50:53.586Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/53HiveQL%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B%E7%BB%AD/</loc>
+        <lastmod>2020-05-14T08:50:44.709Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/52Hive%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B/</loc>
+        <lastmod>2020-05-14T08:50:36.389Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/55Hive%E4%B9%8B%E7%BC%96%E8%AF%91%E6%BA%90%E7%A0%81%E6%94%AF%E6%8C%81UDF%E5%87%BD%E6%95%B0/</loc>
+        <lastmod>2020-05-14T08:50:21.135Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/51Hadoop%E7%9A%84block%20Size%E5%92%8Csplit%20Size%E6%98%AF%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB/</loc>
+        <lastmod>2020-05-14T08:46:05.446Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/50Hadoop2.6.0%E6%9C%AC%E5%9C%B0%E5%BA%93%EF%BC%88Native%20Library%EF%BC%89/</loc>
+        <lastmod>2020-05-14T08:45:01.659Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/49%E5%8E%8B%E7%BC%A9%E7%9A%84%E5%A5%BD%E5%A4%84%E5%92%8C%E5%9D%8F%E5%A4%84/</loc>
+        <lastmod>2020-05-14T08:44:01.801Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/48Hadoop%E5%8E%8B%E7%BC%A9%E5%BD%A2%E5%BC%8F%E5%92%8CHive%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F%E4%B9%8B%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8A%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90%E6%A1%88%E4%BE%8B/</loc>
+        <lastmod>2020-05-14T08:43:13.898Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/47Hadoop%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E4%B9%8BWordCount/</loc>
+        <lastmod>2020-05-14T08:42:17.295Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/46hadoop%E4%B9%8B%E4%BD%BF%E7%94%A8LZO%E5%8E%8B%E7%BC%A9%E5%B9%B6%E6%94%AF%E6%8C%81%E5%88%86%E7%89%87/</loc>
+        <lastmod>2020-05-14T08:41:16.854Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/45shell%E8%84%9A%E6%9C%AC%E5%8F%91%E9%80%81QQ%E9%82%AE%E4%BB%B6+%E9%99%84%E4%BB%B6log%E6%96%87%E4%BB%B6/</loc>
+        <lastmod>2020-05-14T08:39:58.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/44Shell%E7%BC%96%E7%A8%8B/</loc>
+        <lastmod>2020-05-14T08:38:14.767Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/36Hadoop%E7%94%9F%E6%80%81%E7%A6%BB%E7%BA%BF%E9%A1%B9%E7%9B%AE/</loc>
+        <lastmod>2020-05-14T08:33:51.388Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/37Hadoop%E7%A6%BB%E7%BA%BF%E9%A1%B9%E7%9B%AE%E4%B9%8B%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/</loc>
+        <lastmod>2020-05-14T08:33:40.613Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/38HDFS%20HA%20%E6%9E%B6%E6%9E%84/</loc>
+        <lastmod>2020-05-14T08:33:27.865Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/39YARN%20HA%20%E6%9E%B6%E6%9E%84/</loc>
+        <lastmod>2020-05-14T08:33:16.547Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/40HDFS%E5%92%8CYARN%20HA%E9%83%A8%E7%BD%B2/</loc>
+        <lastmod>2020-05-14T08:33:06.633Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/41%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9Ablock%E6%8D%9F%E5%9D%8F%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E4%BF%AE%E5%A4%8D/</loc>
+        <lastmod>2020-05-14T08:32:57.369Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/42%E4%B8%89%E5%8F%B0%E6%9C%BA%E5%99%A8%E9%9B%86%E7%BE%A4Hadoop%20HA%E7%9A%84%E5%90%AF%E5%8A%A8%E5%92%8C%E5%81%9C%E6%AD%A2-%E5%B0%8F%E6%80%BB%E7%BB%93/</loc>
+        <lastmod>2020-05-14T08:32:48.591Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/43Hadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81%E5%8E%8B%E7%BC%A9/</loc>
+        <lastmod>2020-05-14T08:32:32.790Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/35Hive%E5%AE%9E%E6%88%98/</loc>
+        <lastmod>2020-05-14T08:22:10.874Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/34Hive%E8%BF%9B%E9%98%B6/</loc>
+        <lastmod>2020-05-14T08:21:17.312Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/33Hive%20DML%E5%AD%A6%E4%B9%A0/</loc>
+        <lastmod>2020-05-14T08:20:29.599Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/31Hive%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E4%BB%A5%E5%8F%8AHive%E9%83%A8%E7%BD%B2%E5%AE%89%E8%A3%85/</loc>
+        <lastmod>2020-05-14T08:19:33.029Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/32Hive%20DDL%E5%AD%A6%E4%B9%A0/</loc>
+        <lastmod>2020-05-14T08:19:15.024Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/30MapReduce%E4%BC%98%E5%8C%96----Shuffle%E8%BF%87%E7%A8%8B%E5%89%96%E6%9E%90%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</loc>
+        <lastmod>2020-05-14T08:16:33.771Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/29YARN%E4%B9%8B%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%BB%A5%E5%8F%8A%E7%94%9F%E4%BA%A7%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E4%BB%A5%E5%8F%8A%E8%B0%83%E5%BA%A6%E5%99%A8/</loc>
+        <lastmod>2020-05-14T08:15:18.531Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/28MapReduce%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3/</loc>
+        <lastmod>2020-05-14T08:14:14.416Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/27MapReduce%E5%AD%A6%E4%B9%A0/</loc>
+        <lastmod>2020-05-14T08:13:06.499Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/26HDFS%E8%AF%A6%E8%A7%A3%E4%BA%8C%E4%B9%8B%E5%89%AF%E6%9C%AC%E6%94%BE%E7%BD%AE%E7%AD%96%E7%95%A5/</loc>
+        <lastmod>2020-05-14T08:12:00.000Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/25HDFS%E8%AF%A6%E8%A7%A3%E4%BA%8C%E4%B9%8BHDFS%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B/</loc>
+        <lastmod>2020-05-14T08:10:36.497Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/24HDFS%E8%AF%A6%E8%A7%A3%E4%B8%80%E4%B9%8BHDFS%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/</loc>
+        <lastmod>2020-05-14T08:08:54.443Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/23jps%E5%91%BD%E4%BB%A4%E6%9F%A5%E7%9C%8BDataNode%E8%BF%9B%E7%A8%8B%E4%B8%8D%E8%A7%81%E4%BA%86/</loc>
+        <lastmod>2020-05-14T08:07:16.511Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/22YARN%E7%9A%84Memory%E5%92%8CCPU%E8%B0%83%E4%BC%98%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3/</loc>
+        <lastmod>2020-05-14T08:06:03.593Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/21MapReduce%20job%E8%BF%90%E8%A1%8C%E6%A1%88%E4%BE%8B/</loc>
+        <lastmod>2020-05-14T08:04:19.365Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/20Yarn%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E5%8F%8Alog%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/</loc>
+        <lastmod>2020-05-14T08:03:08.903Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/19jps%E5%91%BD%E4%BB%A4%E5%92%8Cpid%E8%BF%9B%E7%A8%8B%E5%89%96%E6%9E%90/</loc>
+        <lastmod>2020-05-14T08:01:41.623Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/18HDFS%E4%B8%89%E4%B8%AA%E8%BF%9B%E7%A8%8B%E4%BB%A5%E6%9C%BA%E5%99%A8%E5%90%8D%E5%90%AF%E5%8A%A8%E7%9A%84%E8%AE%BE%E7%BD%AE/</loc>
+        <lastmod>2020-05-14T08:00:10.992Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/16%E9%85%8D%E7%BD%AE%E5%A4%9A%E5%8F%B0%E6%9C%BA%E5%99%A8SSH%E7%9B%B8%E4%BA%92%E9%80%9A%E4%BF%A1%E4%BF%A1%E4%BB%BB/</loc>
+        <lastmod>2020-05-14T07:58:40.459Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/15%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E5%B8%AE%E7%BD%91%E5%8F%8B%E8%B0%83%E8%AF%95ssh%E4%BF%A1%E4%BB%BB%E5%85%B3%E7%B3%BB%E7%9A%84%E8%BF%87%E7%A8%8B/</loc>
+        <lastmod>2020-05-14T07:57:18.814Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/14hadoop%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E4%B9%8BnameNode%E8%BF%9B%E7%A8%8B%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%EF%BC%8C%E6%8A%A5org.apache.hadoop.hdfs.server.common.Inconsistent/</loc>
+        <lastmod>2020-05-14T07:55:53.983Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/13hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/</loc>
+        <lastmod>2020-05-14T07:53:50.133Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/12hadoop%E5%85%A5%E9%97%A8%E4%BB%8B%E7%BB%8D/</loc>
+        <lastmod>2020-05-14T07:52:05.622Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/10Mysql%E7%9A%84%E5%9F%BA%E7%A1%80%E8%AF%AD%E5%8F%A5/</loc>
+        <lastmod>2020-05-14T07:50:07.761Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/09MySQL%E9%83%A8%E7%BD%B2/</loc>
+        <lastmod>2020-05-14T07:49:54.609Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/11%E5%88%9B%E5%BB%BA%E6%96%B0DB%E5%92%8C%E6%96%B0%E7%94%A8%E6%88%B7&DBeaver%E8%BF%9E%E6%8E%A5/</loc>
+        <lastmod>2020-05-14T07:49:27.150Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/08Linux%E5%91%BD%E4%BB%A4%E8%BF%9B%E9%98%B6%EF%BC%88%E4%BA%8C%EF%BC%89/</loc>
+        <lastmod>2020-05-14T07:24:45.711Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/07which%EF%BC%8Cwhereis%20%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%88Linux%20%EF%BC%89/</loc>
+        <lastmod>2020-05-14T07:23:11.008Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/06Linux%E5%91%BD%E4%BB%A4%E8%BF%9B%E9%98%B6%EF%BC%88%E4%B8%80%EF%BC%89/</loc>
+        <lastmod>2020-05-14T07:21:14.684Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/05%E3%80%90%E5%9C%A8%E7%BA%BF%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90%E3%80%91%E4%B9%8B%E8%AE%B0%E5%BD%95%E4%B8%80%E4%B8%AAflume-ng%E7%9A%84tail%20-f%E5%8F%82%E6%95%B0%E6%89%80%E8%AF%B1%E5%8F%91%E7%9A%84%E8%A1%80%E6%A1%88/</loc>
+        <lastmod>2020-05-14T07:19:35.492Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/04Linux%E5%91%BD%E4%BB%A4%E5%9F%BA%E7%A1%80/</loc>
+        <lastmod>2020-05-14T07:16:14.650Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/03VM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Centos6.X%E4%BB%A5%E5%8F%8A%E4%B8%BB%E6%9C%BA%E5%92%8C%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE/</loc>
+        <lastmod>2020-05-14T07:08:36.315Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/02CentOS6.6%E9%85%8D%E7%BD%AE%E9%9D%99%E6%80%81IP%E5%92%8C%E5%8F%AF%E8%AE%BF%E9%97%AE%E5%A4%96%E7%BD%91/</loc>
+        <lastmod>2020-05-14T06:57:32.844Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
         <loc>https://leofwz.github.io/article/hexo-theme-jepson/</loc>
-        <lastmod>2020-05-14T04:21:37.753Z</lastmod>
+        <lastmod>2020-05-14T06:52:37.601Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/article/01%E5%A4%A7%E6%95%B0%E6%8D%AE%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA/</loc>
+        <lastmod>2020-05-14T06:51:43.456Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 

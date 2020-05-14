@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Hadoop源码编译支持压缩]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/43Hadoop源码编译支持压缩/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                            
+                        </div>
+                        <h1>[Hadoop源码编译支持压缩]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-04-03
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p><strong>Hadoop-2.6.0-CDH-5.7.0版本编译：</strong><br>
+软件环境：</p>
+<table>
+<thead>
+<tr>
+<th>组件名称</th>
+<th>组件版本</th>
+<th>百度网盘链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hadoop</td>
+<td>Hadoop-2.6.0-cdh5.7.0-src.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1jZKj0Nr0Za8308b7ZnGARQ" target="_blank" rel="noopener">https://pan.baidu.com/s/1jZKj0Nr0Za8308b7ZnGARQ</a> 提取码：e12q</td>
+</tr>
+<tr>
+<td>jdk</td>
+<td>jdk-7u80-linux-x64.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/17Iv3opVv6w4WaS5RzrSVHQ" target="_blank" rel="noopener">https://pan.baidu.com/s/17Iv3opVv6w4WaS5RzrSVHQ</a> 提取码：pgem</td>
+</tr>
+<tr>
+<td>maven</td>
+<td>apache-maven-3.3.9-bin.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1HMKRjgMXdliKLJaAtuJilQ" target="_blank" rel="noopener">https://pan.baidu.com/s/1HMKRjgMXdliKLJaAtuJilQ</a> 提取码：gy6v</td>
+</tr>
+<tr>
+<td>protobuf</td>
+<td>protobuf-2.5.0.tar.gz</td>
+<td>链接：<a href="https://pan.baidu.com/s/1wt4-7IesGBqQzV0IyDda3A" target="_blank" rel="noopener">https://pan.baidu.com/s/1wt4-7IesGBqQzV0IyDda3A</a> 提取码：tjjz</td>
+</tr>
+</tbody>
+</table>
+<p>注意：编译的JDK版本必须是1.7，1.8的JDK会导致编译失败</p>
+<p><strong>编译hadoop</strong><br>
+1、安装必要的依赖库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop-01 ~]# yum install -y svn ncurses-devel</span><br><span class="line">[root@hadoop-01 ~]# yum install -y gcc gcc-c++ make cmake</span><br><span class="line">[root@hadoop-01 ~]# yum install -y openssl openssl-devel svn ncurses-devel zlib-devel libtool</span><br><span class="line">[root@hadoop-01 ~]# yum install -y snappy snappy-devel bzip2 bzip2-devel lzo lzo-devel lzop autoconf automake cmake</span><br></pre></td></tr></table></figure>
+<p>2、下载并上传软件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 ~]$ mkdir app soft source lib data maven_repo shell mysql</span><br><span class="line">[hadoop@hadoop-01 ~]$ cd soft/</span><br><span class="line">[hadoop@hadoop-01 soft]$ rz</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop-01 soft]$ ll</span><br><span class="line">total 202192</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop   8491533 Apr 19 13:20 apache-maven-3.3.9-bin.tar.gz</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  42610549 Apr 19 16:41 hadoop-2.6.0-cdh5.7.0-src.tar.gz</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop 153530841 Apr 19 15:55 jdk-7u80-linux-x64.tar.gz</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop   2401901 Apr 19 15:56 protobuf-2.5.0.tar.gz</span><br></pre></td></tr></table></figure>
+<p>3、安装JDK<br>
+解压安装包，安装目录必须是/usr/java,安装后记得修改拥有者为root</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 soft]$ exit</span><br><span class="line">[root@hadoop-01 ~]# mkdir /usr/java</span><br><span class="line">[root@hadoop-01 ~]# tar -zxvf /home/hadoop/soft/jdk-7u80-linux-x64.tar.gz -C /usr/java</span><br><span class="line">[root@hadoop-01 ~]# cd /usr/java/</span><br><span class="line">[root@hadoop-01 java]# chown -R  root:root jdk1.7.0_80</span><br></pre></td></tr></table></figure>
+<p>添加环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop-01 jdk1.7.0_80]# vim /etc/profile </span><br><span class="line">#添加如下两行环境变量</span><br><span class="line">export JAVA_HOME=/usr/java/jdk1.7.0_80</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br><span class="line">[root@hadoop-01 jdk1.7.0_80]# source /etc/profile</span><br><span class="line">#测试java是否安装成功</span><br><span class="line">[root@hadoop-01 jdk1.7.0_80]# java -version</span><br><span class="line">java version &quot;1.7.0_80&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.7.0_80-b15)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 24.80-b11, mixed mode)</span><br></pre></td></tr></table></figure>
+<p>4、安装maven</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop-01 ~]# su - hadoop</span><br><span class="line">[hadoop@hadoop-01 ~]$ tar -zxvf ~/soft/apache-maven-3.3.9-bin.tar.gz -C ~/app/</span><br></pre></td></tr></table></figure>
+<p>添加环境变量：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#修改hadoop用户的环境变量</span><br><span class="line">[hadoop@hadoop-01 ~]$ vim ~/.bash_profile</span><br><span class="line">#添加或修改如下内容，注意MAVEN_OPTS设置了maven运行的内存，防止内存太小导致编译失败</span><br><span class="line">export MAVEN_HOME=/home/hadoop/app/apache-maven-3.3.9</span><br><span class="line">export MAVEN_OPTS=&quot;-Xms1024m -Xmx1024m&quot;</span><br><span class="line">export PATH=$MAVEN_HOME/bin:$PATH</span><br><span class="line">[hadoop@hadoop-01 ~]$ source ~/.bash_profile</span><br><span class="line">[hadoop@hadoop-01 ~]$ which mvn</span><br><span class="line">~/app/apache-maven-3.3.9/bin/mvn</span><br></pre></td></tr></table></figure>
+<p>配置maven</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ vim ~/app/apache-maven-3.3.9/conf/settings.xml</span><br><span class="line">#配置maven的本地仓库位置</span><br><span class="line">&lt;localRepository&gt;/home/hadoop/maven_repo/repo&lt;/localRepository&gt;</span><br><span class="line">#添加阿里云中央仓库地址，注意一定要写在&lt;mirrors&gt;&lt;/mirrors&gt;之间</span><br><span class="line">&lt;mirror&gt;</span><br><span class="line">     &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">     &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;</span><br><span class="line">     &lt;name&gt;Nexus aliyun&lt;/name&gt;</span><br><span class="line">     &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">&lt;/mirror&gt;</span><br></pre></td></tr></table></figure>
+<p>（可选）添加jars到本地仓库，网络慢可能导致mvn第一次编译时下载需要超长的时间甚至编译失败</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#jar包链接</span><br><span class="line">链接：https://pan.baidu.com/s/17Q6QJw838oMExjo8T5w9YA 提取码：z69x </span><br><span class="line">#下载后 rz上传解压，注意目录层次</span><br><span class="line">[hadoop@hadoop-01 maven_repo]$ rz</span><br><span class="line">[hadoop@hadoop-01 maven_repo]$ tar -zxvf repo.tar.gz</span><br></pre></td></tr></table></figure>
+<p>5、安装protobuf<br>
+解压</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 ~]$ tar -zxvf ~/soft/protobuf-2.5.0.tar.gz -C ~/app/</span><br></pre></td></tr></table></figure>
+<p>编译软件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ cd ~/app/protobuf-2.5.0/</span><br><span class="line">#  --prefix= 是用来待会编译好的包放在为路径</span><br><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ ./configure  --prefix=/home/hadoop/app/protobuf-2.5.0</span><br><span class="line">#编译以及安装</span><br><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ make</span><br><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ make install</span><br></pre></td></tr></table></figure>
+<p>添加环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ vim ~/.bash_profile</span><br><span class="line">#追加如下两行内容，未编译前是没有bin目录的</span><br><span class="line">export PROTOBUF_HOME=/home/hadoop/app/protobuf-2.5.0</span><br><span class="line">export PATH=$PROTOBUF_HOME/bin:$PATH</span><br><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ source ~/.bash_profile </span><br><span class="line">#测试是否生效，若出现libprotoc 2.5.0则为生效</span><br><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ protoc --version</span><br><span class="line">libprotoc 2.5.0</span><br></pre></td></tr></table></figure>
+<p>6、编译hadoop<br>
+解压</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop-01 protobuf-2.5.0]$ tar -zxvf ~/soft/hadoop-2.6.0-cdh5.7.0-src.tar.gz -C ~/source/</span><br></pre></td></tr></table></figure>
+<p>编译hadoop使其支持压缩：mvn clean package -Pdist,native -DskipTests -Dtar</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#进入hadoop的源码目录</span><br><span class="line">[hadoop@hadoop-01 hadoop-2.6.0-cdh5.7.0]$ cd ~/source/hadoop-2.6.0-cdh5.7.0/</span><br><span class="line">#进行编译，第一次编译会下载很多依赖的jar包，快慢由网速决定，需耐心等待，本人亲测耗时</span><br><span class="line">[hadoop@hadoop-01 hadoop-2.6.0-cdh5.7.0]$ mvn clean package -Pdist,native -DskipTests -Dtar</span><br></pre></td></tr></table></figure>
+<p>若报异常，主要信息如下（无异常跳过）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[FATAL] Non-resolvable parent POM for org.apache.hadoop:hadoop-main:2.6.0-cdh5.7.0: Could not transfer artifact com.cloudera.cdh:cdh-root:pom:5.7.0 from/to cdh.repo (https://repository.cloudera.com/artifactory/cloudera-repos): Remote host closed connectio</span><br><span class="line">#分析：是https://repository.cloudera.com/artifactory/cloudera-repos/com/cloudera/cdh/cdh-root/5.7.0/cdh-root-5.7.0.pom文件下载不了，但是虚拟机确实是ping通远程的仓库，很是费解为什么。</span><br><span class="line">#解决方案：前往本地仓库到目标文件目录，然后 通过wget 文件，来成功获取该文件，重新执行编译命令，或者执行4.5的可选步骤，将需要的jar直接放到本地仓库</span><br></pre></td></tr></table></figure>
+<p>查看编译后的包：hadoop-2.6.0-cdh5.7.0.tar.gz</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">#有 BUILD SUCCESS 信息则表示编译成功</span><br><span class="line">[INFO] Apache Hadoop Pipes ................................ SUCCESS [  7.687 s]</span><br><span class="line">[INFO] Apache Hadoop OpenStack support .................... SUCCESS [  6.518 s]</span><br><span class="line">[INFO] Apache Hadoop Amazon Web Services support .......... SUCCESS [  6.997 s]</span><br><span class="line">[INFO] Apache Hadoop Azure support ........................ SUCCESS [  5.443 s]</span><br><span class="line">[INFO] Apache Hadoop Client ............................... SUCCESS [  5.799 s]</span><br><span class="line">[INFO] Apache Hadoop Mini-Cluster ......................... SUCCESS [  1.712 s]</span><br><span class="line">[INFO] Apache Hadoop Scheduler Load Simulator ............. SUCCESS [  5.434 s]</span><br><span class="line">[INFO] Apache Hadoop Tools Dist ........................... SUCCESS [  9.530 s]</span><br><span class="line">[INFO] Apache Hadoop Tools ................................ SUCCESS [  0.054 s]</span><br><span class="line">[INFO] Apache Hadoop Distribution ......................... SUCCESS [ 38.677 s]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time: 15:15 min</span><br><span class="line">[INFO] Finished at: 2019-04-20T09:16:21+08:00</span><br><span class="line">[INFO] Final Memory: 240M/978M</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[hadoop@hadoop-01 hadoop-2.6.0-cdh5.7.0]$ ll /home/hadoop/source/hadoop-2.6.0-cdh5.7.0/hadoop-dist/target/</span><br><span class="line">total 563944</span><br><span class="line">drwxrwxr-x 2 hadoop hadoop      4096 Apr 20 09:15 antrun</span><br><span class="line">drwxrwxr-x 3 hadoop hadoop      4096 Apr 20 09:15 classes</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop      1998 Apr 20 09:15 dist-layout-stitching.sh</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop       690 Apr 20 09:15 dist-tar-stitching.sh</span><br><span class="line">drwxrwxr-x 9 hadoop hadoop      4096 Apr 20 09:15 hadoop-2.6.0-cdh5.7.0</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 191839625 Apr 20 09:15 hadoop-2.6.0-cdh5.7.0.tar.gz</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop      7315 Apr 20 09:15 hadoop-dist-2.6.0-cdh5.7.0.jar</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 385571341 Apr 20 09:16 hadoop-dist-2.6.0-cdh5.7.0-javadoc.jar</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop      4855 Apr 20 09:15 hadoop-dist-2.6.0-cdh5.7.0-sources.jar</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop      4855 Apr 20 09:15 hadoop-dist-2.6.0-cdh5.7.0-test-sources.jar</span><br><span class="line">drwxrwxr-x 2 hadoop hadoop      4096 Apr 20 09:15 javadoc-bundle-options</span><br><span class="line">drwxrwxr-x 2 hadoop hadoop      4096 Apr 20 09:15 maven-archiver</span><br><span class="line">drwxrwxr-x 3 hadoop hadoop      4096 Apr 20 09:15 maven-shared-archive-resources</span><br><span class="line">drwxrwxr-x 3 hadoop hadoop      4096 Apr 20 09:15 test-classes</span><br><span class="line">drwxrwxr-x 2 hadoop hadoop      4096 Apr 20 09:15 test-dir</span><br><span class="line">[hadoop@hadoop-01 hadoop-2.6.0-cdh5.7.0]$</span><br></pre></td></tr></table></figure>
+<p>检查编译后是否支持压缩<br>
+<img src="https://img-blog.csdnimg.cn/2019042013500490.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/44Shell编程/" data-toggle="tooltip" data-placement="top" title="[Shell编程]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/42三台机器集群Hadoop HA的启动和停止-小总结/" data-toggle="tooltip" data-placement="top" title="[三台机器集群Hadoop HA的启动和停止-小总结]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [ZooKeeper介绍及基本操作]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/99ZooKeeper介绍及基本操作/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#ZooKeeper" title="ZooKeeper">ZooKeeper</a>
+                            
+                        </div>
+                        <h1>[ZooKeeper介绍及基本操作]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-11-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="简介">简介</h1>
+<p>本文会从两个角度介绍：</p>
+<ul>
+<li>shell</li>
+<li>API   支持JAVA、Scala</li>
+</ul>
+<blockquote>
+<p><a href="http://zookeeper.apache.org/%E5%AE%98%E7%BD%91" target="_blank" rel="noopener">http://zookeeper.apache.org/官网</a></p>
+</blockquote>
+<p>管理者ZooKeeper，我们Hadoop生态圈的有很多节点，光靠一个ZooKeeper肯定管理不过来，所以可以单节点也可以分布式</p>
+<p>ZK： distributed coordination  分布式协调服务</p>
+<p>通过前面我们Hadoop   HA高可用里面也可以知道，只有一个namenode 作为active对外服务，这里就用到了ZK协调</p>
+<p>再比如生产上需要监控各个节点上面的状态信息，如果某一个节点下线了或者上线了，这也是完全可以通过ZK来实现的</p>
+<h2 id="安装部署">安装部署</h2>
+<blockquote>
+<p><a href="https://blog.csdn.net/greenplum_xiaofan/article/details/99020516#31_Zookeeper_40" target="_blank" rel="noopener">https://blog.csdn.net/greenplum_xiaofan/article/details/99020516#31_Zookeeper_40</a></p>
+</blockquote>
+<p>版本选择3.5,同CDH配套的</p>
+<p>前置要求：Java</p>
+<p>解压后重点关注以下两个目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bin/   重点关注：zkCli.sh  zkServer.sh</span><br><span class="line"></span><br><span class="line">con/   配置文件   zoo.cfg默认是没有的，cp  zoo_sample.cfg</span><br></pre></td></tr></table></figure>
+<p>zoo.cfg中需要修改以下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tickTime=2000</span><br><span class="line">initLimit=10</span><br><span class="line">syncLimit=5</span><br><span class="line">dataDir=/tmp/zookeeper  //  不要使用/tmp/zookeeper，默认重启后就没有了</span><br><span class="line">clientPort=2181</span><br></pre></td></tr></table></figure>
+<p>环境搭建完成后，我们来介绍一下ZK数据模型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">1）树形结构： 从/开始   //Linux也是树形结构</span><br><span class="line">2）ZK中每个节点：叫做znode，而且都有唯一的路径标识，从根节点访问znode必然是唯一的</span><br><span class="line">a）每个znode都有自己的版本号</span><br><span class="line">b）如果znode信息发生变化，那么version+1</span><br><span class="line">c）znode数据量不要太大，几K，比如hadoop的jar包就不能放进去，主要存放一些配置信息</span><br><span class="line">d）权限</span><br><span class="line">e）每一个几点可以加一个Watcher监视器，如果一个zk发生变化，其他的也会同步</span><br><span class="line">3）znode有两种类型</span><br><span class="line">a）临时：当前session有效，前面对于zk来说是树形结构，也就是文件夹来有文件夹，但是对于临时的不能有子节点</span><br><span class="line">b）永久：不依赖于session</span><br><span class="line">4）znode四种形式</span><br><span class="line"> PERSISTENT   持久化的目录节点</span><br><span class="line"> PERSISTENT_SEQUENTIAL 带顺序编号的</span><br><span class="line"> EPHEMERAL  临时的</span><br><span class="line"> EPHEMERAL_SEQUENTIAL   临时的带顺序编号的</span><br><span class="line">```        </span><br><span class="line"></span><br><span class="line">ZK节点数：奇数个(&gt;=3)</span><br><span class="line"></span><br><span class="line">选举：leader+flower</span><br><span class="line"></span><br><span class="line">ZK集群的写操作，leader负责，会把通知所有节点写入操作</span><br><span class="line">只有收到半数以上节点的成功反馈，才算成功</span><br><span class="line"></span><br><span class="line"># 基本操作</span><br><span class="line"></span><br><span class="line">服务端启动</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$  ./zkServer.sh    //可以查看命令帮助,以后写脚本也可以参照这个USage<br>
+[hadoop@vm01 bin]$ ./zkServer.sh start	<br>
+//启动后可以看到QuorumPeerMain的进程，表示ZK  server端已经起了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">查看ZK状态，单节点就是standalone，集群是leader，flower,默认是standalone模式</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ ./zkServer.sh status</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">打开ZK客户端</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ ./zkCli.sh<br>
+[zk: localhost:2181(CONNECTED) 11] quit</p>
+<p>////默认启动连到localhost，默认端口2181,到目录后  help可以查看命令帮助</p>
+<p>[zk: localhost:2181(CONNECTED) 0] ls /<br>
+[zookeeper, kafka]</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">现在看之前配的ZK目录下：/home/hadoop/tmp/zookeeper目录下：</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 0] ls /home/hadoop/tmp/zookeeper<br>
+version-2 zookeeper_server.pid</p>
+<p>[zk: localhost:2181(CONNECTED) 0] cat  zookeeper_server.pid</p>
+<p>//这里面放的就是刚刚启动进程id</p>
+<p>[zk: localhost:2181(CONNECTED) 0] cd version-2/</p>
+<p>我们tree 一下可以查看里面的树形结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">ls2 可以理解为 ls+stat</span><br></pre></td></tr></table></figure>
+<p>//看状态信息<br>
+//stat显示当前的状态信息<br>
+[zk: localhost:2181(CONNECTED) 1] ls2 /<br>
+[zookeeper, kafka]  #下面是ZK的状态信息<br>
+cZxid = 0x0<br>
+ctime = Wed Dec 31 16:00:00 PST 1969<br>
+mZxid = 0x0<br>
+mtime = Wed Dec 31 16:00:00 PST 1969<br>
+pZxid = 0x2<br>
+cversion = 0<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 0<br>
+numChildren = 2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">显示当前状态信息</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 2] stat /<br>
+cZxid = 0x0<br>
+ctime = Wed Dec 31 16:00:00 PST 1969<br>
+mZxid = 0x0<br>
+mtime = Wed Dec 31 16:00:00 PST 1969<br>
+pZxid = 0x2<br>
+cversion = 0<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 0<br>
+numChildren = 2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">获取</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 3] get /zookeeper</p>
+<p>cZxid = 0x0  #zk当前的id<br>
+ctime = Wed Dec 31 16:00:00 PST 1969  #创建时间<br>
+mZxid = 0x0  #修改后的id<br>
+mtime = Wed Dec 31 16:00:00 PST 1969 #修改时间<br>
+pZxid = 0x0	  #最后更新的子节点id<br>
+cversion = -1		#子节点版本号<br>
+dataVersion = 0		#数据版本<br>
+aclVersion = 0			#权限版本<br>
+ephemeralOwner = 0x0		#是否是临时的<br>
+dataLength = 0	#数据长度<br>
+numChildren = 1		#有几个孩子,有几个子节点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">create</span><br><span class="line"></span><br><span class="line">[-s] #是否带编号SEQUENTIAL，这个在分布式锁的zookeeper实现里会用到</span><br><span class="line"></span><br><span class="line">[-e] #是否是EPHEMERAL临时的</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 4] create /ruoze ruoze-data<br>
+Created /ruoze<br>
+[zk: localhost:2181(CONNECTED) 5]create /ruoze/a/b/c  abc<br>
+//这样在shell里是不行的，不过API是支持的<br>
+[zk: localhost:2181(CONNECTED) 6] ls /<br>
+[ruoze, zookeeper, kafka]<br>
+[zk: localhost:2181(CONNECTED) 7] get /ruoze<br>
+ruoze-data  #数据<br>
+cZxid = 0xe7<br>
+ctime = Thu Aug 15 06:16:21 PDT 2019<br>
+mZxid = 0xe7<br>
+mtime = Thu Aug 15 06:16:21 PDT 2019<br>
+pZxid = 0xe7<br>
+cversion = 0<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 10<br>
+numChildren = 0</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 8] create -e /ruoze/xiaoruoze  xiaoruoze<br>
+Created /ruoze/xiaoruoze<br>
+[zk: localhost:2181(CONNECTED) 9] get /ruoze<br>
+ruoze-data<br>
+cZxid = 0xe7<br>
+ctime = Thu Aug 15 06:16:21 PDT 2019<br>
+mZxid = 0xe7<br>
+mtime = Thu Aug 15 06:16:21 PDT 2019<br>
+pZxid = 0xe8<br>
+cversion = 1<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 10<br>
+numChildren = 1  #有一个孩子了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 10] get /ruoze/xiaoruoze<br>
+xiaoruoze<br>
+cZxid = 0xe8<br>
+ctime = Thu Aug 15 06:18:09 PDT 2019<br>
+mZxid = 0xe8<br>
+mtime = Thu Aug 15 06:18:09 PDT 2019<br>
+pZxid = 0xe8<br>
+cversion = 0<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x16c88e4a0770001 #表示是临时节点<br>
+dataLength = 9<br>
+numChildren = 0</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 11] quit<br>
+[hadoop@vm01 bin]$ ./zkCli.sh<br>
+[zk: localhost:2181(CONNECTED) 0] ls /ruoze<br>
+[]  #发现没有子节点了，这就是临时的特点,退出就没了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">加编号，顺序</span><br><span class="line"></span><br><span class="line">分布式锁的一个实现，会借助这个</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 1] create -s /ruoze/seq seq<br>
+Created /ruoze/seq0000000001<br>
+[zk: localhost:2181(CONNECTED) 2] create -s /ruoze/seq seq<br>
+Created /ruoze/seq0000000002<br>
+[zk: localhost:2181(CONNECTED) 3] create -s /ruoze/seq seq<br>
+Created /ruoze/seq0000000003<br>
+[zk: localhost:2181(CONNECTED) 4] create -s /ruoze/seq seq<br>
+Created /ruoze/seq0000000004<br>
+[zk: localhost:2181(CONNECTED) 5] create -s /ruoze/seq seq<br>
+Created /ruoze/seq0000000005<br>
+[zk: localhost:2181(CONNECTED) 6]<br>
+[zk: localhost:2181(CONNECTED) 6] ls /ruoze<br>
+[seq0000000005, seq0000000003, seq0000000004, seq0000000001, seq0000000002]</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">修改数据，查看版本信息</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 7] get /ruoze<br>
+ruoze-data<br>
+cZxid = 0xe7<br>
+ctime = Thu Aug 15 06:16:21 PDT 2019<br>
+mZxid = 0xe7<br>
+mtime = Thu Aug 15 06:16:21 PDT 2019<br>
+pZxid = 0xef<br>
+cversion = 7<br>
+dataVersion = 0<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 10<br>
+numChildren = 5</p>
+<p>[zk: localhost:2181(CONNECTED) 8] set /ruoze <a href="http://www.ruozedata.com" target="_blank" rel="noopener">www.ruozedata.com</a>     //当然后面也可以加上版本号<br>
+cZxid = 0xe7<br>
+ctime = Thu Aug 15 06:16:21 PDT 2019<br>
+mZxid = 0xf0<br>
+mtime = Thu Aug 15 06:24:30 PDT 2019<br>
+pZxid = 0xef<br>
+cversion = 7<br>
+dataVersion = 1<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 17<br>
+numChildren = 5<br>
+[zk: localhost:2181(CONNECTED) 9] get /ruoze<br>
+<a href="http://www.ruozedata.com" target="_blank" rel="noopener">www.ruozedata.com</a><br>
+cZxid = 0xe7<br>
+ctime = Thu Aug 15 06:16:21 PDT 2019<br>
+mZxid = 0xf0<br>
+mtime = Thu Aug 15 06:24:30 PDT 2019<br>
+pZxid = 0xef<br>
+cversion = 7<br>
+dataVersion = 1<br>
+aclVersion = 0<br>
+ephemeralOwner = 0x0<br>
+dataLength = 17<br>
+numChildren = 5</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">删除</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 11] delete /ruoze/seq0000000001<br>
+[zk: localhost:2181(CONNECTED) 12] ls /ruoze<br>
+[seq0000000005, seq0000000003, seq0000000004, seq0000000002]</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">修改seq2的数据，然后删除，带版本的，0的版本是删除不掉的，因为修改之后版本+1，必须用最新的版本号才能删除,set，delete都可以带上版本号，建议带上版本号，相当于加了一个乐观锁</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 14] set /ruoze/seq0000000002 seq2<br>
+[zk: localhost:2181(CONNECTED) 16] delete /ruoze/seq0000000002 0<br>
+version No is not valid : /ruoze/seq0000000002<br>
+[zk: localhost:2181(CONNECTED) 17] delete /ruoze/seq0000000002 1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"># ZK四字命令 Four Letter Word</span><br><span class="line"></span><br><span class="line">&gt;http://zookeeper.apache.org/doc/current/zookeeperAdmin.html</span><br><span class="line"></span><br><span class="line">我们来看几个比较重要的命令</span><br><span class="line"></span><br><span class="line">stat : Lists brief details for the server and connected clients.</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo stat |nc localhost 2181<br>
+Zookeeper version: 3.4.5-cdh5.7.0–1, built on 03/23/2016 18:31 GMT<br>
+Clients:<br>
+/0:0:0:0:0:0:0:1:50179<a href="queued=0,recved=1,sent=0">0</a></p>
+<p>//查看状态信息，关注下connnection的数量以及node  count 的数量（集群znode的数量）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Latency min/avg/max: 0/0/11<br>
+Received: 229<br>
+Sent: 228<br>
+Connections: 1  #有多少连接数<br>
+Outstanding: 0<br>
+Zxid: 0xf7<br>
+Mode: standalone<br>
+Node count: 146  #节点数量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">ruok : Tests if server is running in a non-error state. The server will respond with imok if it is running. Otherwise it will not respond at all. A response of &quot;imok&quot; does not necessarily indicate that the server has joined the quorum, just that the server process is active and bound to the specified client port. Use &quot;stat&quot; for details on state wrt quorum and client connection information.</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo ruok |nc localhost 2181<br>
+imok</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">dump : Lists the outstanding sessions and ephemeral nodes. This only works on the leader.</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo dump |nc localhost 2181<br>
+SessionTracker dump:<br>
+Session Sets (0):<br>
+ephemeral nodes dump:<br>
+Sessions with Ephemerals (0): #临时节点有多少个</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">conf : New in 3.3.0: Print details about serving configuration.</span><br><span class="line"></span><br><span class="line">可以看到ZK的配置</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo conf |nc localhost 2181<br>
+clientPort=2181<br>
+dataDir=/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/data/version-2<br>
+dataLogDir=/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/dataLog/version-2<br>
+tickTime=2000<br>
+maxClientCnxns=60<br>
+minSessionTimeout=4000<br>
+maxSessionTimeout=40000<br>
+serverId=0</p>
+<p>[hadoop@vm01 bin]$ echo cons |nc localhost 2181<br>
+/0:0:0:0:0:0:0:1:50187<a href="queued=0,recved=1,sent=0">0</a></p>
+<p>//可以查看当前的ZK配置信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">cons : New in 3.3.0: List full connection/session details for all clients connected to this server. Includes information on numbers of packets received/sent, session id, operation latencies, last operation performed, etc...</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo cons |nc  llocalhost  2181</p>
+<p>//所有链接到server的connection信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">envi : Print details about serving environment</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo envi |nc  llocalhost  2181</p>
+<p>//打出环境、依赖信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">mntr : New in 3.4.0: Outputs a list of variables that could be used for monitoring the health of the cluster.</span><br><span class="line"></span><br><span class="line">监控</span><br></pre></td></tr></table></figure>
+<p>[hadoop@vm01 bin]$ echo mntr |nc localhost 2181<br>
+zk_version      3.4.5-cdh5.7.0–1, built on 03/23/2016 18:31 GMT<br>
+zk_avg_latency  0<br>
+zk_max_latency  11<br>
+zk_min_latency  0<br>
+zk_packets_received     234<br>
+zk_packets_sent 233<br>
+zk_num_alive_connections        1<br>
+zk_outstanding_requests 0<br>
+zk_server_state standalone<br>
+zk_znode_count  146<br>
+zk_watch_count  0<br>
+zk_ephemerals_count     0<br>
+zk_approximate_data_size        11597<br>
+zk_open_file_descriptor_count   28<br>
+zk_max_file_descriptor_count    65536</p>
+<p>//输出当前正在用的节点健康信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wchs : New in 3.3.0: Lists brief information on watches for the server.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">查看有多少watcher</span><br></pre></td></tr></table></figure>
+<p>[zk: localhost:2181(CONNECTED) 1] get /ruoze watch  #加一把锁<br>
+[hadoop@vm01 bin]$ echo wchs |nc localhost 2181<br>
+1 connections watching 1 paths<br>
+Total watches:1  #数量1个</p>
+<p>// znode都有一个watcher,当监控的某个znode发生了变化，就会触发watcher事件, zk中的watcher是一次性的：API,父节点、子节点的增删改都会被监听</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># API简单使用</span><br></pre></td></tr></table></figure>
+<p>import org.apache.zookeeper.WatchedEvent;<br>
+import org.apache.zookeeper.Watcher;<br>
+import org.slf4j.LoggerFactory;</p>
+<p>public class ZooKeeperConnectApp implements Watcher{</p>
+<p>private static Logger logger = LoggerFactory.getLogger(ZooKeeperConnectApp.class);</p>
+<p>public static void mai(String[]args){</p>
+<pre><code> try { 
+  
+  ZooKeeper zk = new ZooKeeper(&quot;hadoop001:2181&quot;,5000,new ZooKeeperConnectApp);
+  //connect、sessionout超时时长、watcher
+
+ logger.warn(&quot;客户端开始连接zk...,状态是：{}&quot; ,zk.getState());//写log4j的时尽量不要使用&quot;+&quot;,&quot;+&quot;底层会有很大问题,否则的话底层拼一堆SB,另外这边log4j error的日志级别还不够，需要改成info
+ 
+ Thread.sleep(2000); //zk可能由于网络的问题连不上，所以我们用最low的方式
+ 
+ logger.warn(&quot;状态是：{}&quot;,zk.getState());
+</code></pre>
+<p>}catch(Exception e){</p>
+<pre><code>  e.printStackTrace();
+ }
+</code></pre>
+<p>}</p>
+<p>public void process(WatchedEvent watchedEvent){</p>
+<p>}</p>
+<p>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">要想操作首先肯定要先connect上,当然上面的方式太low了，能不能有更好的方式能连上后直接返回，不用等那么久，接着看</span><br></pre></td></tr></table></figure>
+<p>import org.apache.zookeeper.WatchedEvent;<br>
+import org.apache.zookeeper.Watcher;<br>
+import org.slf4j.LoggerFactory;</p>
+<p>public class ZooKeeperConnectApp implements Watcher{</p>
+<p>private static Logger logger = LoggerFactory.getLogger(ZooKeeperConnectApp.class);</p>
+<p>private static CountDown connected = new CountDownLatch(1);</p>
+<p>//这一步的意思是往下减，初始值是1</p>
+<p>public static void main(String[]args){</p>
+<pre><code> try { 
+  
+  ZooKeeper zk = new ZooKeeper(&quot;hadoop001:2181&quot;,5000,new ZooKeeperConnectApp);
+  //connect、sessionout超时时长、watcher
+
+ logger.warn(&quot;客户端开始连接zk...,状态是：{}&quot; ,zk.getState());//写log4j的时尽量不要使用&quot;+&quot;,&quot;+&quot;底层会有很大问题,否则的话底层拼一堆SB,另外这边log4j error的日志级别还不够，需要改成info
+ 
+ //Thread.sleep(2000); //zk可能由于网络的问题连不上，所以我们用最low的方式
+ 
+ connected.await();//等到countdown执行完才会往下走
+ 
+ logger.warn(&quot;状态是：{}&quot;,zk.getState());
+</code></pre>
+<p>}catch(Exception e){</p>
+<pre><code>  e.printStackTrace();
+ }
+</code></pre>
+<p>}</p>
+<p>public void process(WatchedEvent watchedEvent){</p>
+<p>if (Event.KeeperState.SyncConnected == watchedEvent.getState()){<br>
+logger.warn(“接收到WAtch通知：{}”,watchedEvent);<br>
+connected.countDown(); //1-1=0</p>
+<p>}</p>
+<p>}</p>
+<p>}</p>
+<pre><code>
+
+上面这种方式比较优雅，这是Java并发里面的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</code></pre>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/100Azkaban3.57.0安装以及简单使用/" data-toggle="tooltip" data-placement="top" title="[Azkaban3.57.0安装以及简单使用]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/98Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)/" data-toggle="tooltip" data-placement="top" title="[Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#简介"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x7B80;&#x4ECB;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#安装部署"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">&#x5B89;&#x88C5;&#x90E8;&#x7F72;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#ZooKeeper" title="ZooKeeper">ZooKeeper</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

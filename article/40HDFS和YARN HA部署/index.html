@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [HDFS和YARN HA部署]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/40HDFS和YARN HA部署/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                            
+                        </div>
+                        <h1>[HDFS和YARN HA部署]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-03-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="1qjm剖析">1.QJM剖析</h1>
+<p>任意时刻只能有一个nn（active状态）去写，nn standby 读<br>
+jn部署台数是奇数2n+1，active nn把编辑日志写到jn，要求至少 n/2+1台jn是好的。<br>
+如果有3台jn，三台都是好的，那么会写三台，如果有一台是坏的，那么满足3+1/2&gt;=2台，会写两台<br>
+jn、zk不能部署太多，写的话也要耗很多时间，投票时间会越来越长，影响状态的切换。<br>
+standby nn读jn，随机找一台jn读。</p>
+<p>有个问题：第一台机器是active，第二台是standby，如果第一台机器挂了，理论上第二台要立马切换过来，如果第二台没有切换过来什么原因呢？怎么办？原因可能是zookeeper问题，zk太重了，切不过来，导致两个都是standby。生产上一般将zk单独部署。</p>
+<h1 id="2ssh互相信任关系和hosts文件配置">2.SSH互相信任关系和hosts文件配置</h1>
+<p>现在在阿里云上买三台云主机（2 vCPU 4 GiB (I/O优化) 1Mbps），按量付费的。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190408195422135.png" alt="image"></p>
+<p>上传三个安装包到hadoop001上：hadoop、jdk、zookeeper</p>
+<p><img src="https://img-blog.csdnimg.cn/20190408200930134.png" alt="image"></p>
+<p>每台机器上增加hadoop用户：useradd hadoop<br>
+三台机器都切换到hadoop用户上：su - hadoop<br>
+创建app目录：mkdir app<br>
+第一台机器退出到root用户，<br>
+[root@hadoop001 ~]# mv * /home/hadoop/app/</p>
+<p>配置用户多台机器的ssh互相信任关系 ，无密码访问<br>
+删除当前用户默认的.ssh的文件夹：<br>
+[hadoop@hadoop001 ~]$ rm -rf .ssh<br>
+然后[hadoop@hadoop001 ~]$ ssh-keygen（然后按三次回车，其实是三台一起做的）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 ~]$ rm -rf .ssh</span><br><span class="line">[hadoop@hadoop001 ~]$ ssh-keygen</span><br><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file in which to save the key (/home/hadoop/.ssh/id_rsa): </span><br><span class="line">Created directory &apos;/home/hadoop/.ssh&apos;.</span><br><span class="line">Enter passphrase (empty for no passphrase): </span><br><span class="line">Enter same passphrase again: </span><br><span class="line">Your identification has been saved in /home/hadoop/.ssh/id_rsa.</span><br><span class="line">Your public key has been saved in /home/hadoop/.ssh/id_rsa.pub.</span><br><span class="line">The key fingerprint is:</span><br><span class="line">25:d2:7b:db:11:54:c9:76:79:22:8c:30:b1:de:65:8e hadoop@hadoop001</span><br><span class="line">The key&apos;s randomart image is:</span><br><span class="line">+--[ RSA 2048]----+</span><br><span class="line">|        +o o.o...|</span><br><span class="line">|       . o..o =.o|</span><br><span class="line">|      . + . +o o.|</span><br><span class="line">|       o = = .   |</span><br><span class="line">|        S E o    |</span><br><span class="line">|         . o .   |</span><br><span class="line">|          . .    |</span><br><span class="line">|                 |</span><br><span class="line">|                 |</span><br><span class="line">+-----------------+</span><br><span class="line">#上面是三台一起做，下面是hadoop001做</span><br><span class="line">[hadoop@hadoop001 ~]$ ls -a</span><br><span class="line">.  ..  app  .bash_history  .bash_logout  .bash_profile  .bashrc  .ssh</span><br><span class="line">[hadoop@hadoop001 ~]$ cd .ssh</span><br><span class="line">[hadoop@hadoop001 .ssh]$ ll</span><br><span class="line">total 8</span><br><span class="line">-rw------- 1 hadoop hadoop 1675 Apr  8 20:17 id_rsa</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  398 Apr  8 20:17 id_rsa.pub</span><br><span class="line">[hadoop@hadoop001 .ssh]$ cat id_rsa.pub &gt;&gt; authorized_keys</span><br></pre></td></tr></table></figure>
+<p>#相当于hadoop001机器的公钥放在这个可信任的文件里面，然后把hadoop002、hadoop003的公钥文件传给hadoop001</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 ~]$ cd .ssh</span><br><span class="line">[hadoop@hadoop002 .ssh]$ ls</span><br><span class="line">id_rsa  id_rsa.pub  known_hosts</span><br><span class="line">[hadoop@hadoop002 .ssh]$ scp id_rsa.pub root@172.19.12.134:/home/hadoop/.ssh/id_rsa2</span><br><span class="line">root@172.19.12.134&apos;s password: </span><br><span class="line">Permission denied, please try again.</span><br><span class="line">root@172.19.12.134&apos;s password: </span><br><span class="line">id_rsa.pub                                                                                           100%  398     0.4KB/s   00:00    </span><br><span class="line">[hadoop@hadoop002 .ssh]$</span><br></pre></td></tr></table></figure>
+<p>scp id_rsa.pub <a href="mailto:root@172.19.12.134" target="_blank" rel="noopener">root@172.19.12.134</a>:/home/hadoop/.ssh/id_rsa2<br>
+172.19.12.134这个是hadoop001的内网ip<br>
+hadoop003也是一样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 .ssh]$ ll</span><br><span class="line">total 20</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop  398 Apr  8 20:56 authorized_keys</span><br><span class="line">-rw------- 1 hadoop hadoop 1675 Apr  8 20:17 id_rsa</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa2</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa3</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  398 Apr  8 20:17 id_rsa.pub</span><br><span class="line">[hadoop@hadoop001 .ssh]$ cat id_rsa2 &gt;&gt; authorized_keys</span><br><span class="line">[hadoop@hadoop001 .ssh]$ cat id_rsa3 &gt;&gt; authorized_keys</span><br><span class="line">[hadoop@hadoop001 .ssh]$ cat authorized_keys</span><br><span class="line">ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAxauTWIstggjZ5tlJ6u9xu5h7ih7v1j/Z6geSapmu/47XFbXmUvAxY0XpPOzFWH0fWM0YCIHZxGNJGomM019diCWpgvo7Pt9/19m6VWR+Ih+Bjnm3LU7GssnQjjcX5Rm6tR2hha0XN+ejfJiKsKP4F+mDdpCVVbjOr74633veDhHrQY2Czx0AwKdQD1vYsfjaua88kv6G57RKlK/zQCmh+d2hMt8md5muz3kna7s6chxKf0xZxULJKJJvQierFQhpV0/a/DZ6by/cbAgRAQG7eLQ/417DTLh7qyt5+/EFs3I0HKr+JTUevc+yuvLShLafo5yruiWroNd8wO+DPqN2zw== hadoop@hadoop001</span><br><span class="line">ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAuG7Fvbn8U/uQhrK9GhNUgeLkxtl3JSHS6BCHFCc/1rD3D0v2/uqEzGOhU6+rL5GFldbkYn+fH9eA4c+jp+kZdhmL5GH4vVNhO/7NgJpqHjvSbsWBAWOI4c0e9t/zA1T3+yv9RFd6mEi9MeR0qfQtN3QiqXj26UBGQLnamLstJ3faTGEev14eCbCakHS7i96W9Qsj8HK2fcuL3+3sNP2lsz6P5NacJ5p3XyHL4WNK49J0FHgJT3Tvh3JouQ/ncRdLIcQafeouEGzYe/Jc7Si8ezCRt5imE8xMjUH0xIVmGBFjy/ATElumZjhoHO6pW9wuhq65W9RmIRhzk/6gbM8icQ== hadoop@hadoop002</span><br><span class="line">ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAuqufGcqM2ZHYRsWgTsgjxzXO/GJplFIYI2s5nOoO4EPnAmFRVc0WnbagQjn7ITFhNItpdsoFe/nsoffyfZahVgaY/HrKhreCgCAKzQ3xBUDi9lV2rxjU0Lpq8R7D8Diz3d8CbXdgDS+OEW0g1rtPIyhWGJcx7he/x/qLSBlDFUGccqwFGIqGs8n9ZiVg8HDiPR/8jE+3ACptQSduFgWAqcA/Uv9l4Vmn6GtM6QMyqX8ccNQbm5APJG/kNBhwPkxtnxHwnHp3cP9wxwp/RTWATVP1PyaeV6xEUGgLG7VlC/uogEislt7aDzPm7i56RWLWMlpYDM0yE51aHiKrYObNpQ== hadoop@hadoop003</span><br><span class="line">[hadoop@hadoop001 .ssh]$ ping hadoop002</span><br><span class="line">ping: unknown host hadoop002</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# vi /etc/hosts</span><br><span class="line">127.0.0.1       localhost       localhost.localdomain   localhost4      localhost4.localdomain4</span><br><span class="line">::1     localhost       localhost.localdomain   localhost6      localhost6.localdomain6</span><br><span class="line">172.19.12.134   hadoop001       hadoop001</span><br><span class="line">172.19.12.133   hadoop002       hadoop002</span><br><span class="line">172.19.12.135   hadoop003       hadoop003</span><br></pre></td></tr></table></figure>
+<p>其它两台也和上面一样，配置一下hosts文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 .ssh]# su - hadoop</span><br><span class="line">[hadoop@hadoop001 .ssh]$ ll</span><br><span class="line">total 20</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 1194 Apr  8 20:57 authorized_keys</span><br><span class="line">-rw------- 1 hadoop hadoop 1675 Apr  8 20:17 id_rsa</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa2</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa3</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  398 Apr  8 20:17 id_rsa.pub</span><br><span class="line">[hadoop@hadoop001 .ssh]$ scp authorized_keys root@hadoop002:/home/hadoop/.ssh/</span><br><span class="line">The authenticity of host &apos;hadoop002 (172.19.12.133)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 80:de:c4:fd:99:fa:f5:d5:98:c6:cb:98:f0:d1:77:5c.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop002,172.19.12.133&apos; (RSA) to the list of known hosts.</span><br><span class="line">root@hadoop002&apos;s password: </span><br><span class="line">authorized_keys                                                                                      100% 1194     1.2KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 .ssh]$ scp authorized_keys root@hadoop003:/home/hadoop/.ssh/</span><br><span class="line">The authenticity of host &apos;hadoop003 (172.19.12.135)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 1b:bc:e6:0e:32:c7:f4:3e:7a:60:53:9c:8b:9b:74:69.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop003,172.19.12.135&apos; (RSA) to the list of known hosts.</span><br><span class="line">root@hadoop003&apos;s password: </span><br><span class="line">Permission denied, please try again.</span><br><span class="line">root@hadoop003&apos;s password: </span><br><span class="line">authorized_keys                                                                                      100% 1194     1.2KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 .ssh]$ </span><br><span class="line">[hadoop@hadoop001 .ssh]$ ssh hadoop001 date</span><br><span class="line">The authenticity of host &apos;hadoop001 (172.19.12.134)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 9b:07:17:ac:1a:50:b9:22:76:75:2a:6d:ea:3e:6d:da.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop001,172.19.12.134&apos; (RSA) to the list of known hosts.</span><br><span class="line">hadoop@hadoop001&apos;s password: </span><br><span class="line">Permission denied, please try again.</span><br><span class="line">hadoop@hadoop001&apos;s password: </span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 .ssh]$ chmod 600 authorized_keys </span><br><span class="line">[hadoop@hadoop001 .ssh]$ ssh hadoop001 date</span><br><span class="line">Mon Apr  8 21:15:22 CST 2019</span><br><span class="line">[hadoop@hadoop001 .ssh]$ ssh hadoop002 date</span><br><span class="line">Mon Apr  8 21:16:39 CST 2019</span><br><span class="line">[hadoop@hadoop001 .ssh]$ ssh hadoop003 date</span><br><span class="line">Mon Apr  8 21:16:44 CST 2019</span><br><span class="line">[hadoop@hadoop001 .ssh]$</span><br></pre></td></tr></table></figure>
+<p>进入hadoop002</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 ~]# su - hadoop</span><br><span class="line">[hadoop@hadoop002 ~]$ ssh hadoop001 date</span><br><span class="line">The authenticity of host &apos;hadoop001 (172.19.12.134)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 9b:07:17:ac:1a:50:b9:22:76:75:2a:6d:ea:3e:6d:da.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop001&apos; (RSA) to the list of known hosts.</span><br><span class="line">Mon Apr  8 21:18:44 CST 2019</span><br><span class="line">[hadoop@hadoop002 ~]$ ssh hadoop002 date</span><br><span class="line">The authenticity of host &apos;hadoop002 (172.19.12.133)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 80:de:c4:fd:99:fa:f5:d5:98:c6:cb:98:f0:d1:77:5c.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop002&apos; (RSA) to the list of known hosts.</span><br><span class="line">Mon Apr  8 21:18:53 CST 2019</span><br><span class="line">[hadoop@hadoop002 ~]$ ssh hadoop003 date</span><br><span class="line">The authenticity of host &apos;hadoop003 (172.19.12.135)&apos; can&apos;t be established.</span><br><span class="line">RSA key fingerprint is 1b:bc:e6:0e:32:c7:f4:3e:7a:60:53:9c:8b:9b:74:69.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added &apos;hadoop003,172.19.12.135&apos; (RSA) to the list of known hosts.</span><br><span class="line">Mon Apr  8 21:18:59 CST 2019</span><br><span class="line">[hadoop@hadoop002 ~]$ ssh hadoop003 date</span><br><span class="line">Mon Apr  8 21:19:02 CST 2019</span><br><span class="line">[hadoop@hadoop002 ~]$</span><br></pre></td></tr></table></figure>
+<p>root用户无所谓，非root用户给需要authorized_keys 600权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 .ssh]# ll</span><br><span class="line">total 24</span><br><span class="line">-rw------- 1 hadoop hadoop 1194 Apr  8 20:57 authorized_keys</span><br><span class="line">-rw------- 1 hadoop hadoop 1675 Apr  8 20:17 id_rsa</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa2</span><br><span class="line">-rw-r--r-- 1 root   root    398 Apr  8 20:55 id_rsa3</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  398 Apr  8 20:17 id_rsa.pub</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop 1215 Apr  8 21:15 known_hosts</span><br><span class="line">[root@hadoop001 .ssh]# </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root@hadoop002 .ssh]# ll</span><br><span class="line">total 16</span><br><span class="line">-rw-r--r-- 1 root   root   1194 Apr  8 21:10 authorized_keys</span><br><span class="line">-rw------- 1 hadoop hadoop 1675 Apr  8 20:17 id_rsa</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop  398 Apr  8 20:17 id_rsa.pub</span><br><span class="line">-rw-r--r-- 1 hadoop hadoop 1977 Apr  8 21:18 known_hosts</span><br><span class="line">[root@hadoop002 .ssh]#</span><br></pre></td></tr></table></figure>
+<p>总结：</p>
+<p>以上操作的目的就是：配置用户多台机器的ssh互相信任关系 ，远程到你不需要输入密码，实现无密码访问。选择第一台机器做中心点，把剩下的机器的公钥文件传过来，把三台机器的公钥文件cat追加到authorized_keys这个信任关系的文件里，然后把这这个信任关系再传给剩下的机器，然后使用 ssh hadoop003 date 这个命令，打印一个日期，来触发这个信任关系的连接，第一次要输入yes，输入yes之后会在 .ssh/known_hosts文件里做一次记录，但是这里有坑，需要注意一下，比如说你的秘钥文件发生了变更，你再去连接的时候报错了，这个时候你只需要把known_hosts文件里面，只把秘钥变更的那台连接信息删除，再重新连接即可。记住只删除那一行记录。<br>
+生产上不要把known_hosts文件整个清空掉，如果清空掉了，会影响和其它机器的信任关系的连接。</p>
+<h1 id="3jdk的部署">3.JDK的部署</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ ls</span><br><span class="line">hadoop-2.6.0-cdh5.7.0.tar.gz  jdk-8u45-linux-x64.gz  zookeeper-3.4.6.tar.gz</span><br><span class="line">[hadoop@hadoop001 app]$ scp * hadoop002:/home/hadoop/app/</span><br><span class="line">hadoop-2.6.0-cdh5.7.0.tar.gz                                                                         100%  297MB  49.5MB/s   00:06    </span><br><span class="line">jdk-8u45-linux-x64.gz                                                                                100%  165MB  55.1MB/s   00:03    </span><br><span class="line">zookeeper-3.4.6.tar.gz                                                                               100%   17MB  16.9MB/s   00:01    </span><br><span class="line">[hadoop@hadoop001 app]$ scp * hadoop003:/home/hadoop/app/</span><br><span class="line">hadoop-2.6.0-cdh5.7.0.tar.gz                                                                         100%  297MB  49.5MB/s   00:06    </span><br><span class="line">jdk-8u45-linux-x64.gz                                                                                100%  165MB  55.1MB/s   00:03    </span><br><span class="line">zookeeper-3.4.6.tar.gz                                                                               100%   17MB  16.9MB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 app]$</span><br></pre></td></tr></table></figure>
+<p>做大数据，部署JDK，都放在：mkdir /usr/java/ 这里面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# mkdir /usr/java/</span><br><span class="line">[root@hadoop001 ~]# tar -xzvf /home/hadoop/app/jdk-8u45-linux-x64.gz -C /usr/java/</span><br><span class="line">[root@hadoop001 ~]# cd /usr/java/</span><br><span class="line">[root@hadoop001 java]# ll</span><br><span class="line">total 4</span><br><span class="line">drwxr-xr-x 8 uucp 143 4096 Apr 11  2015 jdk1.8.0_45</span><br><span class="line">[root@hadoop001 java]# chown -R root:root /usr/java/</span><br><span class="line">[root@hadoop001 java]# ll</span><br><span class="line">total 4</span><br><span class="line">drwxr-xr-x 8 root root 4096 Apr 11  2015 jdk1.8.0_45</span><br><span class="line">[root@hadoop001 java]#</span><br></pre></td></tr></table></figure>
+<p>其它两台机器也做一下，注意一下是root用户。<br>
+jdk解压之后权限是uucp，需要变更一下。</p>
+<p>配置环境变量：<br>
+配置全局环境变量：vi /etc/profile</p>
+<p>在最后添加这几行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#env</span><br><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_45</span><br><span class="line">export JRE_HOME=$JAVA_HOME/jre</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib:$JER_HOME/lib:$CLASSPATH</span><br><span class="line">export PATH=$JAVA_HOME/bin:$JER_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+<p>保存。</p>
+<p>source /etc/profile 生效</p>
+<p>which查看一下</p>
+<h1 id="4关闭防火墙">4.关闭防火墙</h1>
+<p>关掉防火墙<br>
+执行命:service iptables stop<br>
+验证:service iptables status<br>
+先查看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 java]# service iptables status</span><br><span class="line">iptables: Firewall is not running.</span><br><span class="line">[root@hadoop001 ~]# iptables -L</span><br><span class="line">Chain INPUT (policy ACCEPT)</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">Chain FORWARD (policy ACCEPT)</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">Chain OUTPUT (policy ACCEPT)</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">[root@hadoop001 ~]# iptables -F</span><br><span class="line">[root@hadoop001 ~]#</span><br></pre></td></tr></table></figure>
+<h1 id="5zookeeper部署及定位">5.Zookeeper部署及定位</h1>
+<p>每个机器都做一下。<br>
+解压：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ tar -xzvf zookeeper-3.4.6.tar.gz</span><br><span class="line">[hadoop@hadoop001 app]$ ll</span><br><span class="line">total 490792</span><br><span class="line">-rw-r--r--  1 root   root   311585484 Mar 30 09:37 hadoop-2.6.0-cdh5.7.0.tar.gz</span><br><span class="line">-rw-r--r--  1 root   root   173271626 Mar 28 23:32 jdk-8u45-linux-x64.gz</span><br><span class="line">drwxr-xr-x 10 hadoop hadoop      4096 Feb 20  2014 zookeeper-3.4.6</span><br><span class="line">-rw-r--r--  1 root   root    17699306 Mar 28 22:51 zookeeper-3.4.6.tar.gz</span><br><span class="line">[hadoop@hadoop001 app]$</span><br></pre></td></tr></table></figure>
+<p>建立软连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ ln -s /home/hadoop/app/zookeeper-3.4.6 /home/hadoop/app/zookeeper</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ cd zookeeper</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ ll</span><br><span class="line">total 1552</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Feb 20  2014 bin</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   82446 Feb 20  2014 build.xml</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   80776 Feb 20  2014 CHANGES.txt</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Feb 20  2014 conf</span><br><span class="line">drwxr-xr-x 10 hadoop hadoop    4096 Feb 20  2014 contrib</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop    4096 Feb 20  2014 dist-maven</span><br><span class="line">drwxr-xr-x  6 hadoop hadoop    4096 Feb 20  2014 docs</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1953 Feb 20  2014 ivysettings.xml</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    3375 Feb 20  2014 ivy.xml</span><br><span class="line">drwxr-xr-x  4 hadoop hadoop    4096 Feb 20  2014 lib</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop   11358 Feb 20  2014 LICENSE.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop     170 Feb 20  2014 NOTICE.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1770 Feb 20  2014 README_packaging.txt</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop    1585 Feb 20  2014 README.txt</span><br><span class="line">drwxr-xr-x  5 hadoop hadoop    4096 Feb 20  2014 recipes</span><br><span class="line">drwxr-xr-x  8 hadoop hadoop    4096 Feb 20  2014 src</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop 1340305 Feb 20  2014 zookeeper-3.4.6.jar</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop     836 Feb 20  2014 zookeeper-3.4.6.jar.asc</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop      33 Feb 20  2014 zookeeper-3.4.6.jar.md5</span><br><span class="line">-rw-rw-r--  1 hadoop hadoop      41 Feb 20  2014 zookeeper-3.4.6.jar.sha1</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ cd conf/</span><br><span class="line">[hadoop@hadoop001 conf]$ ll</span><br><span class="line">total 12</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop  535 Feb 20  2014 configuration.xsl</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop 2161 Feb 20  2014 log4j.properties</span><br><span class="line">-rw-rw-r-- 1 hadoop hadoop  922 Feb 20  2014 zoo_sample.cfg</span><br><span class="line">[hadoop@hadoop001 conf]$ cp zoo_sample.cfg zoo.cfg</span><br><span class="line">[hadoop@hadoop001 conf]$ vi zoo.cfg</span><br></pre></td></tr></table></figure>
+<p>编辑一下zoo.cfg配置文件，里面有 dataDir=/tmp/zookeeper ，生产上不能把这个目录设置为tmp目录，因为服务器会定期清理tmp目录。所以需要设置一下：比如设置成dataDir=/home/hadoop/app/zookeeper/data<br>
+然后在配置文件最后加上这三行：<br>
+server.1=hadoop001:2888:3888<br>
+server.2=hadoop002:2888:3888<br>
+server.3=hadoop003:2888:3888<br>
+做集群，每个组件的编号要不唯一，比如把hadoop001设为1，后面是它的通信端口，服务组件之间的通信端口。</p>
+<p>然后：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 conf]$ cd ..</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ mkdir data</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ cd data</span><br><span class="line">[hadoop@hadoop001 data]$ touch myid</span><br><span class="line">[hadoop@hadoop001 data]$ echo 1 &gt; myid   #注意 1 的前后都有空格</span><br><span class="line">[hadoop@hadoop001 data]$ cd ..</span><br><span class="line">[hadoop@hadoop001 zookeeper]$ scp conf/zoo.cfg hadoop002:/home/hadoop/app/zookeeper/conf/</span><br><span class="line">zoo.cfg                                                                                              100% 1029     1.0KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 zookeeper]$ scp conf/zoo.cfg hadoop003:/home/hadoop/app/zookeeper/conf/</span><br><span class="line">zoo.cfg                                                                                              100% 1029     1.0KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 zookeeper]$ scp -r data hadoop002:/home/hadoop/app/zookeeper/</span><br><span class="line">myid                                                                                                 100%    2     0.0KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 zookeeper]$ scp -r data hadoop003:/home/hadoop/app/zookeeper/</span><br><span class="line">myid                                                                                                 100%    2     0.0KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 zookeeper]$</span><br></pre></td></tr></table></figure>
+<p>然后进入hadoop002：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 zookeeper]$ ls data</span><br><span class="line">myid</span><br><span class="line">[hadoop@hadoop002 zookeeper]$ echo 2 &gt; data/myid </span><br><span class="line">[hadoop@hadoop002 zookeeper]$</span><br></pre></td></tr></table></figure>
+<p>hadoop003也一样。</p>
+<p>zookeeper组件里面只有bin文件夹，里面有命令。其它的组件有些是bin和sbin文件夹。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 zookeeper]$ cd bin</span><br><span class="line">[hadoop@hadoop001 bin]$ ll</span><br><span class="line">total 36</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop  238 Feb 20  2014 README.txt</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1937 Feb 20  2014 zkCleanup.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1049 Feb 20  2014 zkCli.cmd</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1534 Feb 20  2014 zkCli.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1333 Feb 20  2014 zkEnv.cmd</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 2696 Feb 20  2014 zkEnv.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1084 Feb 20  2014 zkServer.cmd</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 5742 Feb 20  2014 zkServer.sh</span><br><span class="line">[hadoop@hadoop001 bin]$ rm -f *.cmd</span><br><span class="line">[hadoop@hadoop001 bin]$ ll</span><br><span class="line">total 24</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop  238 Feb 20  2014 README.txt</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1937 Feb 20  2014 zkCleanup.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 1534 Feb 20  2014 zkCli.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 2696 Feb 20  2014 zkEnv.sh</span><br><span class="line">-rwxr-xr-x 1 hadoop hadoop 5742 Feb 20  2014 zkServer.sh</span><br><span class="line">[hadoop@hadoop001 bin]$ ./zkServer.sh start</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: /home/hadoop/app/zookeeper/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">[hadoop@hadoop001 bin]$  ./zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: /home/hadoop/app/zookeeper/bin/../conf/zoo.cfg</span><br><span class="line">Error contacting service. It is probably not running.</span><br><span class="line">[hadoop@hadoop001 bin]$</span><br></pre></td></tr></table></figure>
+<p>发现没有启动<br>
+需要配置一下环境变量：加入这三行，最后生效一下<br>
+export JAVA_HOME=/usr/java/jdk1.8.0_45<br>
+export ZOOKEEPER_HOME=/home/hadoop/app/zookeeper<br>
+export PATH=JAVAHOME/bin:ZOOKEEPER_HOME/bin:$PATH</p>
+<p>然后再启动./zkServer.sh start ，然后看一下状态：/zkServer.sh status</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 bin]$ ./zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: /home/hadoop/app/zookeeper/bin/../conf/zoo.cfg</span><br><span class="line">Mode: follower</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出，hadoop001是follower。三台中有两台是follower，一台是leader。任何时刻<br>
+jps看一下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ jps</span><br><span class="line">1532 Jps</span><br><span class="line">1503 QuorumPeerMain</span><br></pre></td></tr></table></figure>
+<p>养成一个好习惯，shell脚本的debug模式（第一行后面加个 -x）<br>
+比如说大数据的组件的启动基本是通过shell脚本启动的，如果启动有问题（可以查看日志），也可以打开相应的shell脚本，在第一行后面加上 -x 进入debug模式： #!/usr/bin/env bash -x 然后执行脚本，仔细分析哪地方出错了。大数据中这种情况会很常见。</p>
+<h1 id="6hdfsampyarn-ha部署">6.hdfs&amp;yarn HA部署</h1>
+<p>进入/home/hadoop/app目录，解压hadoop-2.6.0-cdh5.7.0.tar.gz<br>
+tar -xzvf hadoop-2.6.0-cdh5.7.0.tar.gz<br>
+创建一下软连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 app]$ ln -s /home/hadoop/app/hadoop-2.6.0-cdh5.7.0 /home/hadoop/app/hadoop</span><br></pre></td></tr></table></figure>
+<p>创建目录，后面的配置文件里会用到（不创建好像也可以，它会自动创建）：<br>
+mkdir -p /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/tmp<br>
+mkdir -p /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/name<br>
+mkdir -p /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/data<br>
+mkdir -p /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/jn</p>
+<p>准备好五个配置文件（可以提前在记事本里编辑好）：<br>
+①core-site.xml<br>
+②hdfs-site.xml<br>
+③mapred-site.xml<br>
+④yarn-site.xml<br>
+⑤slaves<br>
+core-site.xml内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;!--Yarn 需要使用 fs.defaultFS 指定NameNode URI --&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">                &lt;name&gt;fs.defaultFS&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;hdfs://ruozeclusterg6&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">        &lt;!--==============================Trash机制======================================= --&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">                &lt;!--多长时间创建CheckPoint NameNode截点上运行的CheckPointer 从Current文件夹创建CheckPoint;默认：0 由fs.trash.interval项指定 --&gt;</span><br><span class="line">                &lt;name&gt;fs.trash.checkpoint.interval&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;0&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">                &lt;!--多少分钟.Trash下的CheckPoint目录会被删除,该配置服务器设置优先级大于客户端，默认：0 不删除 --&gt;</span><br><span class="line">                &lt;name&gt;fs.trash.interval&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;1440&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">         &lt;!--指定hadoop临时目录, hadoop.tmp.dir 是hadoop文件系统依赖的基础配置，很多路径都依赖它。如果hdfs-site.xml中不配 置namenode和datanode的存放位置，默认就放在这&gt;个路径中 --&gt;</span><br><span class="line">        &lt;property&gt;   </span><br><span class="line">                &lt;name&gt;hadoop.tmp.dir&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/tmp&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">         &lt;!-- 指定zookeeper地址 --&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">                &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;hadoop001:2181,hadoop002:2181,hadoop003:2181&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line">         &lt;!--指定ZooKeeper超时间隔，单位毫秒 --&gt;</span><br><span class="line">        &lt;property&gt;</span><br><span class="line">                &lt;name&gt;ha.zookeeper.session-timeout.ms&lt;/name&gt;</span><br><span class="line">                &lt;value&gt;2000&lt;/value&gt;</span><br><span class="line">        &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">        &lt;property&gt;</span><br><span class="line">           &lt;name&gt;hadoop.proxyuser.hadoop.hosts&lt;/name&gt;</span><br><span class="line">           &lt;value&gt;*&lt;/value&gt; </span><br><span class="line">        &lt;/property&gt; </span><br><span class="line">        &lt;property&gt; </span><br><span class="line">            &lt;name&gt;hadoop.proxyuser.hadoop.groups&lt;/name&gt; </span><br><span class="line">            &lt;value&gt;*&lt;/value&gt; </span><br><span class="line">       &lt;/property&gt; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">      &lt;property&gt;</span><br><span class="line">		  &lt;name&gt;io.compression.codecs&lt;/name&gt;</span><br><span class="line">		  &lt;value&gt;org.apache.hadoop.io.compress.GzipCodec,</span><br><span class="line">			org.apache.hadoop.io.compress.DefaultCodec,</span><br><span class="line">			org.apache.hadoop.io.compress.BZip2Codec,</span><br><span class="line">			org.apache.hadoop.io.compress.SnappyCodec</span><br><span class="line">		  &lt;/value&gt;</span><br><span class="line">      &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>hdfs-site.xml内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;!--HDFS超级用户 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.permissions.superusergroup&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!--开启web hdfs --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.webhdfs.enabled&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/name&lt;/value&gt;</span><br><span class="line">		&lt;description&gt; namenode 存放name table(fsimage)本地目录（需要修改）&lt;/description&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.edits.dir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;$&#123;dfs.namenode.name.dir&#125;&lt;/value&gt;</span><br><span class="line">		&lt;description&gt;namenode粗放 transaction file(edits)本地目录（需要修改）&lt;/description&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.datanode.data.dir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/data&lt;/value&gt;</span><br><span class="line">		&lt;description&gt;datanode存放block本地目录（需要修改）&lt;/description&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.replication&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;3&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- 块大小256M （默认128M） --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.blocksize&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;268435456&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!--======================================================================= --&gt;</span><br><span class="line">	&lt;!--HDFS高可用配置 --&gt;</span><br><span class="line">	&lt;!--指定hdfs的nameservice为ruozeclusterg6,需要和core-site.xml中的保持一致 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.nameservices&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;ruozeclusterg6&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;!--设置NameNode IDs 此版本最大只支持两个NameNode --&gt;</span><br><span class="line">		&lt;name&gt;dfs.ha.namenodes.ruozeclusterg6&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;nn1,nn2&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!-- Hdfs HA: dfs.namenode.rpc-address.[nameservice ID] rpc 通信地址 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.rpc-address.ruozeclusterg6.nn1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:8020&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.rpc-address.ruozeclusterg6.nn2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:8020&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!-- Hdfs HA: dfs.namenode.http-address.[nameservice ID] http 通信地址 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.http-address.ruozeclusterg6.nn1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:50070&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.http-address.ruozeclusterg6.nn2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:50070&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!--==================Namenode editlog同步 ============================================ --&gt;</span><br><span class="line">	&lt;!--保证数据恢复 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.journalnode.http-address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;0.0.0.0:8480&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.journalnode.rpc-address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;0.0.0.0:8485&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;!--设置JournalNode服务器地址，QuorumJournalManager 用于存储editlog --&gt;</span><br><span class="line">		&lt;!--格式：qjournal://&lt;host1:port1&gt;;&lt;host2:port2&gt;;&lt;host3:port3&gt;/&lt;journalId&gt; 端口同journalnode.rpc-address --&gt;</span><br><span class="line">		&lt;name&gt;dfs.namenode.shared.edits.dir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;qjournal://hadoop001:8485;hadoop002:8485;hadoop003:8485/ruozeclusterg6&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;!--JournalNode存放数据地址 --&gt;</span><br><span class="line">		&lt;name&gt;dfs.journalnode.edits.dir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/jn&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!--==================DataNode editlog同步 ============================================ --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;!--DataNode,Client连接Namenode识别选择Active NameNode策略 --&gt;</span><br><span class="line">                             &lt;!-- 配置失败自动切换实现方式 --&gt;</span><br><span class="line">		&lt;name&gt;dfs.client.failover.proxy.provider.ruozeclusterg6&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!--==================Namenode fencing：=============================================== --&gt;</span><br><span class="line">	&lt;!--Failover后防止停掉的Namenode启动，造成两个服务 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.ha.fencing.methods&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;sshfence&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.ha.fencing.ssh.private-key-files&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;/home/hadoop/.ssh/id_rsa&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;!--多少milliseconds 认为fencing失败 --&gt;</span><br><span class="line">		&lt;name&gt;dfs.ha.fencing.ssh.connect-timeout&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;30000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!--==================NameNode auto failover base ZKFC and Zookeeper====================== --&gt;</span><br><span class="line">	&lt;!--开启基于Zookeeper  --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.ha.automatic-failover.enabled&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!--动态许可datanode连接namenode列表 --&gt;</span><br><span class="line">	 &lt;property&gt;</span><br><span class="line">	   &lt;name&gt;dfs.hosts&lt;/name&gt;</span><br><span class="line">	   &lt;value&gt;/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/etc/hadoop/slaves&lt;/value&gt;</span><br><span class="line">	 &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>mapred-site.xml内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;!-- 配置 MapReduce Applications --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;mapreduce.framework.name&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;yarn&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- JobHistory Server ============================================================== --&gt;</span><br><span class="line">	&lt;!-- 配置 MapReduce JobHistory Server 地址 ，默认端口10020 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;mapreduce.jobhistory.address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:10020&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- 配置 MapReduce JobHistory Server web ui 地址， 默认端口19888 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;mapreduce.jobhistory.webapp.address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:19888&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- 配置 Map段输出的压缩,snappy--&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.map.output.compress&lt;/name&gt; </span><br><span class="line">      &lt;value&gt;true&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">              </span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.map.output.compress.codec&lt;/name&gt; </span><br><span class="line">      &lt;value&gt;org.apache.hadoop.io.compress.SnappyCodec&lt;/value&gt;</span><br><span class="line">   &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>yarn-site.xml内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;!-- nodemanager 配置 ================================================= --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;mapreduce_shuffle&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.nodemanager.aux-services.mapreduce.shuffle.class&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;org.apache.hadoop.mapred.ShuffleHandler&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.nodemanager.localizer.address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;0.0.0.0:23344&lt;/value&gt;</span><br><span class="line">		&lt;description&gt;Address where the localizer IPC is.&lt;/description&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.nodemanager.webapp.address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;0.0.0.0:23999&lt;/value&gt;</span><br><span class="line">		&lt;description&gt;NM Webapp address.&lt;/description&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;!-- HA 配置 =============================================================== --&gt;</span><br><span class="line">	&lt;!-- Resource Manager Configs --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.connect.retry-interval.ms&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;2000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.ha.enabled&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.ha.automatic-failover.enabled&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- 使嵌入式自动故障转移。HA环境启动，与 ZKRMStateStore 配合 处理fencing --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.ha.automatic-failover.embedded&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- 集群名称，确保HA选举时对应的集群 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.cluster-id&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;yarn-cluster&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.ha.rm-ids&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;rm1,rm2&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &lt;!--这里RM主备结点需要单独指定,（可选）</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		 &lt;name&gt;yarn.resourcemanager.ha.id&lt;/name&gt;</span><br><span class="line">		 &lt;value&gt;rm2&lt;/value&gt;</span><br><span class="line">	 &lt;/property&gt;</span><br><span class="line">	 --&gt;</span><br><span class="line"></span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.scheduler.class&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.recovery.enabled&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.app.mapreduce.am.scheduler.connection.wait.interval-ms&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;5000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- ZKRMStateStore 配置 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.store.class&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.zk-address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:2181,hadoop002:2181,hadoop003:2181&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.zk.state-store.address&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:2181,hadoop002:2181,hadoop003:2181&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- Client访问RM的RPC地址 (applications manager interface) --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:23140&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:23140&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- AM访问RM的RPC地址(scheduler interface) --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.scheduler.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:23130&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.scheduler.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:23130&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- RM admin interface --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.admin.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:23141&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.admin.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:23141&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!--NM访问RM的RPC端口 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.resource-tracker.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:23125&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.resource-tracker.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:23125&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;!-- RM web application 地址 --&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.webapp.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:8088&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.webapp.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:8088&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.webapp.https.address.rm1&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop001:23189&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.resourcemanager.webapp.https.address.rm2&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hadoop002:23189&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;property&gt;</span><br><span class="line">	   &lt;name&gt;yarn.log-aggregation-enable&lt;/name&gt;</span><br><span class="line">	   &lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		 &lt;name&gt;yarn.log.server.url&lt;/name&gt;</span><br><span class="line">		 &lt;value&gt;http://hadoop001:19888/jobhistory/logs&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.nodemanager.resource.memory-mb&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;2048&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;yarn.scheduler.minimum-allocation-mb&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;1024&lt;/value&gt;</span><br><span class="line">		&lt;discription&gt;单个任务可申请最少内存，默认1024MB&lt;/discription&gt;</span><br><span class="line">	 &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line">  &lt;property&gt;</span><br><span class="line">	&lt;name&gt;yarn.scheduler.maximum-allocation-mb&lt;/name&gt;</span><br><span class="line">	&lt;value&gt;2048&lt;/value&gt;</span><br><span class="line">	&lt;discription&gt;单个任务可申请最大内存，默认8192MB&lt;/discription&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">   &lt;property&gt;</span><br><span class="line">       &lt;name&gt;yarn.nodemanager.resource.cpu-vcores&lt;/name&gt;</span><br><span class="line">       &lt;value&gt;2&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line"></span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>slaves内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hadoop001</span><br><span class="line">hadoop002</span><br><span class="line">hadoop003</span><br></pre></td></tr></table></figure>
+<p>然后进入目录/home/hadoop/app/hadoop/etc/hadoop，把里面的上面几个文件删除，然后把上面几个文件上传进去即可。</p>
+<p>然后配置一下环境变量：<br>
+vi ~/.bash_profile</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_45</span><br><span class="line">export ZOOKEEPER_HOME=/home/hadoop/app/zookeeper</span><br><span class="line">export HADOOP_HOME=/home/hadoop/app/hadoop</span><br><span class="line">export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+<p>然后生效一下，另外两台机器也一样。</p>
+<p>上面做完之后，选择第一台机器hadoop001，然后进行格式化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop namenode -format</span><br><span class="line">..........</span><br><span class="line">..........</span><br><span class="line">19/04/09 23:05:59 WARN namenode.NameNode: Encountered exception during format: </span><br><span class="line">org.apache.hadoop.hdfs.qjournal.client.QuorumException: Unable to check if JNs are ready for formatting. 2 exceptions thrown:</span><br><span class="line">172.19.12.134:8485: Call From hadoop001/172.19.12.134 to hadoop001:8485 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused</span><br><span class="line">172.19.12.133:8485: Call From hadoop001/172.19.12.134 to hadoop002:8485 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumException.create(QuorumException.java:81)</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumCall.rethrowException(QuorumCall.java:223)</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager.hasSomeData(QuorumJournalManager.java:232)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.common.Storage.confirmFormat(Storage.java:900)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.FSImage.confirmFormat(FSImage.java:171)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.format(NameNode.java:1037)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.createNameNode(NameNode.java:1479)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.main(NameNode.java:1606)</span><br><span class="line">19/04/09 23:05:59 ERROR namenode.NameNode: Failed to start namenode.</span><br><span class="line">org.apache.hadoop.hdfs.qjournal.client.QuorumException: Unable to check if JNs are ready for formatting. 2 exceptions thrown:</span><br><span class="line">172.19.12.134:8485: Call From hadoop001/172.19.12.134 to hadoop001:8485 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused</span><br><span class="line">172.19.12.133:8485: Call From hadoop001/172.19.12.134 to hadoop002:8485 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumException.create(QuorumException.java:81)</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumCall.rethrowException(QuorumCall.java:223)</span><br><span class="line">        at org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager.hasSomeData(QuorumJournalManager.java:232)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.common.Storage.confirmFormat(Storage.java:900)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.FSImage.confirmFormat(FSImage.java:171)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.format(NameNode.java:1037)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.createNameNode(NameNode.java:1479)</span><br><span class="line">        at org.apache.hadoop.hdfs.server.namenode.NameNode.main(NameNode.java:1606)</span><br><span class="line">19/04/09 23:05:59 INFO util.ExitUtil: Exiting with status 1</span><br><span class="line">19/04/09 23:05:59 INFO namenode.NameNode: SHUTDOWN_MSG: </span><br><span class="line">/************************************************************</span><br><span class="line">SHUTDOWN_MSG: Shutting down NameNode at hadoop001/172.19.12.134</span><br><span class="line">************************************************************/</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>发现格式化的时候，在最后失败了。<br>
+可以看一下日志，分析一下出错原因。</p>
+<p>或者 采取shell脚本的debug模式 看看能不能分析出出错原因。<br>
+或者仔细分析一下上面的代码，把上面日志拷贝到记事本里仔细分析，比如这句话：Unable to check if JNs are ready for formatting.。</p>
+<p>上面出错原因：需要先启动JNs，才能进行格式化。</p>
+<p>启动JNs：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop-daemon.sh start journalnode</span><br><span class="line">starting journalnode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-journalnode-hadoop001.out</span><br><span class="line">[hadoop@hadoop001 hadoop]$ pwd</span><br><span class="line">/home/hadoop/app/hadoop/etc/hadoop</span><br><span class="line">[hadoop@hadoop001 hadoop]$ jps</span><br><span class="line">2194 Jps</span><br><span class="line">2143 JournalNode</span><br><span class="line">1503 QuorumPeerMain</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>另外两台机器把JN也启动一下。<br>
+然后选中第一台hadoop001再进行格式化,就成功了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop namenode -format</span><br><span class="line">.......</span><br><span class="line">19/04/09 23:24:41 INFO common.Storage: Storage directory /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/data/dfs/name has been successfully formatted.</span><br><span class="line">19/04/09 23:24:41 INFO namenode.NNStorageRetentionManager: Going to retain 1 images with txid &gt;= 0</span><br><span class="line">19/04/09 23:24:41 INFO util.ExitUtil: Exiting with status 0</span><br><span class="line">19/04/09 23:24:41 INFO namenode.NameNode: SHUTDOWN_MSG: </span><br><span class="line">/************************************************************</span><br><span class="line">SHUTDOWN_MSG: Shutting down NameNode at hadoop001/172.19.12.134</span><br><span class="line">************************************************************/</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>然后，在hdfs HA架构中，active namenode和standby namenode的元数据应该是一样的。现在第一台已经格式化了，已经有元数据了，第二台还是空的。<br>
+第一台namenode元数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 current]$ pwd</span><br><span class="line">/home/hadoop/app/hadoop/data/dfs/name/current</span><br><span class="line">[hadoop@hadoop001 current]$ ls</span><br><span class="line">fsimage_0000000000000000000  fsimage_0000000000000000000.md5  seen_txid  VERSION</span><br><span class="line">[hadoop@hadoop001 current]$</span><br></pre></td></tr></table></figure>
+<p>这个时候可以把hadoop001的namenode元数据传给hadoop002：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ scp -r data/ hadoop002:/home/hadoop/app/hadoop/</span><br><span class="line">in_use.lock                                                                                          100%   14     0.0KB/s   00:00    </span><br><span class="line">VERSION                                                                                              100%  154     0.2KB/s   00:00    </span><br><span class="line">seen_txid                                                                                            100%    2     0.0KB/s   00:00    </span><br><span class="line">fsimage_0000000000000000000.md5                                                                      100%   62     0.1KB/s   00:00    </span><br><span class="line">fsimage_0000000000000000000                                                                          100%  338     0.3KB/s   00:00    </span><br><span class="line">VERSION                                                                                              100%  205     0.2KB/s   00:00    </span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>然后初始化ZKFC：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hdfs zkfc -formatZK</span><br><span class="line">。。。。。</span><br><span class="line">19/04/09 23:46:37 INFO ha.ActiveStandbyElector: Session connected.</span><br><span class="line">19/04/09 23:46:37 INFO ha.ActiveStandbyElector: Successfully created /hadoop-ha/ruozeclusterg6 in ZK.</span><br><span class="line">19/04/09 23:46:37 INFO zookeeper.ClientCnxn: EventThread shut down</span><br><span class="line">19/04/09 23:46:37 INFO zookeeper.ZooKeeper: Session: 0x16a01fcd8460000 closed</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>ZKFC初始化成功了。</p>
+<p>（这个是万一碰到的话）如果出现问题，想把上面清空，从core-site.xml等文件到最后重来一遍，需要做这些：<br>
+先把zookeeper里的元数据删除干净：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 bin]$ pwd</span><br><span class="line">/home/hadoop/app/zookeeper/bin  </span><br><span class="line">[hadoop@hadoop001 bin]$ ./zkCli.sh </span><br><span class="line">。。。。  </span><br><span class="line">WatchedEvent state:SyncConnected type:None path:null  </span><br><span class="line">[zk:&gt; localhost:2181(CONNECTED) 0]  ls / </span><br><span class="line">[zookeeper, hadoop-ha] </span><br><span class="line">[zk:&gt; localhost:2181(CONNECTED) 1] ls /hadoop-ha</span><br><span class="line">[ruozeclusterg6] [zk:&gt; localhost:2181(CONNECTED) 2] rmr /hadoop-ha</span><br></pre></td></tr></table></figure>
+<p>然后需要把相关机器相关的进程给kill掉，比如JournalNode、hadoop。zookeeper进程不需要kill。<br>
+然后要把hadoop下的data目录下要清空。 然后看需要重新做。</p>
+<p>然后启动集群：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ start-dfs.sh </span><br><span class="line">19/04/10 00:31:44 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Starting namenodes on [hadoop001 hadoop002]</span><br><span class="line">hadoop002: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">hadoop001: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">hadoop003: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">: Name or service not knownstname hadoop001</span><br><span class="line">: Name or service not knownstname hadoop002</span><br><span class="line">Starting journal nodes [hadoop001 hadoop002 hadoop003]</span><br><span class="line">hadoop001: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">hadoop002: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">hadoop003: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">19/04/10 00:31:48 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Starting ZK Failover Controllers on NN hosts [hadoop001 hadoop002]</span><br><span class="line">hadoop001: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">hadoop002: Error: JAVA_HOME is not set and could not be found.</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>发现出错了。<br>
+这个时候需要进入目录：/home/hadoop/app/hadoop/etc/hadoop<br>
+修改一下hadoop-env.sh配置文件：<br>
+export JAVA_HOME=/usr/java/jdk1.8.0_45<br>
+三台机器都要修改一下。<br>
+然后再启动一下，就好了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 sbin]$ ./start-dfs.sh </span><br><span class="line">19/04/17 08:58:23 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Starting namenodes on [hadoop001 hadoop002]</span><br><span class="line">hadoop001: starting namenode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-namenode-hadoop001.out</span><br><span class="line">hadoop002: starting namenode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-namenode-hadoop002.out</span><br><span class="line">hadoop001: starting datanode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-datanode-hadoop001.out</span><br><span class="line">hadoop003: starting datanode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-datanode-hadoop003.out</span><br><span class="line">hadoop002: starting datanode, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-datanode-hadoop002.out</span><br><span class="line">Starting journal nodes [hadoop001 hadoop002 hadoop003]</span><br><span class="line">hadoop001: journalnode running as process 1731. Stop it first.</span><br><span class="line">hadoop003: journalnode running as process 1563. Stop it first.</span><br><span class="line">hadoop002: journalnode running as process 1568. Stop it first.</span><br><span class="line">19/04/17 08:58:35 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Starting ZK Failover Controllers on NN hosts [hadoop001 hadoop002]</span><br><span class="line">hadoop001: starting zkfc, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-zkfc-hadoop001.out</span><br><span class="line">hadoop002: starting zkfc, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/hadoop-hadoop-zkfc-hadoop002.out</span><br><span class="line">[hadoop@hadoop001 sbin]$ jps</span><br><span class="line">2322 DFSZKFailoverController</span><br><span class="line">1731 JournalNode</span><br><span class="line">1540 QuorumPeerMain</span><br><span class="line">2372 Jps</span><br><span class="line">2006 DataNode</span><br><span class="line">1897 NameNode</span><br><span class="line">[hadoop@hadoop001 sbin]$</span><br></pre></td></tr></table></figure>
+<p>然后去另外两台机器jps看一下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 sbin]$ jps</span><br><span class="line">1568 JournalNode</span><br><span class="line">1472 QuorumPeerMain</span><br><span class="line">1969 Jps</span><br><span class="line">1898 DFSZKFailoverController</span><br><span class="line">1659 NameNode</span><br><span class="line">1739 DataNode</span><br><span class="line">[hadoop@hadoop002 sbin]$</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop003 sbin]$ jps</span><br><span class="line">1473 QuorumPeerMain</span><br><span class="line">1563 JournalNode</span><br><span class="line">1614 Jps</span><br><span class="line">[hadoop@hadoop003 sbin]$ jps</span><br><span class="line">1473 QuorumPeerMain</span><br><span class="line">1654 DataNode</span><br><span class="line">1563 JournalNode</span><br><span class="line">1757 Jps</span><br><span class="line">[hadoop@hadoop003 sbin]$</span><br></pre></td></tr></table></figure>
+<p>然后启动一下yarn集群</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ start-yarn.sh </span><br><span class="line">starting yarn daemons</span><br><span class="line">starting resourcemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-resourcemanager-hadoop001.out</span><br><span class="line">: Name or service not knownstname hadoop002</span><br><span class="line">hadoop003: starting nodemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-nodemanager-hadoop003.out</span><br><span class="line">: Name or service not knownstname hadoop001</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>发现又出错了。可能是slaves文件可能被污染了，删除掉slaves文件，重新建立一个slaves文件，并配置好就可以了。<br>
+然后再启动一次就可以了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 sbin]$ ./start-yarn.sh </span><br><span class="line">starting yarn daemons</span><br><span class="line">starting resourcemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-resourcemanager-hadoop001.out</span><br><span class="line">hadoop001: starting nodemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-nodemanager-hadoop001.out</span><br><span class="line">hadoop002: starting nodemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-nodemanager-hadoop002.out</span><br><span class="line">hadoop003: starting nodemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-nodemanager-hadoop003.out</span><br><span class="line">[hadoop@hadoop001 sbin]$ jps</span><br><span class="line">2944 Jps</span><br><span class="line">2322 DFSZKFailoverController</span><br><span class="line">1731 JournalNode</span><br><span class="line">1540 QuorumPeerMain</span><br><span class="line">2006 DataNode</span><br><span class="line">1897 NameNode</span><br><span class="line">2606 NodeManager</span><br><span class="line">2495 ResourceManager</span><br><span class="line">[hadoop@hadoop001 sbin]$</span><br></pre></td></tr></table></figure>
+<p>在这里只启动了第一台机器的RM，第二台的RM是需要手工去启动的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 sbin]$ jps</span><br><span class="line">2048 NodeManager</span><br><span class="line">1568 JournalNode</span><br><span class="line">1472 QuorumPeerMain</span><br><span class="line">2195 Jps</span><br><span class="line">1898 DFSZKFailoverController</span><br><span class="line">1659 NameNode</span><br><span class="line">1739 DataNode</span><br><span class="line">[hadoop@hadoop002 sbin]$ ./yarn-daemon.sh start resourcemanager</span><br><span class="line">starting resourcemanager, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/yarn-hadoop-resourcemanager-hadoop002.out</span><br><span class="line">[hadoop@hadoop002 sbin]$ jps</span><br><span class="line">2048 NodeManager</span><br><span class="line">1568 JournalNode</span><br><span class="line">1472 QuorumPeerMain</span><br><span class="line">2230 ResourceManager</span><br><span class="line">1898 DFSZKFailoverController</span><br><span class="line">1659 NameNode</span><br><span class="line">1739 DataNode</span><br><span class="line">2287 Jps</span><br><span class="line">[hadoop@hadoop002 sbin]$</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop003 hadoop]$ jps</span><br><span class="line">2530 NodeManager</span><br><span class="line">1506 QuorumPeerMain</span><br><span class="line">2114 DataNode</span><br><span class="line">1910 JournalNode</span><br><span class="line">2684 Jps</span><br><span class="line">[hadoop@hadoop003 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>然后试一下命令是否可用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -ls /</span><br><span class="line">19/04/17 09:09:28 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwx------   - hadoop hadoop          0 2019-04-17 09:09 /user</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -ls hdfs://ruozeclusterg6/</span><br><span class="line">19/04/17 09:09:57 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Found 1 items</span><br><span class="line">drwx------   - hadoop hadoop          0 2019-04-17 09:09 hdfs://ruozeclusterg6/user</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -put ./README.txt hdfs://ruozeclusterg6/</span><br><span class="line">19/04/17 09:12:33 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hdfs dfs -ls hdfs://ruozeclusterg6/</span><br><span class="line">19/04/17 09:12:41 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Found 2 items</span><br><span class="line">-rw-r--r--   3 hadoop hadoop       1366 2019-04-17 09:12 hdfs://ruozeclusterg6/README.txt</span><br><span class="line">drwx------   - hadoop hadoop          0 2019-04-17 09:09 hdfs://ruozeclusterg6/user</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>是可用的。</p>
+<p>然后在阿里云服务器上把相应的端口打开。可以把端口范围1/65535，对任意ip 0.0.0.0/0都允许访问。</p>
+<h1 id="7web界面访问">7.web界面访问</h1>
+<p>①HDFS<br>
+然后进入web界面进行访问：<a href="http://47.102.145.183:50070/" target="_blank" rel="noopener">http://47.102.145.183:50070/</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417091624561.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417091721138.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417091721138.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417092025932.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>可以看到它是一个standby节点。还可以看到其它比如NameNode Journal Status、datanode等的信息。<br>
+然后浏览http://47.102.154.10:50070</p>
+<p><img src="https://img-blog.csdnimg.cn/20190417092159670.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417092230301.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>可以看出，这个是active节点。</p>
+<p>②YARN：<br>
+然后打开http://47.102.145.183:8088/cluster</p>
+<p><img src="https://img-blog.csdnimg.cn/2019041709245039.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417092601467.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>可以看到它是active节点。<br>
+然后再打开：<a href="http://http//47.102.154.10:8088" target="_blank" rel="noopener">http://http//47.102.154.10:8088</a><br>
+发现，它提示：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190417093029387.png" alt="image"></p>
+<p>但是你把路径补全，就可以看到了：<br>
+<a href="http://47.102.154.10:8088/cluster/cluster" target="_blank" rel="noopener">http://47.102.154.10:8088/cluster/cluster</a><br>
+再去访问：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190417093441611.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>③jobhistory<br>
+它是一个服务，用来收集job运行的历史记录。job运行完了之后才能在这里看到。<br>
+在mapred-site.xml里面配置的。<br>
+启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 sbin]$ mr-jobhistory-daemon.sh start historyserver</span><br><span class="line">starting historyserver, logging to /home/hadoop/app/hadoop-2.6.0-cdh5.7.0/logs/mapred-hadoop-historyserver-hadoop001.out</span><br><span class="line">[hadoop@hadoop001 sbin]$ jps</span><br><span class="line">2322 DFSZKFailoverController</span><br><span class="line">1731 JournalNode</span><br><span class="line">1540 QuorumPeerMain</span><br><span class="line">2006 DataNode</span><br><span class="line">3704 JobHistoryServer          #jobhistory 在这里</span><br><span class="line">1897 NameNode</span><br><span class="line">2606 NodeManager</span><br><span class="line">3743 Jps</span><br><span class="line">2495 ResourceManager</span><br><span class="line">[hadoop@hadoop001 sbin]$ netstat -nlp|grep 3704</span><br><span class="line">(Not all processes could be identified, non-owned process info</span><br><span class="line"> will not be shown, you would have to be root to see it all.)</span><br><span class="line">tcp        0      0 172.19.12.134:10020         0.0.0.0:*                   LISTEN      3704/java           </span><br><span class="line">tcp        0      0 172.19.12.134:19888         0.0.0.0:*                   LISTEN      3704/java           </span><br><span class="line">tcp        0      0 0.0.0.0:10033               0.0.0.0:*                   LISTEN      3704/java           </span><br><span class="line">[hadoop@hadoop001 sbin]$</span><br></pre></td></tr></table></figure>
+<p>查看端口号，看到它的端口号是19888<br>
+访问：<br>
+<a href="http://47.102.145.183:19888/jobhistory" target="_blank" rel="noopener">http://47.102.145.183:19888/jobhistory</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417094642221.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>这里还没有运行过job，所以还没有记录。</p>
+<p>运行一个job看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ find ./ -name *example*.jar</span><br><span class="line">./share/hadoop/mapreduce2/sources/hadoop-mapreduce-examples-2.6.0-cdh5.7.0-sources.jar</span><br><span class="line">./share/hadoop/mapreduce2/sources/hadoop-mapreduce-examples-2.6.0-cdh5.7.0-test-sources.jar</span><br><span class="line">./share/hadoop/mapreduce2/hadoop-mapreduce-examples-2.6.0-cdh5.7.0.jar</span><br><span class="line">./share/hadoop/mapreduce1/hadoop-examples-2.6.0-mr1-cdh5.7.0.jar</span><br><span class="line">[hadoop@hadoop001 hadoop]$ hadoop jar ./share/hadoop/mapreduce2/hadoop-mapreduce-examples-2.6.0-cdh5.7.0.jar pi 5 10</span><br><span class="line">Number of Maps  = 5</span><br><span class="line">Samples per Map = 10</span><br><span class="line">....此处省略一万字</span><br><span class="line">19/04/17 09:53:12 INFO mapreduce.Job:  map 0% reduce 0%</span><br><span class="line">19/04/17 09:53:18 INFO mapreduce.Job: Task Id : attempt_1555463078469_0001_m_000003_0, Status : FAILED</span><br><span class="line">Error: java.lang.RuntimeException: native snappy library not available: this version of libhadoop was built without snappy support.</span><br><span class="line">        at org.apache.hadoop.io.compress.SnappyCodec.checkNativeCodeLoaded(SnappyCodec.java:65)</span><br><span class="line">        at org.apache.hadoop.io.compress.SnappyCodec.getCompressorType(SnappyCodec.java:134)</span><br><span class="line">        at org.apache.hadoop.io.compress.CodecPool.getCompressor(CodecPool.java:150)</span><br><span class="line">        at org.apache.hadoop.io.compress.CodecPool.getCompressor(CodecPool.java:165)</span><br><span class="line">        at org.apache.hadoop.mapred.IFile$Writer.&lt;init&gt;(IFile.java:114)</span><br><span class="line">        at org.apache.hadoop.mapred.IFile$Writer.&lt;init&gt;(IFile.java:97)</span><br><span class="line">        at org.apache.hadoop.mapred.MapTask$MapOutputBuffer.sortAndSpill(MapTask.java:1606)</span><br><span class="line">        at org.apache.hadoop.mapred.MapTask$MapOutputBuffer.flush(MapTask.java:1486)</span><br><span class="line">        at org.apache.hadoop.mapred.MapTask$NewOutputCollector.close(MapTask.java:723)</span><br><span class="line">        at org.apache.hadoop.mapred.MapTask.runNewMapper(MapTask.java:793)</span><br><span class="line">        at org.apache.hadoop.mapred.MapTask.run(MapTask.java:341)</span><br><span class="line">        at org.apache.hadoop.mapred.YarnChild$2.run(YarnChild.java:164)</span><br><span class="line">        at java.security.AccessController.doPrivileged(Native Method)</span><br><span class="line">        at javax.security.auth.Subject.doAs(Subject.java:422)</span><br><span class="line">        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1693)</span><br><span class="line">        at org.apache.hadoop.mapred.YarnChild.main(YarnChild.java:158)</span><br><span class="line">......此处省略一万字</span><br></pre></td></tr></table></figure>
+<p>然后运行完了后再去jobhistory里看一下，</p>
+<p><img src="https://img-blog.csdnimg.cn/20190417100252307.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190417100441155.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从界面上看，job运行失败了，失败的原因是这个hadoop版本不支持snappy 压缩。<br>
+（需要去编译源代码，让它支持snappy 压缩。当然还有其他压缩）<br>
+这些压缩是在core-site.xml、mapred-site.xml里面配置的。<br>
+core-site.xml:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">            &lt;name&gt;io.compression.codecs&lt;/name&gt;</span><br><span class="line">            &lt;value&gt;org.apache.hadoop.io.compress.GzipCodec,</span><br><span class="line">                  org.apache.hadoop.io.compress.DefaultCodec,</span><br><span class="line">                  org.apache.hadoop.io.compress.BZip2Codec,</span><br><span class="line">                  org.apache.hadoop.io.compress.SnappyCodec</span><br><span class="line">            &lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br></pre></td></tr></table></figure>
+<p>mapred-site.xml:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 配置 Map段输出的压缩,snappy--&gt;</span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.map.output.compress&lt;/name&gt; </span><br><span class="line">      &lt;value&gt;true&lt;/value&gt;</span><br><span class="line">  &lt;/property&gt;</span><br><span class="line">              </span><br><span class="line">  &lt;property&gt;</span><br><span class="line">      &lt;name&gt;mapreduce.map.output.compress.codec&lt;/name&gt; </span><br><span class="line">      &lt;value&gt;org.apache.hadoop.io.compress.SnappyCodec&lt;/value&gt;</span><br><span class="line">   &lt;/property&gt;</span><br></pre></td></tr></table></figure>
+<p>检查本版本的hadoop对各种压缩格式是否可用的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop checknative</span><br><span class="line">19/04/17 10:13:04 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Native library checking:</span><br><span class="line">hadoop:  false </span><br><span class="line">zlib:    false </span><br><span class="line">snappy:  false </span><br><span class="line">lz4:     false </span><br><span class="line">bzip2:   false </span><br><span class="line">openssl: false </span><br><span class="line">19/04/17 10:13:04 INFO util.ExitUtil: Exiting with status 1</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p>可以看到本版本对上述的压缩格式都不支持。</p>
+<p>现在把三台机器上面的core-site.xml、mapred-site.xml里的压缩那几行的配置都去掉。<br>
+去掉之后重启一下：<br>
+<a href="http://xn--stop-all-z65m.sh" target="_blank" rel="noopener">先stop-all.sh</a> ，再 ./start-all.sh一下<br>
+再运行一下刚才的job看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 hadoop]$ hadoop jar ./share/hadoop/mapreduce2/hadoop-mapreduce-examples-2.6.0-cdh5.7.0.jar pi 5 10</span><br><span class="line">Number of Maps  = 5</span><br><span class="line">Samples per Map = 10</span><br><span class="line">19/04/17 10:50:31 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Wrote input for Map #0</span><br><span class="line">Wrote input for Map #1</span><br><span class="line">Wrote input for Map #2</span><br><span class="line">Wrote input for Map #3</span><br><span class="line">Wrote input for Map #4</span><br><span class="line">Starting Job</span><br><span class="line">19/04/17 10:50:33 INFO client.ConfiguredRMFailoverProxyProvider: Failing over to rm2</span><br><span class="line">19/04/17 10:50:33 INFO input.FileInputFormat: Total input paths to process : 5</span><br><span class="line">19/04/17 10:50:34 INFO mapreduce.JobSubmitter: number of splits:5    #这里splits是5，splits是按什么划分的？</span><br><span class="line">....此处省略一万字</span><br><span class="line">Job Finished in 21.445 seconds</span><br><span class="line">Estimated value of Pi is 3.28000000000000000000</span><br><span class="line">[hadoop@hadoop001 hadoop]$</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190417105357466.png" alt="image"></p>
+<p>可以看到，成功了。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/41如何确定block损坏的位置和修复/" data-toggle="tooltip" data-placement="top" title="[如何确定block损坏的位置和修复]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/39YARN HA 架构/" data-toggle="tooltip" data-placement="top" title="[HDFS HA 架构]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1qjm剖析"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1.QJM&#x5256;&#x6790;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2ssh互相信任关系和hosts文件配置"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2.SSH&#x4E92;&#x76F8;&#x4FE1;&#x4EFB;&#x5173;&#x7CFB;&#x548C;hosts&#x6587;&#x4EF6;&#x914D;&#x7F6E;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3jdk的部署"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3.JDK&#x7684;&#x90E8;&#x7F72;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#4关闭防火墙"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4.&#x5173;&#x95ED;&#x9632;&#x706B;&#x5899;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#5zookeeper部署及定位"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5.Zookeeper&#x90E8;&#x7F72;&#x53CA;&#x5B9A;&#x4F4D;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#6hdfsampyarn-ha部署"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">6.hdfs&amp;yarn HA&#x90E8;&#x7F72;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#7web界面访问"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">7.web&#x754C;&#x9762;&#x8BBF;&#x95EE;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

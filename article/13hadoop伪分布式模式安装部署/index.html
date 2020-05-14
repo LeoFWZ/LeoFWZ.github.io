@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Hadoop伪分布式模式安装部署]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/13hadoop伪分布式模式安装部署/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                            
+                        </div>
+                        <h1>[Hadoop伪分布式模式安装部署]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2017-12-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>本次用的是;2.6.0-cdh5.7.0</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apache hadoop： hadoop.apache.org</span><br><span class="line">cdh hadoop:  http://archive.cloudera.com/cdh5/cdh/5/</span><br></pre></td></tr></table></figure>
+<p>进去后ctrl + f  搜索hadoop-2.6.0-cdh5.7.0，单击进去就是Apache Hadoop 2.6.0-cdh5.7.0网站，这是2.x的网站。</p>
+<p>继续下一个，可以看到：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190222225619645.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>最后一个是安装包，可以右键复制链接地址，用wget命令下载。</p>
+<p>wget <a href="http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz</a><br>
+或者下载到本地，再用rz命令上传Linux机器上。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190222230000666.png" alt="imaga"></p>
+<p><a href="http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0/" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0/</a>    可以在官网上看到要求等等。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190222232403246.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>比如：安装cdh5之前要安装java、ssh等要求。</p>
+<h1 id="1创建用户和上传hadoop软件">1.创建用户和上传hadoop软件</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">useradd hadoop       root下添加用户hadoop</span><br><span class="line">su - hadoop              切换到hadoop用户下</span><br><span class="line">mkdir app                 创建app文件夹</span><br><span class="line">cd app/                     进入app目录   /home/hadoop/app/</span><br><span class="line"></span><br><span class="line">wget http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz      用wget命令下载hadoop软件</span><br><span class="line">或</span><br><span class="line"> rz 上传       从本地上传hadoop软件</span><br></pre></td></tr></table></figure>
+<h1 id="2部署jdk">2.部署jdk</h1>
+<p>本次用的是;2.6.0-cdh5.7.0</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">apache hadoop： hadoop.apache.org</span><br><span class="line">cdh hadoop:  http://archive.cloudera.com/cdh5/cdh/5/</span><br></pre></td></tr></table></figure>
+<p>进去后ctrl + f  搜索hadoop-2.6.0-cdh5.7.0，单击进去就是Apache Hadoop 2.6.0-cdh5.7.0网站，这是2.x的网站。</p>
+<p>继续下一个，可以看到：</p>
+<p>最后一个是安装包，可以右键复制链接地址，用wget命令下载。</p>
+<p>wget <a href="http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz</a><br>
+或者下载到本地，再用rz命令上传Linux机器上。</p>
+<p><a href="http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0/" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0/</a>    可以在官网上看到要求等等。</p>
+<p>比如：安装cdh5之前要安装java、ssh等要求。</p>
+<h1 id="1创建用户和上传hadoop软件">1.创建用户和上传hadoop软件</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">useradd hadoop       root下添加用户hadoop</span><br><span class="line">su - hadoop              切换到hadoop用户下</span><br><span class="line">mkdir app                 创建app文件夹</span><br><span class="line">cd app/                     进入app目录   /home/hadoop/app/</span><br><span class="line"></span><br><span class="line">wget http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.7.0.tar.gz      用wget命令下载hadoop软件</span><br><span class="line">或</span><br><span class="line"> rz 上传       从本地上传hadoop软件</span><br></pre></td></tr></table></figure>
+<h1 id="2部署jdk">2.部署jdk</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CDH环境:</span><br><span class="line">mkdir /usr/java                  这个目录用于 jdk部署（约定俗成的一般都是这个目录）</span><br><span class="line">mkdir /usr/share/java        这个目录用于部署mysql  jdbc  jar包  （CDH需要）</span><br><span class="line"></span><br><span class="line">rz上传 jdk-8u45-linux-x64.gz   放到/usr/java/  下</span><br><span class="line"></span><br><span class="line">解压：</span><br><span class="line">tar -xzvf jdk-8u45-linux-x64.gz</span><br></pre></td></tr></table></figure>
+<p>查看：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190223000709604.png" alt="image"></p>
+<p>从上面可以看到，解压后的jdk的用户用户组发生了变化，并不是root。</p>
+<p>小知识点： /bin/bash（这个是解释器，一般执行的命令来自这里）     /sbin/nologin（这个是不准登录，见下图）</p>
+<p>如果在/etc/passwd文件里把/sbin/nologin改成/bin/bash就可以登录了。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190223003306648.png" alt="image"></p>
+<p>==对于jdk的解压，解压完了之后需要把用户用户组修改过来。==</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chown -R root:root jdk1.8.0_45</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190223001419527.png" alt="image"></p>
+<p>配置全局环境变量：vi /etc/profile</p>
+<p>在最后添加这几行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#env</span><br><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_45</span><br><span class="line">export JRE_HOME=$JAVA_HOME/jre</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib:$JER_HOME/lib:$CLASSPATH</span><br><span class="line">export PATH=$JAVA_HOME/bin:$JER_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+<p>保存。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source /etc/profile   生效</span><br></pre></td></tr></table></figure>
+<p>which  查看一下</p>
+<p><img src="https://img-blog.csdnimg.cn/20190223002305404.png" alt="image"></p>
+<h1 id="3解压hadoop">3.解压hadoop</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -xzvf hadoop-2.6.0-cdh5.7.0.tar.gz</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190223084411322.png" alt="image"></p>
+<p>解压后：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190223084945532.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">drwxr-xr-x  2 hadoop hadoop  4096 Mar 24  2016 bin        这里面是可执行脚本</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop  4096 Mar 24  2016 bin-mapreduce1</span><br><span class="line">drwxr-xr-x  3 hadoop hadoop  4096 Mar 24  2016 cloudera</span><br><span class="line">drwxr-xr-x  6 hadoop hadoop  4096 Mar 24  2016 etc        这里面是配置目录(很多conf文件)</span><br><span class="line">drwxr-xr-x  5 hadoop hadoop  4096 Mar 24  2016 examples      这里面是案例</span><br><span class="line">drwxr-xr-x  3 hadoop hadoop  4096 Mar 24  2016 examples-mapreduce1</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop  4096 Mar 24  2016 include</span><br><span class="line">drwxr-xr-x  3 hadoop hadoop  4096 Mar 24  2016 lib           jar包目录，里面是jar包</span><br><span class="line">drwxr-xr-x  2 hadoop hadoop  4096 Mar 24  2016 libexec</span><br><span class="line">drwxr-xr-x  3 hadoop hadoop  4096 Mar 24  2016 sbin         这里面是hadoop组件的启动 停止脚本</span><br><span class="line">drwxr-xr-x  4 hadoop hadoop  4096 Mar 24  2016 share</span><br><span class="line">drwxr-xr-x 17 hadoop hadoop  4096 Mar 24  2016 src</span><br></pre></td></tr></table></figure>
+<p>比如说：在etc下面配置了某个文件，用sbin下面脚本启动hadoop，用bin下面某个脚本看某个数据存储，某天软件升级，把jar包里面某个某个包替换一下。</p>
+<p>编辑etc/hadoop/hadoop-env.sh  这个文件，配置下面两个环境变量：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_45</span><br><span class="line">export HADOOP_PREFIX=/home/hadoop/app/hadoop-2.6.0-cdh5.7.0</span><br></pre></td></tr></table></figure>
+<p>看官网，可以看到有三种模式：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190223091238356.png" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.单机模式（Standalone）：这种模式是本地模式，是没有hadoop后台进程的，1个Java进程   （不用这种模式）</span><br><span class="line">2.伪分布模式（Pseudo-Distribute Mode）：开发|学习  在一台机器上启用多个进程，模拟集群的情况 多个Java进程 </span><br><span class="line">3.集群模式（Cluster Mode）：生产 多台机器多个Java进程</span><br></pre></td></tr></table></figure>
+<p>在这里用第二种模式：</p>
+<h1 id="4configuration">4.Configuration</h1>
+<p>编辑配置文件： etc/hadoop/core-site.xml   添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;fs.defaultFS&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;hdfs://localhost:9000&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<p>编辑配置文件：etc/hadoop/hdfs-site.xml    添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">    &lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.replication&lt;/name&gt;</span><br><span class="line">        &lt;value&gt;1&lt;/value&gt;</span><br><span class="line">    &lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="5配置ssh-localhost无密码信任关系">5.配置ssh localhost无密码信任关系</h1>
+<p><img src="https://img-blog.csdnimg.cn/20190224083633254.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190224084026905.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>出现上面情况，可以按照官网的步骤来，但是官网上面语句有点长，可能记不住，可以按照下面的，which ssh查看一下。</p>
+<p>然后ssh-keygen  回车回车回车再回车</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224084336880.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>一个用户无密码访问，不需要密码就可以访问，要把它的公钥输入到它的认证文件里面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190224085130114.png" alt="image"></p>
+<p>id_rsa     私钥<br>
+id_rsa.pub 公钥</p>
+<p>验证一下：ssh localhost date  远程登录过去 执行一个date命令，把命令的结果返回回来：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224085447222.png" alt="image"></p>
+<p>ssh localhost date 是需要输入密码，但是这个用户是没有配置密码。<br>
+这个时候应该怎样在没有配置密码情况下去完成无密码信任？授权</p>
+<p>这个说话还要求输入密码，这肯定是不对的。还差一句命令：chmod 600 authorized_keys（这个在apache官网有）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224085840120.png" alt="image"></p>
+<h1 id="6格式化">6.格式化</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@10-9-140-90 hadoop-2.6.0-cdh5.7.0]$ bin/hdfs namenode -format</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190224092132152.png" alt="image"></p>
+<h1 id="7启动">7.启动</h1>
+<p><img src="https://img-blog.csdnimg.cn/20190224092523400.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>为什么要配置ssh，因为hadoop在启动的时候要用到ssh。</p>
+<p>因为localhost配置了ssh的无密码信任关系，所以可以直接连上，但是0.0.0.0没有配置，所以它第一次会让你输入yes。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224093627474.png" alt="image"></p>
+<p>ssh 地址，它首先到authorized_keys这个认证文件里找信任关系找秘钥，找不到的话，如果是第一次连接，它会让你输入yes，然后校验，如果校验通过就ok，如果不通过就让你输入密码。第一次连接之后会在known_hosts里面创建一条记录</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224094529273.png" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sbin/stop-dfs.sh  停止</span><br><span class="line"></span><br><span class="line">sbin/start-dfs.sh  启动</span><br></pre></td></tr></table></figure>
+<p>jps查看一下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224095615631.png" alt="image"></p>
+<p>查看一下端口号，从上面可以看出，因为0.0.0.0是可以对外提供访问的，127.0.0.1不能对外提供访问，只能对本台机器进行访问。所以对外可以提供访问的端口号是50070。这个时候可以在其他电脑上输入http://ip:50070进行访问了。（前提是jps可以看到这三个进程）（如果是云主机，需要把云主机的端口号开一下）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">17665 SecondaryNameNode  第二名称节点 老二</span><br><span class="line">17380 NameNode          名称节点  老大 读写</span><br><span class="line">17511 DataNode           数据节点  小弟</span><br></pre></td></tr></table></figure>
+<h1 id="8环境变量">8.环境变量</h1>
+<p>hdfs dfs -ls /查看一下，发现：</p>
+<p><img src="https://img-blog.csdnimg.cn/2019022410201361.png" alt="image"></p>
+<p>vi ~/.bash_profile  加上下面两个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export HADOOP_PREFIX=/home/hadoop/app/hadoop-2.6.0-cdh5.7.0</span><br><span class="line">export PATH=$HADOOP_PREFIX/bin:$PATH</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190224102144959.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="9命令-hdfs-dfs操作命令和linux命令极其相似">9.命令:  hdfs dfs操作命令和Linux命令极其相似</h1>
+<p>HDFS也是一个文件存储系统，它是架在linux上的。但是HDFS可以集群。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190224102305650.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/2019022410331175.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190224103415500.png" alt="image"></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/14hadoop异常处理之nameNode进程无法启动，报org.apache.hadoop.hdfs.server.common.Inconsistent/" data-toggle="tooltip" data-placement="top" title="[Hadoop异常处理之nameNode进程无法启动，报org.apache.hadoop.hdfs.server.common.Inconsistent]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/12hadoop入门介绍/" data-toggle="tooltip" data-placement="top" title="[Hadoop入门介绍]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1创建用户和上传hadoop软件"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1.&#x521B;&#x5EFA;&#x7528;&#x6237;&#x548C;&#x4E0A;&#x4F20;hadoop&#x8F6F;&#x4EF6;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2部署jdk"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2.&#x90E8;&#x7F72;jdk</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1创建用户和上传hadoop软件"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">1.&#x521B;&#x5EFA;&#x7528;&#x6237;&#x548C;&#x4E0A;&#x4F20;hadoop&#x8F6F;&#x4EF6;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2部署jdk"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">2.&#x90E8;&#x7F72;jdk</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3解压hadoop"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">3.&#x89E3;&#x538B;hadoop</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#4configuration"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">4.Configuration</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#5配置ssh-localhost无密码信任关系"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">5.&#x914D;&#x7F6E;ssh localhost&#x65E0;&#x5BC6;&#x7801;&#x4FE1;&#x4EFB;&#x5173;&#x7CFB;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#6格式化"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">6.&#x683C;&#x5F0F;&#x5316;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#7启动"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">7.&#x542F;&#x52A8;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#8环境变量"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">8.&#x73AF;&#x5883;&#x53D8;&#x91CF;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#9命令-hdfs-dfs操作命令和linux命令极其相似"><span class="toc-nav-number">11.</span> <span class="toc-nav-text">9.&#x547D;&#x4EE4;:  hdfs dfs&#x64CD;&#x4F5C;&#x547D;&#x4EE4;&#x548C;Linux&#x547D;&#x4EE4;&#x6781;&#x5176;&#x76F8;&#x4F3C;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

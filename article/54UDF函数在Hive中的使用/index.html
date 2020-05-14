@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [UDF函数在Hive中的使用]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/54UDF函数在Hive中的使用/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                            
+                        </div>
+                        <h1>[UDF函数在Hive中的使用]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-05-25
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="udf介绍">UDF介绍</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">官网：</span><br><span class="line">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF</span><br></pre></td></tr></table></figure>
+<p>UDF: User-Defined Function用户自定义函数。</p>
+<p>在Hive中，有很多的内置函数，它自带的，但是呢，就算有很多内置函数，它也满足不了众多业务逻辑的需求。所以呢，在工作中我们还是需要去自己开发UDF函数来实现我们想要的功能。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#执行命令会显示很多函数（不一定是内置的哦）</span><br><span class="line">hive (default)&gt; show functions;</span><br><span class="line">#查看函数的简单说明</span><br><span class="line">hive (default)&gt; desc function substr;</span><br><span class="line">#查看函数的更详细的说明（经常用）</span><br><span class="line">hive (default)&gt; desc function extended substr;</span><br></pre></td></tr></table></figure>
+<p>在Hive中，我们用Java来去开发。<br>
+在Hive里面。UDF分为三大类。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">①UDF: one-to-one row mapping ，一行进来一行出去，比如：upper substr</span><br><span class="line">②UDAF: Aggregation聚合，Many-to-one row mapping，多进一出，比如：sum/min</span><br><span class="line">③UDTF: Table-generating one-to-many，一行进来多行出去，比如：lateral view explode()</span><br></pre></td></tr></table></figure>
+<h1 id="hive中的内置函数">Hive中的内置函数</h1>
+<p>要知道Hive中有哪些内置函数以及如何使用？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">去hive官网wiki里去查找：</span><br><span class="line">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF</span><br></pre></td></tr></table></figure>
+<p>比如这些：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Date Function</span><br><span class="line">to_date(from_unixtime(unix_timestamp()))</span><br><span class="line">unixtime(unix_timestamp())</span><br><span class="line">cast cast(value as TYPE)</span><br><span class="line">isnull</span><br><span class="line">isnotnull</span><br><span class="line">assert_true</span><br><span class="line">current_database</span><br><span class="line">assert_true</span><br></pre></td></tr></table></figure>
+<h2 id="开发一个udf函数">开发一个UDF函数</h2>
+<h3 id="1创建一个普通的maven工程">①创建一个普通的maven工程</h3>
+<p><img src="https://img-blog.csdnimg.cn/20191113200045132.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20191113200346232.png" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20191113200353466.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p><img src="https://img-blog.csdnimg.cn/20191113200400912.png" alt="在这里插入图片描述"></p>
+<p>然后确定完成，第一次建立这个项目的时候会比较慢，因为要下载很多包什么的。</p>
+<p><img src="https://img-blog.csdnimg.cn/20191113200412326.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<h3 id="2pom文件中添加hive的依赖">②pom文件中添加hive的依赖</h3>
+<p>pom文件如下：主要添加properties、repositories、dependency三个地方。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line"></span><br><span class="line">&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span><br><span class="line">  xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;</span><br><span class="line">  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;</span><br><span class="line"></span><br><span class="line">  &lt;groupId&gt;com.ruozedata.hadoop&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;g6-hadoop-UDF&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;1.0&lt;/version&gt;</span><br><span class="line">  &lt;name&gt;g6-hadoop-UDF&lt;/name&gt;</span><br><span class="line">  &lt;!-- FIXME change it to the project&apos;s website --&gt;</span><br><span class="line">  &lt;url&gt;http://www.example.com&lt;/url&gt;</span><br><span class="line">  &lt;properties&gt;</span><br><span class="line">    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;</span><br><span class="line">    &lt;maven.compiler.source&gt;1.7&lt;/maven.compiler.source&gt;</span><br><span class="line">    &lt;maven.compiler.target&gt;1.7&lt;/maven.compiler.target&gt;</span><br><span class="line">    &lt;hadoop.version&gt;2.6.0-cdh5.7.0&lt;/hadoop.version&gt;</span><br><span class="line">    &lt;hive.version&gt;1.1.0-cdh5.7.0&lt;/hive.version&gt;</span><br><span class="line">  &lt;/properties&gt;</span><br><span class="line">  &lt;!--添加CDH的仓库--&gt;</span><br><span class="line">  &lt;repositories&gt;</span><br><span class="line">    &lt;repository&gt;</span><br><span class="line">      &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">      &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">    &lt;/repository&gt;</span><br><span class="line">    &lt;repository&gt;</span><br><span class="line">      &lt;id&gt;cloudera&lt;/id&gt;</span><br><span class="line">      &lt;url&gt;https://repository.cloudera.com/artifactory/cloudera-repos&lt;/url&gt;</span><br><span class="line">    &lt;/repository&gt;</span><br><span class="line">  &lt;/repositories&gt;</span><br><span class="line">  &lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">      &lt;groupId&gt;junit&lt;/groupId&gt;</span><br><span class="line">      &lt;artifactId&gt;junit&lt;/artifactId&gt;</span><br><span class="line">      &lt;version&gt;4.11&lt;/version&gt;</span><br><span class="line">      &lt;scope&gt;test&lt;/scope&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!--添加Hadoop的依赖--&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">      &lt;groupId&gt;org.apache.hadoop&lt;/groupId&gt;</span><br><span class="line">      &lt;artifactId&gt;hadoop-client&lt;/artifactId&gt;</span><br><span class="line">      &lt;version&gt;$&#123;hadoop.version&#125;&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;!--添加hive依赖--&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">      &lt;groupId&gt;org.apache.hive&lt;/groupId&gt;</span><br><span class="line">      &lt;artifactId&gt;hive-exec&lt;/artifactId&gt;</span><br><span class="line">      &lt;version&gt;$&#123;hive.version&#125;&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">  &lt;/dependencies&gt;</span><br><span class="line"></span><br><span class="line">  &lt;build&gt;</span><br><span class="line">    &lt;pluginManagement&gt;&lt;!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) --&gt;</span><br><span class="line">      &lt;plugins&gt;</span><br><span class="line">        &lt;!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle --&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-clean-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.1.0&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging --&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.0.2&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.8.0&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;2.22.1&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.0.2&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-install-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;2.5.2&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-deploy-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;2.8.2&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle --&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-site-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.7.1&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">          &lt;artifactId&gt;maven-project-info-reports-plugin&lt;/artifactId&gt;</span><br><span class="line">          &lt;version&gt;3.0.0&lt;/version&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">      &lt;/plugins&gt;</span><br><span class="line">    &lt;/pluginManagement&gt;</span><br><span class="line">  &lt;/build&gt;</span><br><span class="line">&lt;/project&gt;</span><br></pre></td></tr></table></figure>
+<p>要下载很多东西，下载依赖的时候会非常慢。</p>
+<h3 id="3开发udf代码">③开发UDF代码</h3>
+<p>在com.ruozedata.hadoop下面建个udf包，udf包下面建一个HelloUDF的Java类。<br>
+开发代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.hadoop.udf;</span><br><span class="line">import org.apache.hadoop.hive.ql.exec.UDF;</span><br><span class="line">/**</span><br><span class="line"> * 需求：开发一个普通的UDF函数</span><br><span class="line"> * input输入是UDF</span><br><span class="line"> * 输出：Hello：UDF</span><br><span class="line"> */</span><br><span class="line">/**</span><br><span class="line"> * 要继承UDF类，里面要重写它的方法</span><br><span class="line"> */</span><br><span class="line">public class HelloUDF extends UDF &#123;</span><br><span class="line">    public String evaluate(String input) &#123;</span><br><span class="line">        return &quot;hello&quot; + input;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        HelloUDF udf = new HelloUDF();</span><br><span class="line">        String output = udf.evaluate(&quot;leo&quot;);</span><br><span class="line">        System.out.println(output);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4打jar包">④打jar包</h3>
+<p><img src="https://img-blog.csdnimg.cn/20191113200509756.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>打包成功：</p>
+<p><img src="https://img-blog.csdnimg.cn/20191113200519352.png" alt="在这里插入图片描述"></p>
+<h3 id="5jar包上传服务器">⑤jar包上传服务器</h3>
+<p><strong>Hive中添加UDF函数</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">官网：</span><br><span class="line">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-CreateFunction</span><br></pre></td></tr></table></figure>
+<p>创建UDF函数有三种方式</p>
+<ul>
+<li>创建临时的UDF函数，只对当前session生效</li>
+<li>创建永久的UDF函数</li>
+<li>编译hive源码支持UDF函数，对所有部署编译后的hive生效。</li>
+</ul>
+<p><strong>创建临时的UDF函数</strong></p>
+<p>生产不推荐</p>
+<p><strong>创建永久生效的UDF函数</strong></p>
+<p><strong>编译hive支持自定义的UDF函数</strong></p>
+<h2 id="创建临时的udf函数">创建临时的UDF函数</h2>
+<p>生产不推荐</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#上传jar包</span><br><span class="line">[hadoop@hadoop001 lib]$ rz</span><br><span class="line">[hadoop@hadoop001 lib]$ ll</span><br><span class="line">total 12</span><br><span class="line">-rw-r--r--. 1 hadoop hadoop 11447 Apr 19  2019 g6-hadoop-1.0.jar</span><br><span class="line"></span><br><span class="line">#创建临时的UDF函数</span><br><span class="line">若不想执行add操作可以将jar复制到 $HIVE_HOME/auxlib 特定的目录</span><br><span class="line">hive (default)&gt; ADD JAR  /home/hadoop/lib/g6-hadoop-UDF-1.0.jar;</span><br><span class="line">Added [/home/hadoop/lib/g6-hadoop-UDF-1.0.jar] to class path</span><br><span class="line">Added resources: [/home/hadoop/lib/g6-hadoop-UDF-1.0.jar]</span><br><span class="line">hive (default)&gt; CREATE TEMPORARY FUNCTION sayHello AS &quot;com.ruozedata.hadoop.HelloUDF&quot;;  //AS后面跟的主类</span><br><span class="line"></span><br><span class="line">这里若报异常，异常信息: Unsupported major.minor version 52.0</span><br><span class="line">思索后想起，我部署的jdk用的是1.7，而我编译UDF用的是jdk1.8，低版本环境是无法运行高版本jar的，重新部署1.8的jdk重启hadoop，同时降低UDFjar包编译的版本</span><br><span class="line"></span><br><span class="line">#测试，临时函数只对当前session生效</span><br><span class="line">hive (default)&gt; select sayhello(&quot;leo&quot;);</span><br><span class="line">OK</span><br><span class="line">_c0</span><br><span class="line">helloleo</span><br><span class="line">Time taken: 0.205 seconds, Fetched: 1 row(s)</span><br><span class="line"></span><br><span class="line">#检查mysql中的元数据，因为是临时函数，故元数据中并没有相关的信息</span><br><span class="line">mysql&gt; select * from funcs;</span><br><span class="line">Empty set (0.11 sec)</span><br></pre></td></tr></table></figure>
+<p>降低项目编译版本方法，如下运行的是jdk1.8环境，编译使用的是1.7环境</p>
+<p><img src="https://s2.ax1x.com/2019/04/19/E99XM8.md.png" alt="iamge"></p>
+<h2 id="创建永久生效的udf函数">创建永久生效的UDF函数</h2>
+<p>通过上传hdfs实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">#将jar上传到指定目录</span><br><span class="line">[hadoop@hadoop001 ~]$ hdfs dfs -ls /lib</span><br><span class="line">[hadoop@hadoop001 ~]$ hdfs dfs -put   ~/lib/g6-hadoop-UDF-1.0.jar   /lib</span><br><span class="line">[hadoop@hadoop001 ~]$ hdfs dfs -ls /lib</span><br><span class="line">Found 1 items</span><br><span class="line">-rw-r--r--   1 hadoop supergroup       3291 2020-03-27 14:06 /lib/g6-hadoop-UDF-1.0.jar</span><br><span class="line"></span><br><span class="line">#创建永久生效的UDF函数</span><br><span class="line">hive (default)&gt; CREATE FUNCTION sayhello_2 AS &apos;com.ruozedata.hadoop.HelloUDF&apos; USING JAR &apos;hdfs://hadoop001:9000/lib/g6-hadoop-UDF-1.0.jar&apos;;</span><br><span class="line">converting to local hdfs://hadoop001:9000/lib/g6-hadoop-UDF-1.0.jar</span><br><span class="line">Added [/tmp/14048b22-4084-45e1-9616-8cebf2955f01_resources/g6-hadoop-UDF-1.0.jar] to class path</span><br><span class="line">Added resources: [hdfs://hadoop001:9000/lib/g6-hadoop-UDF-1.0.jar]</span><br><span class="line">OK</span><br><span class="line">Time taken: 4.145 seconds</span><br><span class="line">#测试</span><br><span class="line">hive (default)&gt; select sayhello_2(&quot;summer&quot;) ;</span><br><span class="line">OK</span><br><span class="line">_c0</span><br><span class="line">hellosummer</span><br><span class="line">Time taken: 0.065 seconds, Fetched: 1 row(s)</span><br><span class="line"></span><br><span class="line">#检查mysql中的元数据，测试函数的信息已经注册到了元数据中</span><br><span class="line">mysql&gt; select * from funcs;</span><br><span class="line">+---------+-------------------------------+-------------+-------+------------+-----------+------------+------------+</span><br><span class="line">| FUNC_ID | CLASS_NAME                    | CREATE_TIME | DB_ID | FUNC_NAME  | FUNC_TYPE | OWNER_NAME | OWNER_TYPE |</span><br><span class="line">+---------+-------------------------------+-------------+-------+------------+-----------+------------+------------+</span><br><span class="line">|       1 | com.ruozedata.hadoop.HelloUDF |  1585318199 |     1 | sayhello_2 |         1 | NULL       | USER       |</span><br><span class="line">+---------+-------------------------------+-------------+-------+------------+-----------+------------+------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>有时候持久注册后在Hive中show functions 会发现没有，但是还是能用，这是bug</p>
+<p>FunctionRegister类</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/55Hive之编译源码支持UDF函数/" data-toggle="tooltip" data-placement="top" title="[Hive之编译源码支持UDF函数]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/53HiveQL执行过程续/" data-toggle="tooltip" data-placement="top" title="[HiveQL执行过程续]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#udf介绍"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">UDF&#x4ECB;&#x7ECD;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#hive中的内置函数"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Hive&#x4E2D;&#x7684;&#x5185;&#x7F6E;&#x51FD;&#x6570;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#开发一个udf函数"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">&#x5F00;&#x53D1;&#x4E00;&#x4E2A;UDF&#x51FD;&#x6570;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#1创建一个普通的maven工程"><span class="toc-nav-number">2.1.1.</span> <span class="toc-nav-text">&#x2460;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x666E;&#x901A;&#x7684;maven&#x5DE5;&#x7A0B;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#2pom文件中添加hive的依赖"><span class="toc-nav-number">2.1.2.</span> <span class="toc-nav-text">&#x2461;pom&#x6587;&#x4EF6;&#x4E2D;&#x6DFB;&#x52A0;hive&#x7684;&#x4F9D;&#x8D56;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#3开发udf代码"><span class="toc-nav-number">2.1.3.</span> <span class="toc-nav-text">&#x2462;&#x5F00;&#x53D1;UDF&#x4EE3;&#x7801;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#4打jar包"><span class="toc-nav-number">2.1.4.</span> <span class="toc-nav-text">&#x2463;&#x6253;jar&#x5305;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#5jar包上传服务器"><span class="toc-nav-number">2.1.5.</span> <span class="toc-nav-text">&#x2464;jar&#x5305;&#x4E0A;&#x4F20;&#x670D;&#x52A1;&#x5668;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建临时的udf函数"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;&#x4E34;&#x65F6;&#x7684;UDF&#x51FD;&#x6570;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建永久生效的udf函数"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;&#x6C38;&#x4E45;&#x751F;&#x6548;&#x7684;UDF&#x51FD;&#x6570;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

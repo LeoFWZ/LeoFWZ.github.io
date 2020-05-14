@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Scala语法（三）]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/60Scala语法（三）/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                            
+                        </div>
+                        <h1>[Scala语法（三）]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-06-17
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>强调：<br>
+（1）子类继承父类，如果new一个子类，那么一定会先去调用父类的构造方法。</p>
+<p>（2）private[this] 表示私有的，只能在自己的类里面使用，子类不能用</p>
+<p>1.字符串插值s…$</p>
+<p>一般我们要输出，什么东西直接这样写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">object StringApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val name = &quot;zhangsan&quot;</span><br><span class="line">    println(&quot;name : &quot; + name)   //这个地方直接 +name</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是上面这种写法，不友好<br>
+在scala中有种叫做 字符串插值 的东西</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val name = &quot;zhangsan&quot;</span><br><span class="line">    println(&quot;name : &quot; + name)</span><br><span class="line">    </span><br><span class="line">    //String Interpolation  字符串插值</span><br><span class="line">    println(s&quot;name : $name&quot;)   //前面加个s，然后在双引号里面可以直接用$来引用变量</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种用法在spark日志里面使用是非常多的。<br>
+去spark的 SparkContext里面可以找到很多类似的。<br>
+比如： logInfo(s&quot;Running Spark version $SPARK_VERSION&quot;)</p>
+<p><strong>Scala中一次性写多行</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val lines =</span><br><span class="line">  &quot;&quot;&quot;</span><br><span class="line">    |welcome to China!</span><br><span class="line">    |I like China!</span><br><span class="line">    |This is shanghai!</span><br><span class="line">  &quot;&quot;&quot;.stripMargin</span><br></pre></td></tr></table></figure>
+<p>再比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">throw new IllegalStateException(</span><br><span class="line">  s&quot;&quot;&quot;Cannot call methods on a stopped SparkContext.</span><br><span class="line">     |This stopped SparkContext was created at:</span><br><span class="line">     |</span><br><span class="line">     |$&#123;creationSite.longForm&#125;</span><br><span class="line">     |</span><br><span class="line">     |The currently active SparkContext was created at:</span><br><span class="line">     |</span><br><span class="line">     |$activeCreationSite</span><br><span class="line">   &quot;&quot;&quot;.stripMargin)</span><br></pre></td></tr></table></figure>
+<p>2.读取文件</p>
+<p>（1）读取本地文件</p>
+<p>可以用import scala.io.Source里的fromFile…</p>
+<p><img src="https://img-blog.csdnimg.cn/2019050722304310.png" alt="image"></p>
+<p>可以看到fromFile有很多种，看自己需要去选择就可以了。<br>
+在这里，我选择的是图上选中的那一个。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import scala.io.Source</span><br><span class="line"></span><br><span class="line">object FileApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line"></span><br><span class="line">    //E:\GitStudy\createlog\20180717.txt  格式这样写也可以</span><br><span class="line">     //Source是 io的包，不要导错了</span><br><span class="line">   val lines =</span><br><span class="line">   Source.fromFile(&quot;E:\GitStudy\createlog\20180717.txt&quot;)    //传进来一个路径</span><br><span class="line">    for(line &lt;- lines)&#123;   //这里也可以用 line //lines可以换为lines.getLines()</span><br><span class="line">      print(line)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：<br>
+<img src="https://img-blog.csdnimg.cn/20190507223935496.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>后面在spark编程当中，会经常读取本地文件。</p>
+<p>（2）读取URL网络资源</p>
+<p>上面是读取本地文件，还有一种经常读取文件的情况：</p>
+<p>比如spark应用程序，要经常从 比如外部接口等 微服务 读取文件。这个读取肯定要通过网络，就是读取网络资源，比如根据一个URL地址，把它的东西读取过来。<br>
+举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import scala.io.Source</span><br><span class="line"></span><br><span class="line">object FileApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val lines = Source.fromURL(&quot;http://www.baidu.com&quot;)</span><br><span class="line">        for(line &lt;- lines.getLines())&#123;</span><br><span class="line">          println(line)</span><br><span class="line">        &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其实工作中用的比较多的还是HttpClient工具类，通过这个Java工具类来读取微服务的文件。<br>
+Java在scala中可以使用。<br>
+比如说现在有非常多的工具类，都是Java写的，比如common-io、langs等等，name这么多工具类，是不是在scala中药重新写一遍？不是！ 这些Java工具类，在scala代码中直接调用就行了。比如公司里，以前有很多Java代码，你直接在scala代码中直接调用就行了。</p>
+<p>rest就是一种基于GET、POST、 DELETE、 PUT 、HEAD这些协议的封装</p>
+<p>常见的格式就是URL上到一个一个文件里去找文件索引</p>
+<p>3.Haoop读取文件(操作HDFS文件系统)</p>
+<p>1.首先需要引入依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">//版本相近即可，没有严格要求</span><br><span class="line"></span><br><span class="line">//  如果要用cdh依赖，那么 还需要加</span><br><span class="line">  &lt;properties&gt;</span><br><span class="line">    &lt;scala.version&gt;2.11.8&lt;/scala.version&gt;</span><br><span class="line">    &lt;hadoop.version&gt;2.6.0-cdh5.7.0&lt;/hadoop.version&gt;</span><br><span class="line">  &lt;/properties&gt;</span><br><span class="line">  </span><br><span class="line">      &lt;!--添加CDH的仓库--&gt;</span><br><span class="line">    &lt;repositories&gt;</span><br><span class="line">        &lt;repository&gt;</span><br><span class="line">            &lt;id&gt;cloudera&lt;/id&gt;</span><br><span class="line">            &lt;url&gt;https://repository.cloudera.com/artifactory/cloudera-repos&lt;/url&gt;</span><br><span class="line">        &lt;/repository&gt;</span><br><span class="line">    &lt;/repositories&gt;</span><br><span class="line"></span><br><span class="line">//环境上装的Haoop是 hadoop-2.6.0-cdh5.7.0</span><br><span class="line">//	我们编程引入依赖可以引入不一样的，相邻的也没有关系，因为我们打包打的是瘦包，</span><br><span class="line">//	仅仅是把代码打进去，Hadoop没有打</span><br><span class="line"></span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.scala-lang&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;scala-library&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;scala.version&#125;&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spark-core_2.11&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;spark.version&#125;&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.hadoop&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;hadoop-client&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;$&#123;hadoop.version&#125;&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>选择这个FileSystem： import org.apache.hadoop.fs.FileSystem</p>
+<p><img src="https://img-blog.csdnimg.cn/20190508230004950.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190508230505628.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190508230650723.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190508230739925.png" alt="image"></p>
+<p>代码如下：<br>
+<img src="https://img-blog.csdnimg.cn/20190508231028292.png" alt="image"></p>
+<p>fileSystem是所有文件系统的入口，你想进行什么操作，都可以了。<br>
+比如这么多操作都是可以的，看自己需要了：<br>
+<img src="https://img-blog.csdnimg.cn/20190508231226683.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>比如现在在HDFS上创建一个文件夹：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//mkdirs源码  返回值是布尔类型</span><br><span class="line">  public boolean mkdirs(Path f) throws IOException &#123;</span><br><span class="line">    return mkdirs(f, FsPermission.getDirDefault());</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190508231704584.png" alt="image"></p>
+<p>最后代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.bigdata.scala04</span><br><span class="line">import java.net.URI</span><br><span class="line">import org.apache.hadoop.conf.Configuration</span><br><span class="line">import org.apache.hadoop.fs.&#123;FileSystem, Path&#125;</span><br><span class="line"></span><br><span class="line">object HDFSApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //new 一个配置参数</span><br><span class="line">    val configuration = new Configuration()</span><br><span class="line">    val uri = new URI(&quot;hdfs://hadoop001:9000&quot;)  //这个注意一下端口号，有的可能是8020</span><br><span class="line">     //    创建一个文件系统的入口，FileSystem.get（URI，configuration）</span><br><span class="line">   //   获取两个参数，这个入口就可以直接操作hdfs</span><br><span class="line">    val fileSystem = FileSystem.get(uri,configuration)</span><br><span class="line"></span><br><span class="line">    //val path = new Path(&quot;/user/hadoop/test&quot;)</span><br><span class="line">    //传入一个Path路径，在hdfs上创建文件夹，返回值是一个 Bolean类型</span><br><span class="line">    val flag = fileSystem.mkdirs(new Path(&quot;/test&quot;))</span><br><span class="line">    println(flag)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行后，结果如下：<br>
+<img src="https://img-blog.csdnimg.cn/20190510105716549.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>用IDEA操作HDFS，遇到的坑：去操作HDFS总是连接被拒绝</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Call From :9000 failed on connection exception: java.net.ConnectException</span><br></pre></td></tr></table></figure>
+<p>需要检查如下是否已经配置好了：</p>
+<ul>
+<li>如果是云主机需要把9000端口号给打开</li>
+<li>可以netstat命令检查一下是否可以连接，比如netstat ip 9000命令。当然还有其它netstat命令等。</li>
+<li>Linux主机上，9000端口号，要对外开放，可以用nmap 命令（一个工具需要安装一下）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# nmap hadoop001</span><br><span class="line"></span><br><span class="line">Starting Nmap 5.51 ( http://nmap.org ) at 2019-05-10 11:03 CST</span><br><span class="line">Nmap scan report for hadoop001 (10.9.140.90)</span><br><span class="line">Host is up (0.0000030s latency).</span><br><span class="line">Not shown: 995 closed ports</span><br><span class="line">PORT     STATE SERVICE</span><br><span class="line">22/tcp   open  ssh</span><br><span class="line">3306/tcp open  mysql</span><br><span class="line">8031/tcp open  unknown</span><br><span class="line">8042/tcp open  fs-agent</span><br><span class="line">9000/tcp open  cslistener  //保证这个是open的，不能是closed</span><br><span class="line"></span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 0.10 seconds</span><br><span class="line">[root@hadoop001 ~]#</span><br></pre></td></tr></table></figure>
+<ul>
+<li>需要在hdfs-site.xml里配置一下dfs.permissions为false（可能需要重启一下Hadoop吧）</li>
+<li>需要执行一下 : hdfs dfs -chmod 777 /user/hadoop 不然用户没有supergroup外的用户没有权限去操作</li>
+</ul>
+<p>在hdfs上创建文件，并写文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> //创建一个文件</span><br><span class="line">val out = fileSystem.create(new Path(&quot;/user/hadoop/test/test.txt&quot;))</span><br><span class="line"> //并向文件中写入，用流写出来</span><br><span class="line"> out.writeBytes(&quot;this is a test!&quot;)</span><br><span class="line"> out.flush()   //最好刷新一下，因为写出来的放在缓存区</span><br><span class="line"> out.close()</span><br><span class="line"> //关流</span><br></pre></td></tr></table></figure>
+<p>重命名：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//更改文件的名字</span><br><span class="line">val src = new Path(&quot;/user/hadoop/test/test.txt&quot;) //原始路径</span><br><span class="line">val dst = new Path(&quot;/user/hadoop/test/test3.txt&quot;) //更改名字后的路径</span><br><span class="line">val flag = fileSystem.rename(src,dst)</span><br><span class="line">println(flag)</span><br></pre></td></tr></table></figure>
+<p>删除文件夹 递归</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//删除文件夹及文件 </span><br><span class="line">//true 表示是否采用递归</span><br><span class="line">val flag = fileSystem.delete(new Path(&quot;/user/hadoop/test&quot;),true)</span><br><span class="line">println(flag)</span><br></pre></td></tr></table></figure>
+<p><strong>集合</strong></p>
+<p>比如：数组 List Set Map Seq…</p>
+<p>3.数组</p>
+<p>数组: 长度 一个类型：String/Int/Double</p>
+<p>分为定长和变长。</p>
+<p>（1）定长(Array)：长度一经定义 就固定</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//定义一个长度为5的数组，存放的是String类型数据</span><br><span class="line">scala&gt; val a = new Array[String](5)</span><br><span class="line">a: Array[String] = Array(null, null, null, null, null)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//求数组长度</span><br><span class="line">scala&gt; a.length</span><br><span class="line">res0: Int = 5</span><br><span class="line"></span><br><span class="line">scala&gt; a(0)</span><br><span class="line">res1: String = null</span><br><span class="line"></span><br><span class="line">//数组中的Index是从0开始的，如果要赋值</span><br><span class="line">scala&gt; a(1)=&quot;shanghai&quot;</span><br><span class="line"></span><br><span class="line">scala&gt; a(1)</span><br><span class="line">res3: String = shanghai</span><br><span class="line"></span><br><span class="line">scala&gt; a(9)</span><br><span class="line">java.lang.ArrayIndexOutOfBoundsException: 9</span><br><span class="line">  ... 29 elided</span><br></pre></td></tr></table></figure>
+<p>现在来看这样定义的数组：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val b = Array(&quot;shanghai&quot;,&quot;beijing&quot;,&quot;shenzhen&quot;)    //面试必问这个点</span><br></pre></td></tr></table></figure>
+<p>可以看一下Array源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// Array(e0, ..., en) is translated to &#123; val a = new Array(3); a(i) = ei; a &#125;</span><br><span class="line">def apply[T: ClassTag](xs: T*): Array[T] = &#123;</span><br><span class="line">  val array = new Array[T](xs.length)</span><br><span class="line">  var i = 0</span><br><span class="line">  for (x &lt;- xs.iterator) &#123; array(i) = x; i += 1 &#125;</span><br><span class="line">  array</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当你做val b = Array(“shanghai”,“beijing”,“shenzhen”)这个时候，其实它内部自动完成了下面这些操作：<br>
+xs: “ruoze”,“jepson”,“diewu”<br>
+val array = new Array<a href="3">String</a><br>
+i=0<br>
+array(0) = ruoze<br>
+i=1<br>
+array(1) = jepson<br>
+i=2<br>
+array(2) = diewu</p>
+<p>val array = new ArrayString<br>
+array(0) = ruoze<br>
+array(1) = jepson<br>
+array(2) = diewu<br>
+array</p>
+<p>Array()是object里面的，你去调用Array() ，其实调用的是Object.apply方法<br>
+Array() ==&gt; Array Object.apply</p>
+<p><strong>表象上看是没有new的，但是底层其实还是new</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val c = Array(1,2,3,4,5)</span><br><span class="line">c: Array[Int] = Array(1, 2, 3, 4, 5)</span><br><span class="line"></span><br><span class="line">//方法</span><br><span class="line">scala&gt; c.sum</span><br><span class="line">res5: Int = 15</span><br><span class="line"></span><br><span class="line">scala&gt; c.min</span><br><span class="line">res6: Int = 1</span><br><span class="line"></span><br><span class="line">scala&gt; c.max</span><br><span class="line">res7: Int = 5</span><br><span class="line"></span><br><span class="line">scala&gt; c.count(_ &gt;2)</span><br><span class="line">res9: Int = 3</span><br></pre></td></tr></table></figure>
+<p>mkString函数（把所有的连在一起）</p>
+<p>（1）a.mkString<br>
+（2）a.mkString(Seq:String) //Seq表示分隔符，用什么分割</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">val b = Array(&quot;shanghai&quot;,&quot;beijing&quot;,&quot;shenzhen&quot;)</span><br><span class="line">println(b.mkString)</span><br><span class="line">println(b.mkString(&quot;@@@&quot;))</span><br><span class="line">println(b.mkString(&quot;&lt;&quot;,&quot;@@&quot;,&quot;&gt;&quot;))</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">shanghaibeijingshenzhen</span><br><span class="line">shanghai@@@beijing@@@shenzhen</span><br><span class="line">&lt;shanghai@@beijing@@shenzhen&gt;</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>以上三种形式，底层调用其实都是第一个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">  def mkString(start: String, sep: String, end: String): String =</span><br><span class="line">    addString(new StringBuilder(), start, sep, end).toString</span><br><span class="line"></span><br><span class="line">  def mkString(sep: String): String = mkString(&quot;&quot;, sep, &quot;&quot;)   //调用上面的方法</span><br><span class="line"></span><br><span class="line">  def mkString: String = mkString(&quot;&quot;)   //调用的是上面的方法</span><br><span class="line"> ...........源码下面有很详细的说明</span><br><span class="line">  </span><br><span class="line">  // 直接传值</span><br><span class="line"> def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //定义一个数组，并传入数据</span><br><span class="line">    val array=Array(&quot;ruoze&quot;,&quot;xiaoxin&quot;,&quot;wangwu&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">//这里我们发现我们并没有new一个对象，为什么也可以呢？</span><br><span class="line">//看底层源码，有apply这一个方法</span><br><span class="line">// xs: &quot;ruoze&quot;,&quot;jepson&quot;,&quot;diewu&quot;</span><br><span class="line">//底层帮我们new了一个Array对象，然后通过迭代器，将传进来的元素赋值给 array，然后返回array</span><br><span class="line">val array = new Array[String](3)</span><br><span class="line">var i = 0</span><br><span class="line">for (x &lt;- xs.iterator) &#123; </span><br><span class="line">	array(i) = x; </span><br><span class="line">	i += 1 </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">i=0 </span><br><span class="line">array(0) = ruoze</span><br><span class="line">i=1</span><br><span class="line">array(1) = jepson</span><br><span class="line">i=2</span><br><span class="line">array(2) = diewu</span><br><span class="line"></span><br><span class="line">val array = new Array[String](3)</span><br><span class="line">array(0) = ruoze</span><br><span class="line">array(1) = jepson</span><br><span class="line">array(2) = diewu</span><br><span class="line">array</span><br><span class="line"></span><br><span class="line">注意：这种 Array() ==&gt; Array Object.apply  调用的是Objet里面的 apply方法</span><br><span class="line">// 表象上看是没有new的，但是底层其实还是new</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">面试题：StringBuilder和StringBuffer</span><br><span class="line"></span><br><span class="line">StringBuilder:unsafe</span><br><span class="line">StringBuffer: safe &gt; StringBuilder</span><br><span class="line">在里面有 synchronized（锁） 这个关键字 </span><br><span class="line"></span><br><span class="line">只要前面有synchronized修饰的都是安全的</span><br><span class="line">线程安全的先出来，然后线程不安全的后出来。</span><br><span class="line">==&gt;</span><br><span class="line"></span><br><span class="line">ArrayList :unsafe</span><br><span class="line">Vector : safe</span><br><span class="line"></span><br><span class="line">**定长数组：**</span><br></pre></td></tr></table></figure>
+<p>变长：ArrayBuffer</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; import scala.collection.mutable.ArrayBuffer</span><br><span class="line">//导入这个包</span><br><span class="line">import scala.collection.mutable.ArrayBuffer</span><br><span class="line"></span><br><span class="line">scala&gt; val c = ArrayBuffer[Int]()</span><br><span class="line">c: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer()</span><br><span class="line"></span><br><span class="line">//长度</span><br><span class="line">scala&gt; c.length</span><br><span class="line">res10: Int = 0</span><br><span class="line"></span><br><span class="line">//向集合中添加元素</span><br><span class="line">scala&gt; c +=1</span><br><span class="line">res11: c.type = ArrayBuffer(1)</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res12: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1)</span><br><span class="line"></span><br><span class="line">scala&gt; c.length</span><br><span class="line">res13: Int = 1</span><br><span class="line"></span><br><span class="line">//加一个定长</span><br><span class="line">scala&gt; c +=(2,3,4)</span><br><span class="line">res14: c.type = ArrayBuffer(1, 2, 3, 4)</span><br><span class="line"></span><br><span class="line">//++ 加一个定长的数组</span><br><span class="line">scala&gt; c ++=Array(5,6,7)</span><br><span class="line">res15: c.type = ArrayBuffer(1, 2, 3, 4, 5, 6, 7)</span><br><span class="line"></span><br><span class="line">//插入元素 insert</span><br><span class="line">insert(n: Int, elems: A*)</span><br><span class="line">n:表示Index</span><br><span class="line">A*：表示的是一个可变的元素 （1，2），也可以是（1，2，3，4，5）</span><br><span class="line"></span><br><span class="line">scala&gt; c.insert(0,0)   //从第0个位置开始插入，插入后面的数据，会发现 第1个元素变成了0</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res17: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(0, 1, 2, 3, 4, 5, 6, 7)</span><br><span class="line"></span><br><span class="line">scala&gt; c.insert(2,100)</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res19: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(0, 1, 100, 2, 3, 4, 5, 6, 7)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//减掉元素</span><br><span class="line">scala&gt; c.remove(2)</span><br><span class="line">res26: Int = 100</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res27: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(0, 101, 1, 1, 12, 100, 2, 3, 4, 5, 6, 7)</span><br><span class="line"></span><br><span class="line">scala&gt; c.remove(0,3)  //从第0位置开始删除，删除3个，从哪个位置开始剪掉3个</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res29: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 12, 100, 2, 3, 4, 5, 6, 7)</span><br><span class="line"></span><br><span class="line">scala&gt; c.trimEnd(2)   //从后面开始 减掉2个， 移除最后几个元素</span><br><span class="line"></span><br><span class="line">scala&gt; c</span><br><span class="line">res31: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 12, 100, 2, 3, 4, 5)</span><br></pre></td></tr></table></figure>
+<p>把变长数组变成一个定长数组：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; c</span><br><span class="line">res31: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 12, 100, 2, 3, 4, 5)</span><br><span class="line"></span><br><span class="line">//变长转为定长</span><br><span class="line">scala&gt; c.toArray</span><br><span class="line">res32: Array[Int] = Array(1, 12, 100, 2, 3, 4, 5)</span><br><span class="line"></span><br><span class="line">scala&gt; val d = c.toArray</span><br><span class="line">d: Array[Int] = Array(1, 12, 100, 2, 3, 4, 5)</span><br><span class="line"></span><br><span class="line">scala&gt; d.map(_*4).filter(_&gt;10)</span><br><span class="line">res33: Array[Int] = Array(48, 400, 12, 16, 20)</span><br></pre></td></tr></table></figure>
+<p>以上都可以看一下源码，看如何说明如何使用的。</p>
+<p>List</p>
+<p>面试题：ArrayList 底层数据结构？？<br>
+HashSet 底层数据结构？？<br>
+HashMap底层数据结构？？<br>
+看一下源码里面怎么写的（Java、scala源码）<br>
+<strong>List 一个类型的N个元素 有序可重复的</strong><br>
+和数组基本一样，但是比数组功能更强大一些，工作中选它的可能性更大一些<br>
+定长List<br>
+变长ListBuffer</p>
+<p>小知识点，面试经常：Nil是一个空的List</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; Nil</span><br><span class="line">res25: scala.collection.immutable.Nil.type = List()</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">//定义一个List集合</span><br><span class="line">scala&gt; val l = List(1,2,3,4)  </span><br><span class="line">l: List[Int] = List(1, 2, 3, 4)</span><br><span class="line">//查看</span><br><span class="line">scala&gt; l</span><br><span class="line">res26: List[Int] = List(1, 2, 3, 4)</span><br><span class="line"></span><br><span class="line">//一个集合是由一个头加一个尾巴组成</span><br><span class="line">scala&gt; l.head    //List的头</span><br><span class="line">res0: Int = 1</span><br><span class="line"></span><br><span class="line">scala&gt; l.tail    //list的尾巴是一个集合</span><br><span class="line">res1: List[Int] = List(2, 3, 4)</span><br><span class="line"></span><br><span class="line">// 1表示头，：：表示拼接，Nil表示尾巴的集合</span><br><span class="line">scala&gt; val l2 = 1::Nil    //一个头 后面加一个空的List   :: 表示连起来</span><br><span class="line">l2: List[Int] = List(1)</span><br><span class="line"></span><br><span class="line">scala&gt; val l3 = 2::l2</span><br><span class="line">l3: List[Int] = List(2, 1)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val l5 = ListBuffer[Int]()</span><br><span class="line">&lt;console&gt;:11: error: not found: value ListBuffer</span><br><span class="line">       val l5 = ListBuffer[Int]()</span><br><span class="line">                ^</span><br><span class="line"></span><br><span class="line">scala&gt; import scala.collection.mutable.&#123;ArrayBuffer, ListBuffer&#125;</span><br><span class="line">import scala.collection.mutable.&#123;ArrayBuffer, ListBuffer&#125;</span><br><span class="line"></span><br><span class="line">scala&gt; val l5 = ListBuffer[Int]()</span><br><span class="line">l5: scala.collection.mutable.ListBuffer[Int] = ListBuffer()</span><br><span class="line"></span><br><span class="line">scala&gt; l5 +=2</span><br><span class="line">res2: l5.type = ListBuffer(2)</span><br><span class="line"></span><br><span class="line">scala&gt; l5 +=(3,4,5)</span><br><span class="line">res3: l5.type = ListBuffer(2, 3, 4, 5)</span><br><span class="line"></span><br><span class="line">scala&gt; l5 ++= List(6,7,8)</span><br><span class="line">res4: l5.type = ListBuffer(2, 3, 4, 5, 6, 7, 8)</span><br><span class="line"></span><br><span class="line">scala&gt; l5 -=2</span><br><span class="line">res5: l5.type = ListBuffer(3, 4, 5, 6, 7, 8)</span><br><span class="line"></span><br><span class="line">scala&gt; l5 -=(1,5)</span><br><span class="line">res6: l5.type = ListBuffer(3, 4, 6, 7, 8)</span><br><span class="line"></span><br><span class="line">scala&gt; l5 --=List(3,4,6)</span><br><span class="line">res7: l5.type = ListBuffer(7, 8)</span><br></pre></td></tr></table></figure>
+<p><strong>Map</strong></p>
+<p>映射 key=value<br>
+也包括定长和不定长<br>
+举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">//定义一个Map</span><br><span class="line">#immutable;不可变的</span><br><span class="line">scala&gt; val m = Map(&quot;ruoze&quot;-&gt;30,&quot;jepson&quot;-&gt;18)</span><br><span class="line">m: scala.collection.immutable.Map[String,Int] = Map(ruoze -&gt; 30, jepson -&gt; 18)</span><br><span class="line"></span><br><span class="line">//取值</span><br><span class="line">scala&gt; m(&quot;ruoze&quot;)</span><br><span class="line">res9: Int = 30</span><br><span class="line"></span><br><span class="line">#mutable可变的</span><br><span class="line">scala&gt; import scala.collection.mutable</span><br><span class="line">import scala.collection.mutable</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; val m1 = Map(&quot;ruoze&quot;-&gt;30,&quot;jepson&quot;-&gt;18)   //不可变</span><br><span class="line">m1: scala.collection.immutable.Map[String,Int] = Map(ruoze -&gt; 30, jepson -&gt; 18)</span><br><span class="line"></span><br><span class="line">scala&gt; val m1 = scala.collection.mutable.Map(&quot;ruoze&quot;-&gt;30,&quot;jepson&quot;-&gt;18)</span><br><span class="line">m1: scala.collection.mutable.Map[String,Int] = Map(ruoze -&gt; 30, jepson -&gt; 18)  //可变</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#HashMap   //这样赋值更方便，取值比较舒服</span><br><span class="line">scala&gt; val m2 = scala.collection.mutable.HashMap[String,Int]()</span><br><span class="line">m2: scala.collection.mutable.HashMap[String,Int] = Map()</span><br><span class="line"></span><br><span class="line">scala&gt;  m2(&quot;ruoze&quot;) = 30</span><br><span class="line"></span><br><span class="line">scala&gt; m2</span><br><span class="line">res14: scala.collection.mutable.HashMap[String,Int] = Map(ruoze -&gt; 30)</span><br><span class="line"></span><br><span class="line">scala&gt; m2 += (&quot;zhansan&quot;-&gt; 99,&quot;lisi&quot; -&gt; 88)</span><br><span class="line">res16: m2.type = Map(zhansan -&gt; 99, lisi -&gt; 88, ruoze -&gt; 30)</span><br><span class="line"></span><br><span class="line">scala&gt; m2</span><br><span class="line">res17: scala.collection.mutable.HashMap[String,Int] = Map(zhansan -&gt; 99, lisi -&gt; 88, ruoze -&gt; 30)</span><br><span class="line"></span><br><span class="line">scala&gt; m2 -= &quot;ruoze&quot;</span><br><span class="line">res18: m2.type = Map(zhansan -&gt; 99, lisi -&gt; 88)</span><br></pre></td></tr></table></figure>
+<p>for循环取值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">  val m1 = mutable.Map(&quot;ruoze&quot;-&gt;30,&quot;jepson&quot;-&gt;18,&quot;zhansan&quot;-&gt;10)</span><br><span class="line"></span><br><span class="line">//第一种方式，这种是将m1中赋值给key和value，</span><br><span class="line">   for((key,value) &lt;- m1)&#123;</span><br><span class="line">    println(key + &quot; : &quot; +value )</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">zhansan : 10</span><br><span class="line">ruoze : 30</span><br><span class="line">jepson : 18</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>m2里面是key，value结构，key拿到所有的key，上面也可以这样写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//第二种方式，将所有的key取出来，赋值给key，然后通过getOrElse取出value，如果没有取成功，则返回0</span><br><span class="line"></span><br><span class="line">    val m1 = mutable.Map(&quot;ruoze&quot;-&gt;30,&quot;jepson&quot;-&gt;18,&quot;zhansan&quot;-&gt;10)</span><br><span class="line">        for(key &lt;- m1.keySet)&#123;</span><br><span class="line">      println(key + &quot; : &quot; + m1.get(key))</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//因为 object是一个抽象类   调用的是object里的get</span><br><span class="line">zhansan : Some(10)</span><br><span class="line">ruoze : Some(30)</span><br><span class="line">jepson : Some(18)</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>从上面结果看 是不对的。<br>
+看源码;  //ctrl+左键点进去看源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def get(key: A): Option[B]</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//这里b.get(key)底层调用的是 Option，是一个抽象类</span><br><span class="line">  sealed abstract class Option[+A] extends Product with Serializable</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//这个抽象类下有两个子类，一个是取到值，一个是没有取到值</span><br><span class="line">  def getOrElse[B1 &gt;: B](key: A, default: =&gt; B1): B1 = get(key) match &#123;</span><br><span class="line">    case Some(v) =&gt; v</span><br><span class="line">    case None =&gt; default</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以这样：<br>
+getOrElse(key,0) 这个的意思，如果能取到值就取，如果取不到，就给它一个默认值0，也可以是其它默认值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for(key &lt;- m1.keySet)&#123;</span><br><span class="line">  println(key + &quot; : &quot; + m1.getOrElse(key,0))  //给了它一个默认值</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果只要求取value，可以这样;</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//第三种只取value，不关注key</span><br><span class="line">    for(value &lt;- m1.values )&#123;</span><br><span class="line">      println(value)</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">10</span><br><span class="line">30</span><br><span class="line">18</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>看一下下面的这个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val mm = Map(1-&gt;2)</span><br><span class="line">mm: scala.collection.immutable.Map[Int,Int] = Map(1 -&gt; 2)</span><br><span class="line"></span><br><span class="line">scala&gt; mm(1)</span><br><span class="line">res19: Int = 2</span><br><span class="line"></span><br><span class="line">scala&gt; mm(2)</span><br><span class="line">java.util.NoSuchElementException: key not found: 2</span><br><span class="line">  at scala.collection.immutable.Map$Map1.apply(Map.scala:114)</span><br><span class="line">  ... 29 elided</span><br><span class="line"></span><br><span class="line">scala&gt; mm(2)</span><br><span class="line">java.util.NoSuchElementException: key not found: 2</span><br><span class="line">  at scala.collection.immutable.Map$Map1.apply(Map.scala:114)</span><br><span class="line">  ... 29 elided</span><br><span class="line"></span><br><span class="line">scala&gt; mm.get(1)</span><br><span class="line">res23: Option[Int] = Some(2)</span><br><span class="line"></span><br><span class="line">scala&gt; mm.get(1).get</span><br><span class="line">res24: Int = 2</span><br><span class="line"></span><br><span class="line">scala&gt; mm.get(2)</span><br><span class="line">res25: Option[Int] = None</span><br><span class="line"></span><br><span class="line">scala&gt; mm.get(2).get</span><br><span class="line">java.util.NoSuchElementException: None.get</span><br><span class="line">  at scala.None$.get(Option.scala:366)</span><br><span class="line">  at scala.None$.get(Option.scala:364)</span><br><span class="line">  ... 29 elided</span><br><span class="line"></span><br><span class="line">scala&gt; mm.get(2).getOrElse(&quot;any&quot;)   //常用</span><br><span class="line">res30: Any = any</span><br></pre></td></tr></table></figure>
+<p>cass class</p>
+<p>定义 的是一个 实体类，<br>
+想要用，不需要new，直接用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">object CaseClassApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">      println(Dog(&quot;wangcai&quot;).name)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">case class Dog(name:String)</span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wangcai</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>case class不用new<br>
+Array Apply 表面上不new 底层new</p>
+<p>变长参数定长参数<br>
+变长参数/可变参数：函数的入参的个数是可以变的</p>
+<p>当定义一个Array：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val b = Array(&quot;shanghai&quot;,&quot;beijing&quot;,&quot;shenzhen&quot;)</span><br></pre></td></tr></table></figure>
+<p>看Array它源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Subject to a compiler optimization in Cleanup.</span><br><span class="line">// Array(e0, ..., en) is translated to &#123; val a = new Array(3); a(i) = ei; a &#125;</span><br><span class="line">def apply[T: ClassTag](xs: T*): Array[T] = &#123;    //xs: T*  这个是变长参数</span><br><span class="line">  val array = new Array[T](xs.length)</span><br><span class="line">  var i = 0</span><br><span class="line">  for (x &lt;- xs.iterator) &#123; array(i) = x; i += 1 &#125;</span><br><span class="line">  array</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定长：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit = &#123;</span><br><span class="line">  println(add(55,12))</span><br><span class="line">  println(add2(55,12,11))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def add(x:Int,y:Int) =  x + y</span><br><span class="line">def add2(x:Int,y:Int,z:Int) =  x + y + z</span><br></pre></td></tr></table></figure>
+<p>这个只能实现，2个、3个相加，如果现在要求1000个数相加呢？</p>
+<p>变长：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    println(sum(1,2))</span><br><span class="line">    println(sum(1,2,3))</span><br><span class="line">    println(sum(1,2,3,4))</span><br><span class="line">    </span><br><span class="line">    println(sum( 1.to(10) :_* ))    //从1加到10   把前面的Range形式，通过   :_*  转变成一个可变参数</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">//Int*表示传进来的参数是Int类型的，可以传入多个</span><br><span class="line">  def sum(nums:Int*) = &#123;   //定义了一个变长数组</span><br><span class="line">    var result = 0</span><br><span class="line">    for (num &lt;- nums)&#123;</span><br><span class="line">      result += num</span><br><span class="line">    &#125;</span><br><span class="line">    result</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>函数默认值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit = &#123;</span><br><span class="line">   say(&quot;ruoze&quot;)  </span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> def say(name:String): Unit =&#123;</span><br><span class="line">   println(name)</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>如果想让函数有个默认值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit = &#123;</span><br><span class="line">   say(&quot;ruoze&quot;)   //如果这样调用，打印出来的就是传进来的参数</span><br><span class="line">   say()   //如果这样调用，打印出来的默认参数</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> def say(name:String = &quot;ruozedata&quot;): Unit =&#123;</span><br><span class="line">   println(name)</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ruoze</span><br><span class="line">ruozedata</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>再比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def main(args: Array[String]): Unit = &#123;</span><br><span class="line">   loadSparkConf()</span><br><span class="line">   loadSparkConf(&quot;spark-new.conf&quot;)</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> def loadSparkConf(file:String = &quot;spark-default.conf&quot;): Unit =&#123;</span><br><span class="line">   println(file)</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">spark-default.conf</span><br><span class="line">spark-new.conf</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/61Scala语法（四）/" data-toggle="tooltip" data-placement="top" title="[Scala语法（四）]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/59Scala去操作MySQL数据库/" data-toggle="tooltip" data-placement="top" title="[Scala去操作MySQL数据库]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

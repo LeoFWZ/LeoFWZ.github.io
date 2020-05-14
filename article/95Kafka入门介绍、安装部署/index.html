@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Kafka入门介绍、安装部署]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/95Kafka入门介绍、安装部署/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Kafka" title="Kafka">Kafka</a>
+                            
+                        </div>
+                        <h1>[Kafka入门介绍、安装部署]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-27
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="1-前言">1、前言</h1>
+<p>本章节使用的是Apache Kafka，版本：kafka_2.11-2.1.0.tgz；但是实际工作中要考虑CDH环境，使用的是CDH官网的Kafka，所以这里先简单介绍下，如何集成到CDH中，需要自定义包裹文件安装，请参考博客：<br>
+<a href="https://blog.csdn.net/greenplum_xiaofan/article/details/97677328" target="_blank" rel="noopener">https://blog.csdn.net/greenplum_xiaofan/article/details/97677328</a><br>
+版本选择：使用的是CDH版本的Kafka，cloudera分布式的Kafka,在CDH官网上叫做CDK。</p>
+<p>比如：</p>
+<p>kafka_2.11-0.10.2-kafka-2.2.0.jar</p>
+<p>kafka_2.11:：表示scala-2.11版本</p>
+<p>0.10.2： 指在apache上的 kafka版本</p>
+<p>2.2.0： 这个才是CDH官网上的CDK版本</p>
+<p>0.10.2.0+kafka2.2.0+110</p>
+<p>0.10.2.0  kafka版本</p>
+<p>2.2.0 cdk版本</p>
+<p>110  补丁号</p>
+<p>生产上有时候zk、kafka-client的版本不一致就需要做相应的替换，kafka-client版本能都需要注意</p>
+<p>CDK地址：<br>
+<a href="https://www.cloudera.com/documentation/kafka/latest/topics/kafka_packaging.html#concept_fzg_phl_br" target="_blank" rel="noopener">https://www.cloudera.com/documentation/kafka/latest/topics/kafka_packaging.html#concept_fzg_phl_br</a></p>
+<p><img src="https://img-blog.csdnimg.cn/2019093017214770.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>Apache Kafka地址：<br>
+<a href="http://kafka.apache.org/" target="_blank" rel="noopener">http://kafka.apache.org/</a></p>
+<p>SparkStraming2.4.2版本官网推荐：apache kafka版本至少0.10.x及以上。<br>
+Kafka 0.8和0.10是个分水岭，对比如下(来自Spark官网)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.cloudera.com/documentation/kafka/latest/topics/kafka_packaging.html</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190930172213510.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>可以看出0.10版本，只有Direct DStream，不再支持Receiver DSstream；Offset维护在Kafka中。</p>
+<h1 id="2-kafka基本概念">2、Kafka基本概念</h1>
+<p>kafka是一个高吞吐的分布式消息系统，一般充当消息中间件，一般是跟流式处理挂钩的，比如SparkStreaming。</p>
+<p>scala语言编程的(Spark也是)。</p>
+<p>当然kafka官网上也介绍为分布式流式平台 Kafka Streams ，但是我们绝大部分在使用的过程中都是把Kafka作为消息中间件，存储消息，选择Spark的原因是包括SparkCore、SparkSQL、机器学习、数据挖掘等，离线实时的都可以做</p>
+<p>Kafka的三个角色：</p>
+<ul>
+<li>Broker：Kafka集群中server节点，负责读写请求，存储消息，管理分区，无主从关系，依赖zk协调</li>
+<li>Producer：生产者，负责生产消息，比如从Flume获取数据</li>
+<li>Consumer：消费者，负责消费消息，比如被SparkStreaming、Flink消费</li>
+</ul>
+<p>Kafka这三个角色和Flume的三个角色非常类似，但Flume启动后只有一个进程，而Kafka每个角色都需要启动，有三个进程（也要有可能多个进程，做集群）。</p>
+<p>三种场景：</p>
+<ul>
+<li>1.消息中间件</li>
+<li>2.流式计算</li>
+<li>3.存储 分布式 副本 高容错</li>
+</ul>
+<p>我们一般应用kafka的第一和第三种场景，第二种场景一般不用</p>
+<p>Kafka其他重要概念：</p>
+<ul>
+<li>Topic：主题，消息的分类，支持一个topic多个消费者消费</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">生产业务:</span><br><span class="line"></span><br><span class="line">oms订单系统 mysql--&gt;flume--&gt;kafka(omstopic)--&gt;ss1</span><br><span class="line"></span><br><span class="line">wms仓库系统 mysql--&gt;flume--&gt;kafka(wmstopic)--&gt;ss2</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">（存放采集过来的数据）</span><br><span class="line">mkdir omstopic文件夹  </span><br><span class="line">mkdir wmstopic文件夹</span><br><span class="line"></span><br><span class="line">也可以创建alltopic（可以存放所有的，不过最好还是要根据上游业务来划分）</span><br><span class="line"></span><br><span class="line">kafka创建主题: 一般根据生产业务 上游 +数据处理来划分</span><br><span class="line"></span><br><span class="line">最终落在磁盘上就是创建文件夹(Linux文件夹)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Partition：分区，一个Topic由一个或多个分区组；一般情况下多少个Kafka节点就设置多少分区数</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">一个topic比如：</span><br><span class="line"></span><br><span class="line">omstopic 3个分区 </span><br><span class="line"></span><br><span class="line">100条数据</span><br><span class="line"></span><br><span class="line">40条	p0  omstopic_0</span><br><span class="line">20条	p1  omstopic_1</span><br><span class="line">40条	p2  omstopic_2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Replication：副本，一个分区数据复制多少份</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">磁盘要是坏了，数据就丢了，这时候就会引申出来副本</span><br><span class="line"> </span><br><span class="line">      hadoop001  hadoop002   hadoop003</span><br><span class="line"> </span><br><span class="line">      omstopic_0 omstopic_0 omstopic_0</span><br><span class="line">      omstopic_1 omstopic_1 omstopic_1</span><br><span class="line">      omstopic_2 omstopic_2 omstopic_2</span><br><span class="line">（不会落在同一台机器上）  </span><br><span class="line">	  </span><br><span class="line">相当于HDFS文件切成几个块，每个块有几个副本</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Consumer Group：消费者组，一个消费组可以包含一个或多个消费者，对于同一个Topic数据消费者组里面的每个消费者消费部分数据，而且每个消费者消费的数据是不同的。</li>
+<li>Offset：偏移量，消费一个分区数据时数据所在的下标，从0开始</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">比如：</span><br><span class="line"> mysql：前面的PK是自增长主键</span><br><span class="line">      PK VALUE</span><br><span class="line">      1  aaa（1代表aaa在表里的位置，索引位置）</span><br><span class="line">      2  bbb</span><br><span class="line">      3  ccc</span><br><span class="line">      4  ddd</span><br><span class="line"> </span><br><span class="line"> 从0开始（同java开发里的索引一样，就像数组，从0开始），offset就相当于落到文件的具体位置</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">落到log文件（二进制）</span><br></pre></td></tr></table></figure>
+<ul>
+<li>全局有序</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">生产上场景：</span><br><span class="line"></span><br><span class="line">知道索引、知道下标就可以精准消费</span><br><span class="line"></span><br><span class="line">60%公司 log日志   遇到无序的状态 你们应该开心</span><br><span class="line"></span><br><span class="line">有序的状态（同MySQL有序处理方式一致）</span><br><span class="line">	  </span><br><span class="line">	  </span><br><span class="line">40%公司 mysql 有序(业务有序)</span><br><span class="line"></span><br><span class="line">例如：淘宝上买了一双鞋就是insert</span><br><span class="line">                 然后删了 update1</span><br><span class="line">				 或者换成口红  update2</span><br><span class="line">                 .....</span><br><span class="line">				 最后清空 delete</span><br><span class="line">				 </span><br><span class="line">				 </span><br><span class="line">讲全局有序前我们先看一个概念：</span><br><span class="line"></span><br><span class="line">kafka数据的文件是Linux磁盘文件 是有序状态 也就是分区内有序，appand追加的模式，效率最高，插到第三条、第九条....还要去搜索</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">有序无序的可看图</span><br><span class="line"></span><br><span class="line">解决全局有序？</span><br><span class="line"></span><br><span class="line">1.用来解决全局有序的话可以只用1个分区：但是一个分区肯定没有原先三个分区写的速度块</span><br><span class="line"></span><br><span class="line">2.当然也可以在Spark Streaming消费的时候先做排序，order by分组  ,当然效率很低，本来是要分到不同机器的，为了排序肯定要先分组排序，代码又长又臭，性能还不高</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">3.我们生产上通过producer api（k,v）</span><br><span class="line"></span><br><span class="line">我们写的值都是value，但是写的数值都是null</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20200320164116733.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="3-kafka安装">3、Kafka安装</h1>
+<p>我们这里采用的是单节点安装，集群安装一样的，举一反三。</p>
+<h2 id="31-安装zookeeper">3.1 安装Zookeeper</h2>
+<p>Kafka需要依赖Zookeeper，zookeeper-3.4.5-cdh5.7.0.tar.gz下载地址(cdh版的)<br>
+<a href="http://archive.cloudera.com/cdh5/cdh/5/zookeeper-3.4.5-cdh5.7.0.tar.gz" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/zookeeper-3.4.5-cdh5.7.0.tar.gz</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#先瞅一眼文件目录</span><br><span class="line">[hadoop@vm01 ~]$ ll</span><br><span class="line">total 12</span><br><span class="line">drwxrwxr-x. 12 hadoop hadoop 4096 Aug  9 09:42 app</span><br><span class="line">drwxrwxr-x.  6 hadoop hadoop 4096 Aug  8 16:59 data</span><br><span class="line">drwxrwxr-x.  2 hadoop hadoop   32 Aug  1 13:26 lib</span><br><span class="line">drwxrwxr-x.  3 hadoop hadoop   23 Jul 30 03:18 maven_repo</span><br><span class="line">drwxrwxr-x.  3 hadoop hadoop 4096 Aug  9 07:41 software</span><br><span class="line">drwxrwxr-x.  3 hadoop hadoop   24 Jul 30 03:18 source</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#解压</span><br><span class="line">[hadoop@vm01 software]$ tar -zxvf zookeeper-3.4.5-cdh5.7.0.tar.gz  -C ../app/</span><br><span class="line">[hadoop@vm01 conf]$ cd ../app/zookeeper-3.4.5-cdh5.7.0</span><br><span class="line">[hadoop@vm01 zookeeper-3.4.5-cdh5.7.0]$ mkdir data dataLog</span><br><span class="line"></span><br><span class="line">#配置zoo.cfg</span><br><span class="line">[hadoop@vm01 conf]$ cd conf</span><br><span class="line">[hadoop@vm01 conf]$ cp zoo_sample.cfg zoo.cfg</span><br><span class="line">[hadoop@vm01 conf]$ vi zoo.cfg</span><br><span class="line">...</span><br><span class="line">dataDir=/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/data</span><br><span class="line">dataLogDir=/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/dataLog</span><br><span class="line"></span><br><span class="line">server.1=vm01:2888:3888</span><br><span class="line">#如果是集群就添加节点在下一行,2888是zk之间的通信，3888是zk跟其他应用程序通信</span><br><span class="line">server.1=hadoop001:2888:3888</span><br><span class="line">server.2=hadoop002:2888:3888</span><br><span class="line">server.3=hadoop003:2888:3888</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#建立软连接</span><br><span class="line">ln -s zookeeper-3.4.5-cdh5.12.0 zookeeper</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#配置myid文件，上面的server.1 就是myid，不同节点myid是不同的</span><br><span class="line">#zk集群在刚开始启动的时候，就是根据myid来选举的</span><br><span class="line">[hadoop@vm01 data]$ pwd</span><br><span class="line">/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/data</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 data]$ touch data/myid</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 data]$ echo &quot;1&quot; &gt;myid</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#配置环境变量</span><br><span class="line">[hadoop@vm01 conf]$ vi ~/.bash_profile </span><br><span class="line">export ZOOKEEPER_HOME=/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/</span><br><span class="line">export PATH=$ZOOKEEPER_HOME/bin:$PATH</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 conf]$ source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#启动zk</span><br><span class="line">[hadoop@vm01 bin]$ ./zkServer.sh start</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: /home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 bin]$ ./zkServer.sh status</span><br><span class="line">JMX enabled by default</span><br><span class="line">Using config: /home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/bin/../conf/zoo.cfg</span><br><span class="line">Mode: standalone</span><br><span class="line">#因为是单节点，就是这个模式</span><br><span class="line">#如果是集群，那么是一个leader，多个flower，做元数据存储等</span><br><span class="line"></span><br><span class="line">#查看进程</span><br><span class="line">[hadoop@vm01 bin]$ jps</span><br><span class="line">36505 QuorumPeerMain</span><br></pre></td></tr></table></figure>
+<h2 id="32-安装kafka">3.2 安装Kafka</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">#解压</span><br><span class="line">[hadoop@vm01 software]$ tar -zxvf kafka_2.11-2.1.0.tgz -C ../app/</span><br><span class="line">[hadoop@vm01 app]$ ln -s  kafka_2.11-0.10.0.0 kafka</span><br><span class="line">[hadoop@vm01 kafka_2.11-2.1.0]$ mkdir kafkaLog/</span><br><span class="line"></span><br><span class="line">#配置server.properties</span><br><span class="line">[hadoop@vm01 config]$ pwd</span><br><span class="line">/home/hadoop/app/kafka_2.11-2.1.0/config</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 config]$ vi server.properties</span><br><span class="line">broker.id=0</span><br><span class="line">host.name=vm01</span><br><span class="line">port=9092</span><br><span class="line">listeners=PLAINTEXT://vm01:9092</span><br><span class="line">log.dirs=/home/hadoop/app/kafka_2.11-2.1.0/kafkaLog</span><br><span class="line">zookeeper.connect=vm01:2181/kafka  #kafka元数据信息存到ZK的/kafka目录下</span><br><span class="line">#集群是这样子 zookeeper.connect=vm01:2181,vm02:2181,vm03:2181/kafka</span><br><span class="line"></span><br><span class="line">/kafka  kafak在zk的目录</span><br><span class="line"></span><br><span class="line">配置后，以下这些文件就都在/kafka目录下</span><br><span class="line"></span><br><span class="line">/kafka</span><br><span class="line">  controller_epoch, </span><br><span class="line">  brokers, </span><br><span class="line">  zookeeper, </span><br><span class="line">  admin, </span><br><span class="line">  isr_change_notification, </span><br><span class="line">  consumers, </span><br><span class="line">  config</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">如果要删除清空kafka的话，只要rmr /kafka 就行，  ，这样就比较容易，要是不配置的话删起来就很痛苦</span><br><span class="line"></span><br><span class="line">所以不管怎样上面zk的地址还是需要配置的，生产上kafka不一定会和zookeeper部署在同一个机器上，所以要是没配zookeeeper的话就不一定起的来，生产上有kafka进程的未必有zookeeper进程</span><br><span class="line"></span><br><span class="line">scp -r server.properties  hadoop002:/......</span><br><span class="line"></span><br><span class="line">#配置环境变量</span><br><span class="line">[hadoop@vm01 config]$ vi ~/.bash_profile </span><br><span class="line">export KAFKA_HOME=/home/hadoop/app/kafka_2.11-2.1.0</span><br><span class="line">export PATH=$KAFKA_HOME/bin:$PATH</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 config]$ source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+<p>进入zk</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">如何删除可以查看命令帮助  rmr</span><br><span class="line"></span><br><span class="line">ls /kafka可以查看文件夹,生产上面该目录下有几套kafka1、kafka2都是可以的</span><br><span class="line"></span><br><span class="line">退出的话就用close</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">kafka内嵌的zookeeper也是可以的，那样子学习的话就不需要再部署zookeeper</span><br></pre></td></tr></table></figure>
+<h2 id="33-kafka启动-测试">3.3 Kafka启动、测试</h2>
+<p>克隆两个窗口，一共三个窗口，第一个启动Kafka-Server，一直开启，工作中把他放到后台执行<br>
+第二个窗口，先创建Topic，然后模拟Producer生产者；第三个窗口，模拟Consumer消费者。</p>
+<p>kafka-server-start.sh启动脚本种USAGE：$0 什么意思</p>
+<p>如果之前有启动未成功的进程的话就<br>
+kill -9 $(pgrep -f kafka)把关于kafka的进程全部kill掉</p>
+<p>后台启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 bin]$ nohup ./kafka-server-start.sh ../config/server.properties 1&gt;/dev/null 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">创建topic</span><br><span class="line"></span><br><span class="line">./kafka-topics.sh \</span><br><span class="line">--create \</span><br><span class="line">--zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka \</span><br><span class="line">--partitions 3 \</span><br><span class="line">--replication-factor 3 \   每个分区副本数</span><br><span class="line">--topic ruozedatag6</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">展示kafka集群里有多少个topic</span><br><span class="line">./kafka-topics.sh --list --zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#第一个窗口 启动server</span><br><span class="line">[hadoop@vm01 bin]$ pwd</span><br><span class="line">/home/hadoop/app/kafka_2.11-2.1.0/bin</span><br><span class="line">[hadoop@vm01 bin]$ ./kafka-server-start.sh  ../config/server.properties</span><br></pre></td></tr></table></figure>
+<p>然后我们要模拟生产者和消费者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">#查看</span><br><span class="line">[hadoop@vm01 bin]$ ./kafka-topics.sh --list --zookeeper vm01:2181/kafka</span><br><span class="line">ruozedatag6</span><br><span class="line"></span><br><span class="line">#启动Producer</span><br><span class="line">[hadoop@vm01 bin]$ ./kafka-console-producer.sh --broker-list localhost:9092 --topic test</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#集群的话就是这样，这里注意，需要kafka的地址，其余的启动以及消费都是配的zookeeeper地址</span><br><span class="line">./kafka-console-producer.sh \</span><br><span class="line">--broker-list hadoop001:9092,hadoop002:9092,hadoop003:9092 \</span><br><span class="line">--topic ruozedatag6</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#第三个窗口 启动consumer</span><br><span class="line"></span><br><span class="line">[hadoop@vm01 bin]$ ./kafka-console-consumer.sh  --zookeeper localhost:2181 --topic ruozedatag6 --from-beginningkafka</span><br><span class="line"></span><br><span class="line">#这个代表重头开始消费，比如再一次启动消费端，会重头开始读取topic的数据</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#集群的话就是这样</span><br><span class="line"></span><br><span class="line">./kafka-console-consumer.sh \</span><br><span class="line">--zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka \</span><br><span class="line">--topic ruozedatag6 \</span><br><span class="line">--from-beginning</span><br></pre></td></tr></table></figure>
+<p>注意项：</p>
+<ul>
+<li>对于消费者，kafka中有两个设置的地方：对于老的消费者，由–zookeeper参数设置；对于新的消费者，由–bootstrap-server参数设置。</li>
+<li>如果使用了–zookeeper参数,那么consumer的信息将会存放在zk之中。</li>
+<li>查看的方法是使用./zookeeper-client,然后 ls /consumers/[group_id]/offsets/[topic]/[broker_id-part_id],这个是查看某个group_id的某个topic的offset。</li>
+<li>如果使用了–bootstrap-server参数,那么consumer的信息将会存放在kafka之中。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#查看进程</span><br><span class="line">[hadoop@vm01 bin]$ jps</span><br><span class="line">38707 ConsoleConsumer</span><br><span class="line">36854 Kafka</span><br><span class="line">36505 QuorumPeerMain</span><br><span class="line">38126 ConsoleProducer</span><br></pre></td></tr></table></figure>
+<p>生产端输入 hadoop</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930172545157.png" alt="image"></p>
+<p>消费端立马就接受到信息</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930172607473.png" alt="image"></p>
+<p>具体可以查看这篇博客：<a href="https://www.cnblogs.com/xuziyu/p/11189181.html" target="_blank" rel="noopener">https://www.cnblogs.com/xuziyu/p/11189181.html</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br></pre></td><td class="code"><pre><span class="line">案例：</span><br><span class="line"></span><br><span class="line">生产者:</span><br><span class="line">[root@hadoop001 bin]# ./kafka-console-producer.sh \</span><br><span class="line">&gt; --broker-list hadoop001:9092,hadoop002:9092,hadoop003:9092 \</span><br><span class="line">&gt; --topic ruozedatag6</span><br><span class="line"></span><br><span class="line">www.ruozedata.com</span><br><span class="line">ruoze</span><br><span class="line">jepson</span><br><span class="line">dashu</span><br><span class="line">TJW</span><br><span class="line"></span><br><span class="line">消费者第一次启动</span><br><span class="line">[root@hadoop001 bin]# ./kafka-console-consumer.sh \</span><br><span class="line">&gt; --zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka \</span><br><span class="line">&gt; --topic ruozedatag6 \</span><br><span class="line">&gt; --from-beginning</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">www.ruozedata.com</span><br><span class="line">ruoze</span><br><span class="line">jepson</span><br><span class="line">dashu</span><br><span class="line">TJW</span><br><span class="line">^CProcessed a total of 6 messages</span><br><span class="line"></span><br><span class="line">消费者第二次启动</span><br><span class="line">[root@hadoop001 bin]# ./kafka-console-consumer.sh --zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka --topic ruozedatag6 --from-beginning</span><br><span class="line">ruoze</span><br><span class="line">TJW</span><br><span class="line">www.ruozedata.com</span><br><span class="line">dashu</span><br><span class="line"></span><br><span class="line">jepson</span><br><span class="line"></span><br><span class="line">第一次消费的窗口是有序的，而第二次消费的窗口就会重头开始消费，这时候就会产生乱序（第一次是来一条消费一条）</span><br><span class="line"></span><br><span class="line">--from-beginning参数如果不带的话就从当前位置</span><br><span class="line"></span><br><span class="line">这样就会产生乱序</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">kafka默认是在/tmp/kafka-logs/</span><br><span class="line"></span><br><span class="line">[root@hadoop001 tmp]# cd kafka-logs</span><br><span class="line">[root@hadoop001 kafka-logs]# ll</span><br><span class="line">total 24</span><br><span class="line">-rw-r--r-- 1 root root    0 May 15 22:34 cleaner-offset-checkpoint</span><br><span class="line">-rw-r--r-- 1 root root   54 May 15 22:34 meta.properties</span><br><span class="line">-rw-r--r-- 1 root root   52 May 15 22:59 recovery-point-offset-checkpoint</span><br><span class="line">-rw-r--r-- 1 root root   52 May 15 23:00 replication-offset-checkpoint</span><br><span class="line">drwxr-xr-x 2 root root 4096 May 15 22:49 ruozedatag6-0</span><br><span class="line">drwxr-xr-x 2 root root 4096 May 15 22:49 ruozedatag6-1</span><br><span class="line">drwxr-xr-x 2 root root 4096 May 15 22:49 ruozedatag6-2</span><br><span class="line">[root@hadoop001 kafka-logs]# pwd</span><br><span class="line">/tmp/kafka-logs</span><br><span class="line">[root@hadoop001 kafka-logs]# cd ruozedatag6-0</span><br><span class="line">[root@hadoop001 ruozedatag6-0]# ll</span><br><span class="line">total 4    两种数据格式一个日志，一个带索引位置的数据，log日志如果有1000万条数据，index里面不是维护1000万条数据，而是维护零散的第五行、第十行......是间隔的，会自己去找，先有个认识</span><br><span class="line">-rw-r--r-- 1 root root 10485760 May 15 22:49 00000000000000000000.index   （索引位置，为后面消费）</span><br><span class="line">-rw-r--r-- 1 root root      194 May 15 22:58 00000000000000000000.log</span><br><span class="line">[root@hadoop001 ruozedatag6-0]# ls -lh</span><br><span class="line">total 4.0K</span><br><span class="line">-rw-r--r-- 1 root root 10M May 15 22:49 00000000000000000000.index</span><br><span class="line">-rw-r--r-- 1 root root 194 May 15 22:58 00000000000000000000.log</span><br><span class="line">[root@hadoop001 ruozedatag6-0]# cat 00000000000000000000.log</span><br><span class="line">&apos;j</span><br><span class="line"></span><br><span class="line">如何修改日志目录？</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">后台启动进程  nohup  xxxx  &amp;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">kafka的修改 （比如修改分区数，当然副本数3个就够了）</span><br><span class="line">--alter</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">--alter                                  Alter the number of partitions,        </span><br><span class="line">                                           replica assignment, and/or           </span><br><span class="line">                                           configuration for the topic.</span><br><span class="line">										   </span><br><span class="line">未来有这个场景：</span><br><span class="line"></span><br><span class="line">刚开始数据量少就10台  3台部署kafka 3分区</span><br><span class="line">后面曾至30台  kafka8台   8分区</span><br><span class="line"></span><br><span class="line">这样无论从生产者还是消费者性能都会提高，并行的</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">./kafka-topics.sh \</span><br><span class="line">--alter \</span><br><span class="line">--zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka \</span><br><span class="line">--topic ruozedatag6 \</span><br><span class="line">--partitions 4</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root@hadoop001 bin]# ./kafka-topics.sh \</span><br><span class="line">&gt; --alter \</span><br><span class="line">&gt; --zookeeper hadoop001:2181,hadoop002:2181,hadoop003:2181/kafka \</span><br><span class="line">&gt; --topic ruozedatag6 \</span><br><span class="line">&gt; --partitions 4</span><br><span class="line">WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affected</span><br><span class="line">Adding partitions succeeded!</span><br><span class="line">[root@hadoop001 bin]# </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">说明分区同节点是没有关系的</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">生产不建议，建议停了重新分区 </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">---------------------------------</span><br><span class="line">异构环境 </span><br><span class="line"></span><br><span class="line">A kafka集群  192.168.1.x    在云上</span><br><span class="line">B SS         172.18.1.x     在本地logger</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">如何访问？</span><br><span class="line">http://blog.itpub.net/30089851/viewspace-2152671/</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">不同的环境去对接kafka的时候advertised.host.name这个参数是要配置的，</span><br><span class="line"></span><br><span class="line">需要配置advertised.host.name 参数，将Kafka各个节点，该参数配置为当前机器的IP或者hostname即可，重启生效配置，测试OK。</span><br><span class="line"></span><br><span class="line">kafka默认的里面是没有的，不过到官网上broker里可以看到</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/96Spark Streaming整合Kafaka/" data-toggle="tooltip" data-placement="top" title="[Spark Streaming整合Kafaka]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/94SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口/" data-toggle="tooltip" data-placement="top" title="[SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1-前言"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1&#x3001;&#x524D;&#x8A00;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2-kafka基本概念"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2&#x3001;Kafka&#x57FA;&#x672C;&#x6982;&#x5FF5;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3-kafka安装"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3&#x3001;Kafka&#x5B89;&#x88C5;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#31-安装zookeeper"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">3.1 &#x5B89;&#x88C5;Zookeeper</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#32-安装kafka"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">3.2 &#x5B89;&#x88C5;Kafka</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#33-kafka启动-测试"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3.3 Kafka&#x542F;&#x52A8;&#x3001;&#x6D4B;&#x8BD5;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Kafka" title="Kafka">Kafka</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

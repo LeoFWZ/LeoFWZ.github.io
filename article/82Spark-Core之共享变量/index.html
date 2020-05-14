@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark-Core之共享变量]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/82Spark-Core之共享变量/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark-Core之共享变量]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">参考官网：http://spark.apache.org/docs/latest/rdd-programming-guide.html#shared-variables</span><br></pre></td></tr></table></figure>
+<p>默认情况下，如果在一个算子函数中使用到了某个外部的变量，那么这个变量的值会被拷贝到每个task中。此时每个task只能操作自己的那份变量副本。意思就是说当Spark在集群的多个不同节点的多个任务上并行运行一个函数的时候，它会把函数中涉及到的每个变量在每个节点每个任务上都生成一个副本。Spark 操作实际上操作的是这个函数所用变量的一个独立副本。这些变量被复制到每台机器上，并且这些变量在远程机器上的所有更新都不会传递回驱动程序。通常跨任务的读写变量是低效的（就是多线程的去操作这些变量）。<br>
+如果需要在多个任务之间共享变量，就需要共享变量了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">val value = new HashMap()  //10M</span><br><span class="line">val rdd = .....</span><br><span class="line">rdd.foreach(x =&gt; &#123;</span><br><span class="line">    value //....  1000task * 10M = 10G</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">每一个变量都需要拷贝</span><br></pre></td></tr></table></figure>
+<p>Spark为此提供了两种有限类型的共享变量，一种是Broadcast Variable（广播变量），另一种是Accumulator（累加变量）。Broadcast Variable会将使用到的变量，仅仅为每个节点拷贝一份，更大的用处是优化性能，减少网络传输以及内存消耗。Accumulator则可以让多个task共同操作一份变量，主要可以进行累加操作。</p>
+<h1 id="broadcast-variable">Broadcast Variable</h1>
+<p>广播变量允许开发人员在每个节点（Worker or Executor）缓存只读变量，而不是在Task之间传递这些变量。使用广播变量能够高效地在集群每个节点创建大数据集的副本。同时Spark还使用高效的广播算法分发这些变量，从而减少通信的开销。</p>
+<p>广播变量是将变量复制到每一台机器上而不是像普通变量那样每个task复制，它是高效的，广播变量只能读取，并不能修改。 经典应用是大表与小表的join中通过广播变量小表来实现以brodcast join取代reduce join。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190705145045276.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>举个例子，假如说有在函数的外部定义了一个普通的变量，这个变量的大小为10M，那么现在你去用一个函数操作一个RDD，比如这样：RDD.foreach(x =&gt;{对这个变量进行一波操作})， 里面有1000个task，那么每个task都会有一个变量的拷贝，现在就需要10G的资源，这样肯定是不行的。如果用广播变量的话，这个数据集比较大，只是每个机器拷贝一个副本，很多的task共同使用这个副本。</p>
+<p>Spark的任务操作一般会跨越多个阶段，对于每个阶段内的所有任务所需要的公共数据，Spark都会自动进行广播。</p>
+<p>看官网例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//把这个值广播出去</span><br><span class="line">scala&gt; val broadcastVar = sc.broadcast(Array(1, 2, 3))</span><br><span class="line">broadcastVar: org.apache.spark.broadcast.Broadcast[Array[Int]] = Broadcast(0)</span><br><span class="line"></span><br><span class="line">用的时候取出来</span><br><span class="line">scala&gt; broadcastVar.value</span><br><span class="line">res0: Array[Int] = Array(1, 2, 3)</span><br></pre></td></tr></table></figure>
+<p>上面只是简单的，生产上是如何使用广播变量呢？</p>
+<h2 id="broadcast-join举例">broadcast join举例</h2>
+<p>在spark core里面，如何实现广播变量？</p>
+<p>经典应用比如：大表与小表的join中通过广播变量小表来实现以brodcast join 取代reduce join</p>
+<p>用map join可以实现它，不过map join在广播变量里是叫broadcast join。</p>
+<p>（mapjoin在hive优化里讲到过）</p>
+<p>举个例子：</p>
+<p>现在两个表</p>
+<p>表1：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">学号</th>
+<th style="text-align:center">名字</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">601</td>
+<td style="text-align:center">zhansan</td>
+</tr>
+<tr>
+<td style="text-align:center">602</td>
+<td style="text-align:center">lisi</td>
+</tr>
+<tr>
+<td style="text-align:center">603</td>
+<td style="text-align:center">wangwu</td>
+</tr>
+</tbody>
+</table>
+<p>表2：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">学号</th>
+<th style="text-align:center">年龄</th>
+<th style="text-align:center">性别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">601</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">man</td>
+</tr>
+<tr>
+<td style="text-align:center">602</td>
+<td style="text-align:center">20</td>
+<td style="text-align:center">woman</td>
+</tr>
+<tr>
+<td style="text-align:center">604</td>
+<td style="text-align:center">18</td>
+<td style="text-align:center">man</td>
+</tr>
+<tr>
+<td style="text-align:center">605</td>
+<td style="text-align:center">30</td>
+<td style="text-align:center">woman</td>
+</tr>
+</tbody>
+</table>
+<p>通过学号进行关联，想要得到的结果：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">学号</th>
+<th style="text-align:center">名字</th>
+<th style="text-align:center">年龄</th>
+<th style="text-align:center">性别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">601</td>
+<td style="text-align:center">zhansan</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">man</td>
+</tr>
+<tr>
+<td style="text-align:center">602</td>
+<td style="text-align:center">lisi</td>
+<td style="text-align:center">20</td>
+<td style="text-align:center">woman</td>
+</tr>
+</tbody>
+</table>
+<p><strong>先看一下普通的join如何实现？</strong></p>
+<p>定义一个函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def commonJoin(sc:SparkContext)=&#123;</span><br><span class="line">  val info1 = sc.parallelize(Array((&quot;601&quot;,&quot;zhangsan&quot;),(&quot;602&quot;,&quot;lisi&quot;),(&quot;603&quot;,&quot;wangwu&quot;)))</span><br><span class="line">  val info2 = sc.parallelize(Array((&quot;601&quot;,25,&quot;man&quot;),(&quot;602&quot;,20,&quot;woman&quot;),(&quot;604&quot;,18,&quot;man&quot;),(&quot;605&quot;,30,&quot;woman&quot;)))</span><br><span class="line">      .map(x =&gt;(x._1,x))</span><br><span class="line"></span><br><span class="line">  info1.join(info2).foreach(println)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(602,(lisi,(602,20,woman)))</span><br><span class="line">(601,(zhangsan,(601,25,man)))</span><br></pre></td></tr></table></figure>
+<p>这不是我们想要的，需要修改一下，整个代码为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.core</span><br><span class="line">import org.apache.spark.&#123;SparkConf, SparkContext&#125;</span><br><span class="line"></span><br><span class="line">object BroadcastApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf().setAppName(&quot;BroadcastApp&quot;).setMaster(&quot;local[2]&quot;)</span><br><span class="line">    val sc = new SparkContext(sparkConf)</span><br><span class="line"> </span><br><span class="line">    //调用函数，把sc传进去</span><br><span class="line">    commonJoin(sc)</span><br><span class="line">    </span><br><span class="line">    sc.stop()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">	//定义一个函数，实现普通join</span><br><span class="line">  def commonJoin(sc:SparkContext)=&#123;</span><br><span class="line">  </span><br><span class="line">    //定义两个RDD</span><br><span class="line">    val info1 = sc.parallelize(Array((&quot;601&quot;,&quot;zhangsan&quot;),(&quot;602&quot;,&quot;lisi&quot;),(&quot;603&quot;,&quot;wangwu&quot;)))</span><br><span class="line">    val info2 = sc.parallelize(Array((&quot;601&quot;,25,&quot;man&quot;),(&quot;602&quot;,20,&quot;woman&quot;),(&quot;604&quot;,18,&quot;man&quot;),(&quot;605&quot;,30,&quot;woman&quot;)))</span><br><span class="line">        .map(x =&gt;(x._1,x))</span><br><span class="line">    //info2 的定义中，有三个值，无法判断哪个是key，哪个是value，所以需要转换一下，x的第一个值是key，整体是value</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//上面输出的格式不是我们想要的：(602,(lisi,(602,20,woman))),(601,(zhangsan,(601,25,man)))</span><br><span class="line">//所以需要按照下面来修改一下，整体是x，学号是x中第一个元素，名字是x中的第二个元素中的第一个元素，年龄是x中的第二个元素中的第二个元素中的第二个元素，所以需要这样写的，比较绕哈。。。</span><br><span class="line">    info1.join(info2).map(x =&gt;&#123;</span><br><span class="line">      &quot;学号： &quot; + x._1 + &quot; 名字： &quot; + x._2._1 + &quot; 年龄： &quot; + x._2._2._2 + &quot; 性别： &quot; + x._2._2._3</span><br><span class="line">    &#125;).foreach(println)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">学号： 601 名字： zhangsan 年龄： 25 性别： man</span><br><span class="line">学号： 602 名字： lisi 年龄： 20 性别： woman</span><br></pre></td></tr></table></figure>
+<p>现在来看一下web UI，这里因为是在本地Windows的IDEA上写的代码运行的，在本地，所以需要通过http://localhost:4040这样来访问UI界面。但是需要在代码中加入Thread.sleep(200000)这一行，让程序多跑一会，（在 sc.stop()前一行加入），不然 sc.stop()掉之后就看不到页面了。加入这一行之后，再运行，看一下页面：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190705145731873.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190705145801107.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190705145835981.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>通过上面图可以知道，总共有6个task，三个stage，stage0是对于info1而言的，stage1是对于info2而言的，stage0和stage1遇到join有shuffle，拆分成第三个stage，stage2中join之后，再做一次map。</p>
+<p>可以看到，普通的join是存在shuffle的。</p>
+<p><strong>再用broadcast join来实现？</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.core</span><br><span class="line">import org.apache.spark.&#123;SparkConf, SparkContext&#125;</span><br><span class="line"></span><br><span class="line">object BroadcastApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf().setAppName(&quot;BroadcastApp&quot;).setMaster(&quot;local[2]&quot;)</span><br><span class="line">    val sc = new SparkContext(sparkConf)</span><br><span class="line"></span><br><span class="line">    broadcastJoin(sc)</span><br><span class="line"></span><br><span class="line">    Thread.sleep(200000)</span><br><span class="line">    sc.stop()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def broadcastJoin(sc:SparkContext)= &#123;</span><br><span class="line"></span><br><span class="line">    //假设info1是小变量，那么需要广播出去的</span><br><span class="line">    //广播是需要先到driver端的，从driver端广播出去，但是最好以map的方式去广播出去，这种方式比较好一些</span><br><span class="line">    //定义info1的时候，后面需要加个.collectAsMap()，不加也可以（一般不会这样直接广播），换成collect也可以，但是用.collectAsMap()最好</span><br><span class="line">    //因为后面用的方式是map类型的，根据key来进行join，直接调用map.get就可以拿到key对应的值了</span><br><span class="line">      //不能直接去广播RDD，要把RDD的结果广播出去</span><br><span class="line">    val info1 = sc.parallelize(Array((&quot;601&quot;, &quot;zhangsan&quot;), (&quot;602&quot;, &quot;lisi&quot;), (&quot;603&quot;, &quot;wangwu&quot;)))</span><br><span class="line">                    .collectAsMap()</span><br><span class="line">    val info1Broadcast = sc.broadcast(info1)</span><br><span class="line"></span><br><span class="line">    //假设info2是大变量</span><br><span class="line">    //info2 的定义中，有三个值，无法判断哪个是key，哪个是value，所以需要转换一下，x的第一个值是key，整体是value</span><br><span class="line">    val info2 = sc.parallelize(Array((&quot;601&quot;, 25, &quot;man&quot;), (&quot;602&quot;, 20, &quot;woman&quot;), (&quot;604&quot;, 18, &quot;man&quot;), (&quot;605&quot;, 30, &quot;woman&quot;)))</span><br><span class="line">      .map(x =&gt; (x._1, x))</span><br><span class="line"></span><br><span class="line">    //broadcast出去以后就不会再用join来实现</span><br><span class="line">    //和之前hive提到的MapReduce中的mapjoin一样</span><br><span class="line">    //大表的数据读取出来一条数据就和广播出去的小表的记录做匹配，匹配上就ok，匹配不上就忽略</span><br><span class="line"></span><br><span class="line">    //现在对info2的数据进行一个map，这里建议用mapPartitions</span><br><span class="line">    info2.mapPartitions(x =&gt; &#123;</span><br><span class="line">      //把广播变量里的值拿出来，就拿到map了</span><br><span class="line">      val broadcastMap = info1Broadcast.value</span><br><span class="line"></span><br><span class="line">      //对info2里面的每一条数据进行一下迭代</span><br><span class="line">      //info2里面元素是key,value结构，用for对里面的每个元素遍历一下</span><br><span class="line">      //从info2里拿到一个元素，赋值给(key,value)，然后根据广播变量broadcastMap进行过滤，看看广播变量里面是否存在这个key</span><br><span class="line">      //如果存在就执行循环体，就存下来，如果不存在就忽略</span><br><span class="line">      //yeild是将循环中的符合条件的元素先添加到缓存中，循环结束后把这个集合返回出去</span><br><span class="line">      //broadcastMap.get(key).getOrElse(&quot;&quot;)是根据这个key获取这个值，如果找不到这个key就置空</span><br><span class="line">      //因为broadcastMap是 （学号 -&gt; 姓名）这样的key value结构，所以broadcastMap.get(key)就拿到姓名了</span><br><span class="line">      //value._2是年龄，value._3是性别</span><br><span class="line">      for((key,value) &lt;- x if(broadcastMap.contains(key)))</span><br><span class="line">        yield (key,broadcastMap.get(key).getOrElse(&quot;&quot;),value._2,value._3)</span><br><span class="line">    &#125;).foreach(println)</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(601,zhangsan,25,man)</span><br><span class="line">(602,lisi,20,woman)</span><br></pre></td></tr></table></figure>
+<p>然后去看一下UI界面：<a href="http://localhost:4040/jobs/" target="_blank" rel="noopener">http://localhost:4040/jobs/</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190705145944401.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190705150203453.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190705150226568.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从上面可以看出，这个过程中有2个job，因为遇到collectAsMap和foreach这两个action，触发了两个job，每个job有2个task，只有1个stage。中间并不存在shuffle的。 在mapPartitions里，从info2里拿到每一条数据，然后都会跟广播变量做对比，进行过滤，并不存在shuffle。</p>
+<p>这样处理性能会更好，但是小表的数据不能太大，如果太大，内存装不下，会发生OOM，内存溢出。</p>
+<p>但是如果小表的数据量很小，就建议这种方法了。</p>
+<h2 id="accumulator">Accumulator</h2>
+<p>可以叫计数器或者累加器</p>
+<p>累加器是通过 一个关联和交换的操作 只能进行累加的变量，因此可以有效地支持并行，多个task对一个变量并行的操作。它们可以用来实现计数器（如MapReduce）或求和的操作。Spark 本身支持数字类型的累加器，程序员可以添加对新类型的支持，自定义的。<br>
+作为用户，您可以创建命名或匿名的累加器。</p>
+<p>可以通过SparkContext.longAccumulator()或者SparkContext.doubleAccumulator()来创建累加器。运行在集群中的任务，就可以使用add()方法来把数值累加到累加器上。但是任务节点执行做累加操作，不能读取累加器的值，只有任务控制节点(Driver Program)可以使用value方法来读取。</p>
+<p>参数有两个(Int,String)，第一个参数为初始累加值，默认为0，第二个参数为累加器的名字。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190705150344556." alt="image"></p>
+<p>在IDEA中可以看到定义的时候有一个带有名字的，有一个不带有名字的，看自己需要来选择。</p>
+<p>可以看官网例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val accum = sc.longAccumulator(&quot;My Accumulator&quot;)</span><br><span class="line">accum: org.apache.spark.util.LongAccumulator = LongAccumulator(id: 0, name: Some(My Accumulator), value: 0)</span><br><span class="line"></span><br><span class="line">scala&gt; sc.parallelize(Array(1, 2, 3, 4)).foreach(x =&gt; accum.add(x))</span><br><span class="line">...</span><br><span class="line">10/09/29 18:41:08 INFO SparkContext: Tasks finished in 0.317106 s</span><br><span class="line"></span><br><span class="line">scala&gt; accum.value</span><br><span class="line">res2: Long = 10</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190705150444138.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>在Web UI的stage界面里面，可以看到上面的，从界面可以看到，总共有8个task，8个并行度。我自己跑的话就只有两个task。</p>
+<p>累加器只能由Spark内部进行更新，并保证每个任务在累加器的更新操作仅执行一次，也就是说重启任务也不应该更新。在转换操作中，用户必须意识到任务和作业的调度过程重新执行会造成累加器的多次更新。</p>
+<p>参考博客：</p>
+<p><a href="https://blog.csdn.net/anbang713/article/details/81588829" target="_blank" rel="noopener">https://blog.csdn.net/anbang713/article/details/81588829</a></p>
+<p><a href="https://www.cnblogs.com/zzhangyuhang/p/9005347.html" target="_blank" rel="noopener">https://www.cnblogs.com/zzhangyuhang/p/9005347.html</a></p>
+<p><a href="https://blog.csdn.net/qq_32641659/article/details/90183882#23_REST_API_64" target="_blank" rel="noopener">https://blog.csdn.net/qq_32641659/article/details/90183882#23_REST_API_64</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/83Spark之Tuning Spark官网翻译/" data-toggle="tooltip" data-placement="top" title="[Spark之Tuning Spark官网翻译]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/81Spark-Core之调优/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之调优]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#broadcast-variable"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Broadcast Variable</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#broadcast-join举例"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">broadcast join&#x4E3E;&#x4F8B;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#accumulator"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">Accumulator</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

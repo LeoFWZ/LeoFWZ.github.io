@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [JVM概要]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/84JVM概要/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#JVM" title="JVM">JVM</a>
+                            
+                        </div>
+                        <h1>[JVM概要]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="jvm面试">JVM面试</h1>
+<p>JVM：Java Virtual Machine</p>
+<p>在面试中会JVM是经常被问的，关于JVM的常问问题一般有：</p>
+<ul>
+<li>JVM的内存结构；</li>
+<li>常用参数；</li>
+<li>垃圾回收机制以及算法以及各个算法的对比</li>
+<li>JVM调优</li>
+</ul>
+<p>以上四个问题占了80%，都回答出来已经差不多了。</p>
+<p>在这里我自己使用的都是JDK1.8。<br>
+切记：JVM不同的版本，它的差别是非常大的。以8为主，跟7对比，跟9对比。面试的时候先说你的版本是什么。</p>
+<blockquote>
+<p>官方文档：<a href="https://docs.oracle.com/javase/8/docs/%EF%BC%88%E6%96%87%E6%A1%A3%E6%AF%94%E8%BE%83%E4%B9%B1%EF%BC%8C%E9%9C%80%E8%A6%81%E4%BB%94%E7%BB%86%E6%89%BE%EF%BC%89" target="_blank" rel="noopener">https://docs.oracle.com/javase/8/docs/（文档比较乱，需要仔细找）</a><br>
+比如查看jps命令的使用：<br>
+<a href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jps.html</a><br>
+再比如查看jinfo的使用（也可以–help查看）<br>
+<a href="https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jinfo.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jinfo.html</a><br>
+其中有篇文章一定要看的：<br>
+<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/index.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/index.html</a></p>
+</blockquote>
+<p><strong>思考</strong>：Hadoop里面设置堆的大小的参数是哪一个   hadoop-env.xml里面有</p>
+<h1 id="为什么讲jvm">为什么讲JVM？</h1>
+<p>1）面试必备 大数据，Hadoop/storm等都是运行在JVM之上的，Spark也是；</p>
+<p>2）性能调优 工作中，是非常重要的，调好的话性能提升非常大，不同的版本参数不一样，当版本发生变化时，要调很多参数。比如，版本发生变化时，不修改，可能导致spark代码提交的时候会非常慢，网页上看的时候GC时间特别长<br>
+参数举例：Hadoop里面设置JVM堆的大小的参数是什么？hadoop-env.sh里面的export HADOOP_HEAPSIZE=（默认1000M，有时候需要调整的）<br>
+某台机器上面作业跑的非常慢，负载非常高？Linux命令用top看的时候，有个参数load average:后面三个参数。Load Average 就是一段时间 (1 分钟、5分钟、15分钟) 内平均 Load 。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190917112153976.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>有时候负载很高，有时候cpu飙得很高，memory爆掉了等等，那怎么办？</p>
+<p>3）性能监控/调整</p>
+<p>举个例子，当一个作业跑着的时候突然卡死，或者变慢，你的代码里面的log4j没打日志，让你去定位代码里面哪个方法里面的哪个变量出现了问题，是很难定位的。线上服务不能重启的，重启的话肯定会影响整个LSA的。那么有没有办法去直接去调整运行中代码的字节码(.class文件)，字节码是跑在JVM里面的。那么直接通过JVM把里面相关的东西给修改掉，这样的话就不需要重启，这样就可以非常方便的定位哪个方法里的哪个变量出现了问题。</p>
+<h1 id="jvm参数">JVM参数</h1>
+<p>比如jinfo、jstat、jmap等</p>
+<p>JVM里的参数类型<br>
+1）标准参数</p>
+<p>什么叫标准参数，举个例子：java -version 或者java -help会出现很多参数，这些参数是不会变的。标准参数和这些类似。</p>
+<p>2）X参数</p>
+<p>可能会变，但是变得又不多，比如：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190917145226941.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从上面可以看到加上-X有很多模式，解释模式去执行你的代码，编译模式去执行你的代码，混合模式去执行你的代码（这件事情是解释还是编译交由JVM来处理）。<br>
+那么Java是解释执行的还是编译执行的？不能确定，因为有个mixed混合执行。</p>
+<p>3）XX参数</p>
+<p>举例：标准写法<br>
+-XX:[±]UseG1GC ：表示把UseG1GC这个参数给启用或者禁用<br>
+还有一些参数是这样写：<br>
+-XX:MaxPermSize=64m ：表示把MaxPermSize这个参数设置成64M</p>
+<p>-Xmx 、-Xms、-Xss这三个参数是属于XX参数类型里面的。<br>
+其中-Xms 就相当于 -XX:InitalHeapSize（JVM初始化堆大小）<br>
+-Xmx 就相当于 -XX:MaxHeapSize（JVM最大堆大小）<br>
+-Xss 就相当于 -XX:ThreadStackSize（JVM线程）</p>
+<p>举个例子：</p>
+<p>jps查看到某个pid（jps命令是查看Java进程用的），然后ps -ef查看这个pid的相关信息，可以看到很多相应的参数设置，如下：（jinfo -flags 直接跟pid可以列出所有的）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190917160256133.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>比如：如何查看某个进程使用的什么GC ？<br>
+可以这样看，先查到这个进程的进程号，然后可以这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">jinfo -flag  UseG1GC  进程号</span><br><span class="line">jinfo -flag  UseParallelGC  进程号</span><br><span class="line">jinfo -flag UseConcMarkSweepGC  进程号 </span><br><span class="line"></span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
+<p>可以看一下这个进程使用了那种GC。</p>
+<p>以上讲的是JVM的参数类型。</p>
+<blockquote>
+<p>官网https://docs.oracle.com/javase/8/docs/</p>
+</blockquote>
+<p>Troubleshooting需要看</p>
+<p>jps命令  查看Java进程</p>
+<p>Lists the instrumented Java Virtual Machines (JVMs) on the target system. This command is experimental and unsupported.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">jps  -m 查看进程名字</span><br><span class="line">jps -l 用的比较多，可以看到包名和类名，全路径</span><br><span class="line"></span><br><span class="line">jinfo  </span><br><span class="line"></span><br><span class="line">jinfo -flag MaxHeadSize 8906 </span><br><span class="line"> </span><br><span class="line">jinfo -flag ThreadStackSize 8906 </span><br><span class="line"> </span><br><span class="line">jinfo -flags  8906 所有参数都会打印出来</span><br><span class="line"></span><br><span class="line">jinfo -flag useG1GC 8906 是否启用G1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">jinfo -flag  UseConcMarkSweepGC 8906</span><br></pre></td></tr></table></figure>
+<h1 id="jvm内存模型">JVM内存模型</h1>
+<blockquote>
+<p>参考官网：<a href="https://docs.oracle.com/javase/specs/jvms/se8/html/index.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/specs/jvms/se8/html/index.html</a></p>
+</blockquote>
+<p>运行时数据区：规范（并不是真正的内存结构）</p>
+<p>这个规范需要好好看看</p>
+<p><strong>Run-Time Data Areas</strong></p>
+<p>The Java Virtual Machine defines various run-time data areas that are used during execution of a program.</p>
+<p>在我们执行程序的时候会被用到</p>
+<p>Some of these data areas are created on Java Virtual Machine start-up and are destroyed only when the Java Virtual Machine exits.</p>
+<p>启动时创建，退出时销毁</p>
+<p>Other data areas are per thread.</p>
+<p>其他数据区域是每个线程都有的</p>
+<p>Per-thread data areas are created when a thread is created and destroyed when the thread exits.</p>
+<p>。。。。。。。。。<br>
+Java Virtual Machine Stacks</p>
+<p>Each Java Virtual Machine thread has a private Java Virtual Machine stack, created at the same time as the thread.</p>
+<p>私有的栈</p>
+<p>Heap</p>
+<p>The Java Virtual Machine has a heap that is shared among all Java Virtual Machine threads. The heap is the run-time data area from which memory for all class instances and arrays is allocated.</p>
+<p>Heap是面试常见的，也是我们需要调优的</p>
+<p>Heap是在Java虚拟机上面所有线程共享的，运行class、arrays等</p>
+<p>写一段代码演示下：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> class  User &#123;</span><br><span class="line">      int  id;</span><br><span class="line">	  String name;</span><br><span class="line">	  </span><br><span class="line">	  public void eat()&#123;</span><br><span class="line">	     System.out.println(&quot;eat&quot;);</span><br><span class="line">	  </span><br><span class="line">	  &#125;</span><br><span class="line">	  &#125;</span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">User  user = new User</span><br></pre></td></tr></table></figure>
+<p>这User是要放在堆里面的</p>
+<p>Method Area</p>
+<p>The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the “text” segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods (§2.9) used in class and instance initialization and interface initialization.</p>
+<p>方法区：</p>
+<p>上述代码里的User.Class就存在这里面</p>
+<p>Native Method Stacks</p>
+<p>像jni这种是存放在本地的栈里的</p>
+<p>内存模型如下图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190917202519423.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>.class字节文件通过CLASS LOADER加载进来之后，进入运行时数据区。<strong>运行时数据区并不是真正的内存结构，它只是定义了一个规范。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">运行时数据区必看文档：https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5</span><br></pre></td></tr></table></figure>
+<h1 id="内存结构">内存结构</h1>
+<p>JDK1.8的的JVM内存结构图如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190917233658915.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>Survivor存活的</p>
+<p>ccs： 压缩类空间</p>
+<p>考虑性能是32位指针的class</p>
+<p>CodeCache    存放类似jni这类，没有调用就是空的</p>
+<h1 id="垃圾回收的算法">垃圾回收的算法</h1>
+<p>垃圾回收的算法有哪些？</p>
+<ul>
+<li>标记清除</li>
+<li>复制</li>
+<li>标记整理</li>
+<li>分代垃圾回收（新生代、老年代采用不同的垃圾回收机制就OK了）</li>
+</ul>
+<p>不同的区采用不同的垃圾回收机制。</p>
+<h1 id="jvm内存泄漏">JVM内存泄漏</h1>
+<p>举例：在java里面new了一个对象，你的指针一直都持有这个对象，不再使用且不再回收，这个指针一直被其它对象所持有，自动的垃圾回收机制无法把这个对象给释放掉。慢慢的越积越多，到最后占到JVM很多空间，其它代码就无法运行了。想办法找到这个对象并修改代码。这个案例在hive里面经常见到。</p>
+<p><strong>思考</strong>：什么叫内存泄漏，这个在大数据框架里面也是非常多的</p>
+<p>内存泄漏！！！<br>
+对象清不掉，一直被持有（指针一直都持有这个对象），垃圾回收清不掉</p>
+<p>C++里面也有内存泄漏，是把指针丢了</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/85JVM深入浅出/" data-toggle="tooltip" data-placement="top" title="[JVM深入浅出]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/83Spark之Tuning Spark官网翻译/" data-toggle="tooltip" data-placement="top" title="[Spark之Tuning Spark官网翻译]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#jvm面试"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">JVM&#x9762;&#x8BD5;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#为什么讲jvm"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x4E3A;&#x4EC0;&#x4E48;&#x8BB2;JVM&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#jvm参数"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">JVM&#x53C2;&#x6570;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#jvm内存模型"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">JVM&#x5185;&#x5B58;&#x6A21;&#x578B;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#内存结构"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">&#x5185;&#x5B58;&#x7ED3;&#x6784;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#垃圾回收的算法"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">&#x5783;&#x573E;&#x56DE;&#x6536;&#x7684;&#x7B97;&#x6CD5;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#jvm内存泄漏"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">JVM&#x5185;&#x5B58;&#x6CC4;&#x6F0F;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#JVM" title="JVM">JVM</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

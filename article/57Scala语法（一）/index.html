@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [初识Scala]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/57Scala语法（一）/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                            
+                        </div>
+                        <h1>[初识Scala]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-06-10
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>元数据<br>
+	元：描述数据的数据（描述HIVE里面数据的数据）<br>
+	源：raw</p>
+<p>1、定义名称：<br>
+scala中只有两种方式定义名称：val，var</p>
+<p>（1） val name:String=&quot;无名&quot;<br>
+val修饰的是值，不可改变，String 类型可省略</p>
+<p>（2） var money:Int=10000<br>
+var修饰的是变量，可重新赋值，Int类型可省略</p>
+<p>money=100    #给money重新赋值</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val name:String=&quot;leo&quot;</span><br><span class="line">name: String = leo</span><br><span class="line"></span><br><span class="line">scala&gt; name=&quot;man&quot;</span><br><span class="line">&lt;console&gt;:12: error: reassignment to val</span><br><span class="line">       name=&quot;man&quot;</span><br><span class="line">           ^</span><br><span class="line"></span><br><span class="line">scala&gt; var money:Int=10000 </span><br><span class="line">money: Int = 10000</span><br><span class="line"></span><br><span class="line">scala&gt; money=20000</span><br><span class="line">money: Int = 20000</span><br></pre></td></tr></table></figure>
+<p>2.Scala里的数据类型是可以自动推导的</p>
+<p>val 名称 = 值 只要=号后面有值，就不用写类型了，Scala中，它会自动从后面往前推导</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val name=&quot;leo&quot;</span><br><span class="line">name: String = leo</span><br><span class="line"></span><br><span class="line">scala&gt; val age=20</span><br><span class="line">age: Int = 20</span><br><span class="line"></span><br><span class="line">scala&gt; var money=222222222222222</span><br><span class="line">&lt;console&gt;:1: error: integer number too large</span><br><span class="line">       var money=222222222222222</span><br><span class="line">                 ^</span><br><span class="line"></span><br><span class="line">scala&gt; var money=22222222222222L</span><br><span class="line">money: Long = 22222222222222</span><br><span class="line"></span><br><span class="line">scala&gt; val a:Float=1.2</span><br><span class="line">&lt;console&gt;:11: error: type mismatch;</span><br><span class="line"> found   : Double(1.2)</span><br><span class="line"> required: Float</span><br><span class="line">       val a:Float=1.2</span><br><span class="line">                   ^</span><br><span class="line"></span><br><span class="line">scala&gt; val a:Float=1.2f</span><br><span class="line">a: Float = 1.2</span><br></pre></td></tr></table></figure>
+<p>3、常用数据类型以及转换：</p>
+<p>Scala 与 Java有着相同的数据类型，下表列出了 Scala 支持的数据类型：</p>
+<table>
+<thead>
+<tr>
+<th>数据类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Byte</td>
+<td>8位有符号补码整数。数值区间为 -128 到 127</td>
+</tr>
+<tr>
+<td>Short</td>
+<td>16位有符号补码整数。数值区间为 -32768 到 32767</td>
+</tr>
+<tr>
+<td>Int</td>
+<td>32位有符号补码整数。数值区间为 -2147483648 到 2147483647</td>
+</tr>
+<tr>
+<td>Long</td>
+<td>64位有符号补码整数。数值区间为 -9223372036854775808 到 9223372036854775807</td>
+</tr>
+<tr>
+<td>Float</td>
+<td>32 位, IEEE 754 标准的单精度浮点数</td>
+</tr>
+<tr>
+<td>Double</td>
+<td>64 位 IEEE 754 标准的双精度浮点数</td>
+</tr>
+<tr>
+<td>Char</td>
+<td>16位无符号Unicode字符, 区间值为 U+0000 到 U+FFFF</td>
+</tr>
+<tr>
+<td>String</td>
+<td>字符序列</td>
+</tr>
+<tr>
+<td>Boolean</td>
+<td>true或false</td>
+</tr>
+<tr>
+<td>Unit</td>
+<td>表示无值，和其他语言中void等同。用作不返回任何结果的方法的结果类型。Unit只有一个实例值，写成()。</td>
+</tr>
+<tr>
+<td>Null</td>
+<td>null 或空引用</td>
+</tr>
+<tr>
+<td>Nothing</td>
+<td>Nothing类型在Scala的类层级的最低端；它是任何其他类型的子类型。</td>
+</tr>
+<tr>
+<td>Any</td>
+<td>Any是所有其他类的超类</td>
+</tr>
+<tr>
+<td>AnyRef</td>
+<td>AnyRef类是Scala里所有引用类(reference class)的基类</td>
+</tr>
+</tbody>
+</table>
+<p>数据类型转换：<br>
+asInstanceOf  类型转换<br>
+isInstanceOf  判断类型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">#将Int类型转换成Double类型</span><br><span class="line">scala&gt;  val a=10.asInstanceOf[Double]</span><br><span class="line">a: Double = 10.0</span><br><span class="line"></span><br><span class="line">scala&gt; println(a)</span><br><span class="line">10.0</span><br><span class="line"></span><br><span class="line">#判断a是否是Int类型</span><br><span class="line">scala&gt; a.isInstanceOf[Int]</span><br><span class="line">res1: Boolean = false</span><br><span class="line"></span><br><span class="line">#判断10.1是不是Int类型</span><br><span class="line">scala&gt; 10.1.isInstanceOf[Int]</span><br><span class="line">res2: Boolean = false</span><br></pre></td></tr></table></figure>
+<p>4.函数,方法<br>
+Scala函数定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def max（x:Int,y:Int）:Int（这里的Int表示返回值类型，可省略）=&#123;</span><br><span class="line">        if(x&gt;y)&#123;</span><br><span class="line">        x （函数体最后一行表示返回值）</span><br><span class="line">	&#125;else&#123;</span><br><span class="line">        y （函数体最后一行表示返回值）</span><br><span class="line">	&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>def:定义函数关键字<br>
+max：函数的名称，见名知意<br>
+(x:int,y:int)：函数的入参（可能有，可能没有）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def sum(x:Int,y:Int): Unit =&#123;</span><br><span class="line">      println（&quot;你好&quot;）</span><br><span class="line">    &#125;</span><br><span class="line">#Unit表示没有返回值</span><br></pre></td></tr></table></figure>
+<p><img src="https://s2.ax1x.com/2019/04/23/EAc7Ie.png" alt="image"></p>
+<p>4.函数的调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.scala</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">object expertion &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    sayHello()                   //调用方法 </span><br><span class="line">    另一种调用方法：sayHello       //不加括号，适合于没有入参的方法</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">&lt;!--方法--&gt;</span><br><span class="line">  def sayHello(): Unit =&#123;</span><br><span class="line">    print(&quot;hello&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedate.bigdata.scala02</span><br><span class="line"></span><br><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    println(sum(3, 4))</span><br><span class="line">    sayHello() //函数没有入参时这里的括号可以省略</span><br><span class="line">    sayWorld(&quot;leo&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def sum(x: Int, y: Int): Int = &#123;</span><br><span class="line">    x + y</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def sayHello(): Unit = &#123;</span><br><span class="line">    println(&quot;Hello&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def sayWorld(name: String): Unit = &#123;</span><br><span class="line">    println(&quot;Hello&quot; + name)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当方法体只有一行时，可以直接这样写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def sum(x: Int, y: Int)= x + y</span><br></pre></td></tr></table></figure>
+<p>5.循环表达式：</p>
+<p>看源代码，to until 底层调用的都是Range 只是Inclusive或者否罢了(是否包含)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; 1 to 10</span><br><span class="line">res0: scala.collection.immutable.Range.Inclusive = Range 1 to 10</span><br><span class="line"></span><br><span class="line">scala&gt; 1 until 10</span><br><span class="line">res1: scala.collection.immutable.Range = Range 1 until 10</span><br><span class="line"></span><br><span class="line">scala&gt; Range(1,10)</span><br><span class="line">res2: scala.collection.immutable.Range = Range 1 until 10</span><br><span class="line"></span><br><span class="line">scala&gt; Range(1,10,-1)</span><br><span class="line">res3: scala.collection.immutable.Range = empty Range 1 until 10 by -1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">1 to 10==1.to(10)  	 	调用的是Range.Inclusive【1，2......10】</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Range(1,10) 			从1取到9，【左闭又开）</span><br><span class="line">Range（1，10，2）		2表示step步长</span><br><span class="line"></span><br><span class="line">//1 until 10 和 Range是一样的  &lt;==&gt;  1.until(10)</span><br><span class="line"></span><br><span class="line">例如：</span><br><span class="line">&lt;!--取1到10中的偶数--&gt;</span><br><span class="line"></span><br><span class="line">for(i&lt;- 1.to(10) if i%2==0)&#123;</span><br><span class="line">      print(i)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">结果：2 4 6 8 10</span><br><span class="line"></span><br><span class="line">&lt;!--把1到10的数字 分别赋值给i   然后里面循环打印i--&gt;</span><br><span class="line">    for(i &lt;- 1 to 10)&#123;</span><br><span class="line">      println(i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&lt;!--一个if语句--&gt;    </span><br><span class="line">    val x = 10</span><br><span class="line">    if(x&gt;0)&#123;</span><br><span class="line">      true</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">      false</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">#可以简化为：</span><br><span class="line">  val x = 10</span><br><span class="line">  if(x&gt;0) true else false</span><br></pre></td></tr></table></figure>
+<p>6.面向对象</p>
+<p>class 来定义类<br>
+类中包含了属性和方法。<br>
+class是要new出来才能进行属性方法的调用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">object ClassDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">     val people=new people			//引用people类，创建对象</span><br><span class="line">    people.name=&quot;大牛&quot;			   //给people中的name属性赋值</span><br><span class="line">     println(people.sleep())		//调用people中sleep方法，并打印返回值</span><br><span class="line">     people.py(&quot;小强&quot;)			  //调用 people中py方法，并传入值。</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">类：</span><br><span class="line">class people&#123;</span><br><span class="line">  var name=&quot;&quot;      //属性</span><br><span class="line">  val city=&quot;&quot;</span><br><span class="line"></span><br><span class="line">   def sleep()=&#123;       //方法 带有返回值</span><br><span class="line">      name+&quot;ZZZZZ...&quot;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  def py(pyname:String): Unit =&#123;              //方法  没有返回值</span><br><span class="line">    println(name+&quot;正在和&quot;+pyname+&quot;聊天&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>7.占位符</p>
+<p>val 属性=_<br>
+这个下划线 表示占位符 先占个坑，先不管如何使用它，先占个坑再说<br>
+var name = _ 这样是错误的，因为先占个坑的话，需要指定一个数据类型<br>
+var name:String = _ 这样是对的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">var name：String=_  (表示占位符)  //注意：必须要加数据类型，否则不知道自己是什么数据类型</span><br><span class="line"></span><br><span class="line">#有默认值</span><br><span class="line">scala&gt; var d:Double = _</span><br><span class="line">d: Double = 0.0</span><br><span class="line"></span><br><span class="line">scala&gt; var d:String =_</span><br><span class="line">d: String = null</span><br></pre></td></tr></table></figure>
+<p>8.编写SparkConf</p>
+<p>针对sparkconf解析举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">object SparkConfApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf</span><br><span class="line">    sparkConf.setAppName(&quot;SparkConfApp&quot;)</span><br><span class="line">    sparkConf.setMaster(&quot;yarn&quot;)</span><br><span class="line">    sparkConf.printInfo()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class SparkConf&#123;</span><br><span class="line">  var master:String = _</span><br><span class="line">  var appName:String = _</span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">  def setMaster(master:String): Unit =&#123;</span><br><span class="line">    this.master = master</span><br><span class="line">  &#125;</span><br><span class="line">  def setAppName(name:String): Unit =&#123;</span><br><span class="line">    this.appName = name</span><br><span class="line">  &#125;</span><br><span class="line">  def printInfo(): Unit =&#123;</span><br><span class="line">    println(this.appName + &quot;:&quot; + this.master)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上面代码衍生出升级版：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedate.bigdata.scala02</span><br><span class="line"></span><br><span class="line">import java.util.concurrent.ConcurrentHashMap</span><br><span class="line"></span><br><span class="line">object SparkConfApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf</span><br><span class="line">    sparkConf.setAppName(&quot;SparkConfApp&quot;).setMaster(&quot;yarn&quot;) //链式编程</span><br><span class="line">    //也可以这么设置  sparkConf.set(&quot;spark.master&quot;,&quot;yarn&quot;)</span><br><span class="line">    // sparkConf.set(&quot;spark.App.name&quot;,&quot;SparkConfApp&quot;)</span><br><span class="line"></span><br><span class="line">    sparkConf.printInfo()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class SparkConf &#123;</span><br><span class="line">  var master: String = _</span><br><span class="line">  var appName: String = _</span><br><span class="line"></span><br><span class="line">  //在这里定义一个setting，里面可以放好多东西，先不用管它什么意思</span><br><span class="line">  //可以先把两个值放里面，然后用的时候再取出来</span><br><span class="line">  var setting = new ConcurrentHashMap[String, String]()</span><br><span class="line"></span><br><span class="line">  //这个方法的数据结果是key,value结构，它的底层肯定是个Map</span><br><span class="line">  //调用上面的setting，来设置key，value</span><br><span class="line">  //后面调用一下set方法，就可以设置key，value了</span><br><span class="line">  //放值是用setting.put(key,value)，取值是setting.get(key)，放进去什么就取什么</span><br><span class="line">  //就是弄一个key放进去，把这个key的值设置为value值，当取的时候，直接用key去获取这个值就行了</span><br><span class="line">  //private表示私有的，只能在自己的类里面使用,外面就用不了；当然也可以修饰属性</span><br><span class="line">  private[this] def set(key: String, value: String): SparkConf = &#123;</span><br><span class="line">    setting.put(key, value) //将 key，value 传到 ConcurrentHashMap中</span><br><span class="line">    this //每调用一次set方法，就会上传一次</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //调用set方法，设置master，master的key是spark.master，master的value是你传进来的值</span><br><span class="line">  def setMaster(master: String): SparkConf = &#123; //返回值是SparkConf ，这样才能实现链式编程</span><br><span class="line">    // this.master=master</span><br><span class="line">    set(&quot;spark.master&quot;, master)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //调用set方法，设置name</span><br><span class="line">  def setAppName(name: String): SparkConf = &#123;</span><br><span class="line"></span><br><span class="line">    //this.setAppName=name</span><br><span class="line">    set(&quot;spark.app.name&quot;, name)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def printInfo(): Unit = &#123;</span><br><span class="line">    //在这里就可以取值了，用&quot;spark.app.name&quot;这个key，可以取到对应的值了</span><br><span class="line">    val appName = setting.get(&quot;spark.app.name&quot;)</span><br><span class="line">    val master = setting.get(&quot;spark.master&quot;)</span><br><span class="line">    println(appName + &quot;:&quot; + master)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看一下orge.apache.spark.SparkConf里面的源码，和上面一样<br>
+需要在pom.xml文件里加入下面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;properties&gt;</span><br><span class="line">  &lt;spark.version&gt;2.4.0&lt;/spark.version&gt;</span><br><span class="line">&lt;/properties&gt;</span><br><span class="line"></span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spark-core_2.11&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;spark.version&#125;&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>9.构造方法</p>
+<p>创建对象的时候需要借助构造方法的。<br>
+其实上面的类就是一个构造方法。</p>
+<p>如果你这样写</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">class Person(val name:String,val city:String)&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>底层会自动这样处理：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">class Person()&#123;</span><br><span class="line">  val name:String =_</span><br><span class="line">  val city:String =_</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在写一个构造方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedate.bigdata.scala02</span><br><span class="line"></span><br><span class="line">object ConstrutorDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val person = new Person(&quot;Jerry&quot;, &quot;shanghai&quot;)</span><br><span class="line">    println(person.name + &quot; : &quot; + person.city)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 跟在class后面的是 主构造器（构造方法） </span><br><span class="line">class Person(val name: String, val city: String) &#123;</span><br><span class="line">  println(&quot;person enter....&quot;)</span><br><span class="line"></span><br><span class="line">  println(&quot;person leave....&quot;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">运行结果：</span><br><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">Jerry : shanghai</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>其实在new 一个Person的时候，类里面的代码已经先执行完了。</p>
+<p>主构造器：class + 类名 就是主构造器<br>
+跟在class后面的就是主构造器（上一节的那些类都是主构造器）<br>
+这个Person就是主构造器,在执行new的时候，先执行主构造器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">class Person(val name:String,val city:String)&#123;</span><br><span class="line">  println(&quot;person enter....&quot;)</span><br><span class="line">  println(&quot;person leave....&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>10.附属构造器</p>
+<p>主构造器，附属构造器，综合代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">object ConstrutorDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val person = new Person(&quot;Jerry&quot;,&quot;shanghai&quot;)  //这里面不能把age加上</span><br><span class="line">    println(person.name + &quot; : &quot; + person.city + &quot; : &quot; + person.age)</span><br><span class="line"></span><br><span class="line">    val person2 = new Person(&quot;Jerry&quot;,&quot;beijing&quot;,20)   //这里面可以加上age</span><br><span class="line">    println(person2.name + &quot; : &quot; + person2.city + &quot; : &quot; + person2.age)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//跟在class后面的是 主构造器（构造方法）</span><br><span class="line">class Person(val name:String,val city:String)&#123;</span><br><span class="line">  println(&quot;person enter....&quot;)</span><br><span class="line"></span><br><span class="line">  var age:Int =_</span><br><span class="line"></span><br><span class="line">  //附属构造器 第一行必须要调用主构造器或者其他附属构造器</span><br><span class="line">  //固定写法</span><br><span class="line">  def this(name:String,city:String,age:Int)&#123;</span><br><span class="line">    this(name,city)    //第一行必须这样写</span><br><span class="line">    this.age = age    //这里的this指的是主构造器</span><br><span class="line">  &#125;</span><br><span class="line">  println(&quot;person leave....&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">Jerry : shanghai : 0</span><br><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">Jerry : beijing : 20</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/58Scala语法（二）/" data-toggle="tooltip" data-placement="top" title="[Scala语法（二）]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/56初识Scala/" data-toggle="tooltip" data-placement="top" title="[初识Scala]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

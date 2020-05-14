@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Scala语法（四）]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/61Scala语法（四）/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                            
+                        </div>
+                        <h1>[Scala语法（四）]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-06-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="伴生对象-vs-伴生类">伴生对象 vs 伴生类</h1>
+<p>Scala中的伴生对象<br>
+对于Object内部的方法，我们可以直接通过Object.method（对象名.方法）来调用<br>
+类似于Java中的static<br>
+举例：现在object里面有个increment方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">object Timer &#123;</span><br><span class="line">  var count = 0</span><br><span class="line"></span><br><span class="line">  def increment():Long = &#123;</span><br><span class="line">    count += 1</span><br><span class="line">    count</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在scala的shell里运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; object Timer &#123;</span><br><span class="line">     |   var count = 0</span><br><span class="line">     |   def increment():Long = &#123;</span><br><span class="line">     |     count += 1</span><br><span class="line">     |     count</span><br><span class="line">     |   &#125;</span><br><span class="line">     | &#125;</span><br><span class="line">defined object Timer</span><br><span class="line"></span><br><span class="line">scala&gt; Timer.increment</span><br><span class="line">res33: Long = 1</span><br><span class="line"></span><br><span class="line">scala&gt; Timer.increment</span><br><span class="line">res34: Long = 2</span><br><span class="line"></span><br><span class="line">scala&gt; Timer.increment</span><br><span class="line">res35: Long = 3</span><br></pre></td></tr></table></figure>
+<p>伴生对象 和伴生类 是相辅相成的<br>
+class A<br>
+object A<br>
+class A 叫做object A 的伴生类<br>
+object A 叫做class A 的伴生对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    for(i &lt;- 1 to 10)&#123;</span><br><span class="line">      ApplyTest.increment</span><br><span class="line">    &#125;</span><br><span class="line">    println(ApplyTest.count)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class ApplyTest&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line">  var count = 0</span><br><span class="line"></span><br><span class="line">  def increment = &#123;</span><br><span class="line">    count = count + 1</span><br><span class="line">    count</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;object ApplyTest leave...&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">object ApplyTest enter...</span><br><span class="line">object ApplyTest leave...</span><br><span class="line">10</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出，你调用object里的方法，会触发它把object里所有的东西先执行一遍，方法不调用不执行（increment 只是定义了，没有调用），在for里面触发了，每次把它加1，所以看到的是先打印两句话，然后把count打印出来。<br>
+有点想不明白，for循环里循环10次，不应该触发10次object的方法吗，为什么不把那两句话打印10次？</p>
+<p>上面代码变一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    ApplyTest.static</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line">  </span><br><span class="line">def static: Unit = &#123;</span><br><span class="line">    println(&quot;object ApplyTest static&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;object ApplyTest leave...&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">object ApplyTest enter...</span><br><span class="line">object ApplyTest leave...</span><br><span class="line">object ApplyTest static</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>调用object.static方法，触发object里所有东西执行一遍，方法不调用不执行，先打印object里的两句话，然后，运行那个static方法，有了第三行。<br>
+再升级：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.bigdata.scala04</span><br><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val a = new ApplyTest()    //new 一个 ApplyTest这个类  类要用的时候先new出来</span><br><span class="line">    println(a)       //这个println其实调用的是toString方法，包名+类名@hashcode</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class ApplyTest&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line"></span><br><span class="line">  def static: Unit = &#123;</span><br><span class="line">    println(&quot;object ApplyTest static&quot;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;object ApplyTest leave...&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//因为调用的是toString方法，就是包名+类名@hashcode   所以是下面的：</span><br><span class="line">com.ruozedata.bigdata.scala04.ApplyTest@1b604f19</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>再变一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.bigdata.scala04</span><br><span class="line"></span><br><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val a = new ApplyTest()</span><br><span class="line">    println(a)</span><br><span class="line">    a.method()    //调用a里的method方法</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class ApplyTest&#123;</span><br><span class="line">  def method(): Unit =&#123;</span><br><span class="line">    println(&quot;class ApplyTest method&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line">  def static: Unit = &#123;</span><br><span class="line">    println(&quot;object ApplyTest static&quot;)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">com.ruozedata.bigdata.scala04.ApplyTest@1b604f19</span><br><span class="line">class ApplyTest method</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p><strong>再扩展一下，下面这个很重要：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.bigdata.scala04</span><br><span class="line"></span><br><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line"></span><br><span class="line">	//平时我们都是new的</span><br><span class="line">    //现在没有new，直接=类名()   其实调用的是object对象里面的apply方法</span><br><span class="line">    //apply方法被触发，触发之后再new出来</span><br><span class="line">    val b = ApplyTest()  //没有new    </span><br><span class="line">    b.method()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class ApplyTest&#123;</span><br><span class="line">  def method(): Unit =&#123;</span><br><span class="line">    println(&quot;class ApplyTest method&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  def apply() =&#123;</span><br><span class="line">    println(&quot;class apply method invoked...&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line">  var count = 0</span><br><span class="line"></span><br><span class="line">  def apply() =&#123;           //apply它底层返回的是下面new出来的ApplyTest这个类</span><br><span class="line">    println(&quot;object apply method invoked...&quot;)</span><br><span class="line">    new ApplyTest()      //在这里new 一个ApplyTest类出来</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;object ApplyTest leave...&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">object ApplyTest enter...</span><br><span class="line">object ApplyTest leave...</span><br><span class="line">object apply method invoked...</span><br><span class="line">class ApplyTest method</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>记住：<br>
+遇到 xxx = 类名() 一定是调用object对象里的apply方法，然后new出来</p>
+<p>还有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">object ApplyDemo &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val c = new ApplyTest()</span><br><span class="line">    println( c )</span><br><span class="line">    println(c())    //c是一个引用，c()调用的是Class的apply方法，不常用</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class ApplyTest&#123;</span><br><span class="line">  def method(): Unit =&#123;</span><br><span class="line">    println(&quot;class ApplyTest method&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  def apply() =&#123;</span><br><span class="line">    println(&quot;class apply method invoked...&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">object ApplyTest&#123;</span><br><span class="line">  println(&quot;object ApplyTest enter...&quot;)</span><br><span class="line"></span><br><span class="line">  def apply() =&#123;  //apply它底层返回的是下面new出来的ApplyTest这个类</span><br><span class="line">    println(&quot;object apply method invoked...&quot;)</span><br><span class="line">    new ApplyTest()  //在这里new 一个ApplyTest类出来</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  println(&quot;object ApplyTest leave...&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">com.ruozedata.bigdata.scala04.ApplyTest@1b604f19</span><br><span class="line">class apply method invoked...</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>记住两句话：<br>
+①遇到 xxx = 类名() 一定是调用object对象里的apply方法，然后new出来。（在apply里做了什么？new 一个，然后最后一行返回）<br>
+②如果是对象/引用（就是上面new出来的），它调用的是Class.apply方法<br>
+举例：<br>
+在创建一个数组的时候，<br>
+var array = Array(“a”,“b”,“c”)<br>
+点击Array，可以看到它调用的就是object对象里的apply方法</p>
+<p><img src="https://img-blog.csdnimg.cn/20190512220515441.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="把一个函数赋给一个变量">把一个函数赋给一个变量</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">object FunctionAdApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sayHelloFunc = sayHello _    //就是这样写的，空格加一个下划线</span><br><span class="line">    println(sayHelloFunc(&quot;zhangsan&quot;))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def sayHello(name:String)=&#123;</span><br><span class="line">    println(&quot;hello : &quot; + name)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="匿名函数">匿名函数</h1>
+<p>匿名函数（参数名：参数类型）=&gt;函数体</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> //定义了一个匿名函数，并把匿名函数赋值给了一个变量（也可以赋值给一个函数）</span><br><span class="line">object FunctionNoNameApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val add = (x:Int,y:Int) =&gt;&#123;  x+y  &#125;</span><br><span class="line">    println(add(2,3))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="函数的克里化currying">函数的克里化currying</h1>
+<p>spark的udf函数里面经常会用到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">object FunctionCurryingApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    println(sum(12,2))</span><br><span class="line">    println(add(12)(2))    //调用</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  def sum(x:Int,y:Int)= x+y    //正常是这样的</span><br><span class="line">  def add(x:Int)(y:Int)= x+y   // 函数的克里化currying</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="隐式转换">隐式转换</h1>
+<p>在面试scala的时候必问的题目。<br>
+隐式：偷偷摸摸的进行<br>
+目的：悄悄的为一个类的方法进行增强</p>
+<p>目的：把一个Man悄悄的变为一个SuperMan<br>
+悄悄的为Man这个类增加一个方法，fly，让Man这个类会fly<br>
+举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">object ImplicitApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //定义隐式转换</span><br><span class="line">    //入参是一个man，进去一个man，返回值是一个Superman，出来一个Superman</span><br><span class="line">    implicit def man2superman(man:Man):SuperMan = new SuperMan(man.name)</span><br><span class="line">    val man = new Man(&quot;xijinping&quot;)</span><br><span class="line">    man.fly()   //man里面本来是没有的，隐式转换后就有fly方法了</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Man(val name:String)&#123;</span><br><span class="line">  def eat(): Unit =&#123;</span><br><span class="line">    println(s&quot;$name can eat....&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class SuperMan(val name:String)&#123;</span><br><span class="line">  def fly(): Unit =&#123;</span><br><span class="line">    println(s&quot;$name can fly....&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xijinping can fly....</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>再举个读文件增强的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.bigdata.scala04</span><br><span class="line">import java.io.File</span><br><span class="line">import scala.io.Source</span><br><span class="line"></span><br><span class="line">object ImplicitApp2 &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    implicit def file2RichFile(file:File):RichFile = new RichFile(file)</span><br><span class="line"></span><br><span class="line">    val file = new File(&quot;E://output.txt&quot;)</span><br><span class="line">    val content = file.read()</span><br><span class="line">    println(content)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">class RichFile(val file:File)&#123;</span><br><span class="line">  def read() = Source.fromFile(file.getPath).mkString</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="模式匹配">模式匹配</h1>
+<p>变量 match {<br>
+case 值1 =&gt; 代码<br>
+case 值2 =&gt; 代码<br>
+case _ =&gt;代码<br>
+}</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">import scala.util.Random</span><br><span class="line"></span><br><span class="line">object MatchApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val regions =Array(&quot;anhui&quot;,&quot;shanghai&quot;,&quot;jiangsu&quot;,&quot;zhejiang&quot;)</span><br><span class="line">    val region = regions(Random.nextInt(regions.length))   //获取一个随机数</span><br><span class="line">    println(region)</span><br><span class="line"></span><br><span class="line">    region match &#123;</span><br><span class="line">      case &quot;anhui&quot; =&gt; println(&quot;anhui&quot;)</span><br><span class="line">      case &quot;shanghai&quot; =&gt; println(&quot;shanghai&quot;)</span><br><span class="line">      case &quot;jiangsu&quot; =&gt; println(&quot;jiangsu&quot;)</span><br><span class="line">      case _        =&gt; println(&quot;zhejiang&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>上面工作中不怎么用，用的最多的还是在scala的异常处理里面。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> try&#123;</span><br><span class="line">      val i=1/0</span><br><span class="line">    &#125;catch &#123;</span><br><span class="line">    </span><br><span class="line">//    这里匹配的是异常，匹配的是一个类型</span><br><span class="line">      case e:ArithmeticException =&gt; throw new RuntimeException(&quot;除数不能为0&quot;)</span><br><span class="line">      case e:Exception =&gt;e.printStackTrace()</span><br><span class="line">      </span><br><span class="line">       &#125;finally&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>比如在打开文件，去读取文件，涉及文件IO读取的时候，最好加上try catch。<br>
+try{<br>
+代码<br>
+}<br>
+catch{<br>
+case //异常处理匹配 这里用<br>
+case<br>
+case<br>
+…<br>
+}<br>
+finally{<br>
+比如关闭文件等操作<br>
+}</p>
+<p>总结：模式既可以匹配值，也可以匹配类型<br>
+类型比如说，异常的类型有哪些，看看能匹配到哪个类型</p>
+<h1 id="偏函数-partitialfunction">偏函数 PartitialFunction</h1>
+<p>工作或面试用的比较多。<br>
+模式匹配也可以用偏函数来实现。<br>
+先看一下正常的模式匹配怎么写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">import scala.util.Random</span><br><span class="line"></span><br><span class="line">object MatchApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val regions =Array(&quot;anhui&quot;,&quot;shanghai&quot;,&quot;jiangsu&quot;,&quot;zhejiang&quot;)</span><br><span class="line">    val region = regions(Random.nextInt(regions.length))</span><br><span class="line">    println(region)</span><br><span class="line">    person(region)</span><br><span class="line"></span><br><span class="line">    def person(city:String)= city match &#123;</span><br><span class="line">      case &quot;anhui&quot; =&gt; println(&quot;anhui person&quot;)</span><br><span class="line">      case &quot;shanghai&quot; =&gt; println(&quot;shanghai person&quot;)</span><br><span class="line">      case &quot;jiangsu&quot; =&gt; println(&quot;jiangsu person&quot;)</span><br><span class="line">      case _        =&gt; println(&quot;zhejiang person&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后看一下偏函数怎么写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">import scala.util.Random</span><br><span class="line">object MatchApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val regions =Array(&quot;anhui&quot;,&quot;shanghai&quot;,&quot;jiangsu&quot;,&quot;zhejiang&quot;)</span><br><span class="line">    val region = regions(Random.nextInt(regions.length))</span><br><span class="line">    println(region)</span><br><span class="line">    println(person2(region))</span><br><span class="line"></span><br><span class="line">    def person2:PartialFunction[String,String] = &#123;    //一个偏函数，第一个String可以理解是传进来的参数，第二个String可以理解是返回值</span><br><span class="line">      case &quot;anhui&quot; =&gt; &quot;anhui person&quot;</span><br><span class="line">      case &quot;shanghai&quot; =&gt; &quot;shanghai person&quot;</span><br><span class="line">      case &quot;jiangsu&quot; =&gt; &quot;jiangsu person&quot;</span><br><span class="line">      case _        =&gt; &quot;zhejiang person&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>偏函数没有match ,偏函数和模式匹配是一样的 ，但是必须要知道</p>
+<h1 id="tuple-集合">Tuple  集合</h1>
+<p>val a = (1,2,3,4,5,6)<br>
+括号里面放了一堆东西，你就可以理解为Tuple<br>
+然后直接可以这样直接用：<br>
+a._1<br>
+a._3</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> //这种定义 都是 Tuple</span><br><span class="line">val a = (&quot;aaa&quot;,111,&quot;bbb&quot;)</span><br><span class="line">val b= a._2     //就代表取第二个值</span><br><span class="line">val c= a._3     //就代表取第三个值</span><br><span class="line">println(b)</span><br><span class="line">println(c)</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">111</span><br><span class="line">bbb</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/62Hadoop之使用MR编程实现join的两种方法/" data-toggle="tooltip" data-placement="top" title="[Hadoop之使用MR编程实现join的两种方法]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/60Scala语法（三）/" data-toggle="tooltip" data-placement="top" title="[Scala语法（三）]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#伴生对象-vs-伴生类"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x4F34;&#x751F;&#x5BF9;&#x8C61; vs &#x4F34;&#x751F;&#x7C7B;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#把一个函数赋给一个变量"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x628A;&#x4E00;&#x4E2A;&#x51FD;&#x6570;&#x8D4B;&#x7ED9;&#x4E00;&#x4E2A;&#x53D8;&#x91CF;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#匿名函数"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x533F;&#x540D;&#x51FD;&#x6570;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#函数的克里化currying"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">&#x51FD;&#x6570;&#x7684;&#x514B;&#x91CC;&#x5316;currying</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#隐式转换"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">&#x9690;&#x5F0F;&#x8F6C;&#x6362;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#模式匹配"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">&#x6A21;&#x5F0F;&#x5339;&#x914D;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#偏函数-partitialfunction"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">&#x504F;&#x51FD;&#x6570; PartitialFunction</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#tuple-集合"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">Tuple  &#x96C6;&#x5408;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

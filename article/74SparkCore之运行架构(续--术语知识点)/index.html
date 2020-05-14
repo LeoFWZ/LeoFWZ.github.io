@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [SparkCore之运行架构(续--术语知识点)]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/74SparkCore之运行架构(续--术语知识点)/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[SparkCore之运行架构(续--术语知识点)]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-08-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="rdd的五大特性以及五大特性在源码中的体现">RDD的五大特性以及五大特性在源码中的体现</h1>
+<p>首先提一下之前的内容，RDD的五大特性以及五大特性在源码中的体现，之前的博客有详细的讲解，这里简单说一下。详情参考：<a href="https://blog.csdn.net/weixin_43212365/article/details/90115002" target="_blank" rel="noopener">RDD深入讲解</a></p>
+<ul>
+<li>①A list of partitions 一个RDD是由一系列的Partition构成。<br>
+对应源码方法：getPartitions</li>
+<li>②A function for computing each split 对一个RDD做计算，实际上是对RDD里每个分区进行计算。<br>
+对应源码方法：compute</li>
+<li>③A list of dependencies on other RDDs RDD之间有转换，有依赖，它们之间有对应关系<br>
+对应源码方法：getDependencies</li>
+<li>④Optionally, a Partitioner for key-value RDDs 可选 对于key-value的RDD可指定一个partitioner，告诉它如何分区<br>
+对应源码方法：partitioner</li>
+<li>⑤Optionally, a list of preferred locations to compute each split on 对每个分片进行计算的时候，对每个split拿到PreferredLocations最佳位置，要运行的计算/执行最好在哪(几)个机器上运行<br>
+对应源码方法：getPreferredLocations<br>
+另外需要注意的是一个partition对应一个task，有多少partitions就有多少个task来执行。</li>
+</ul>
+<p>那么问题来了，</p>
+<ul>
+<li>1）上面①②③对应的三个方法到底是在driver端还是在executor端运行呢？？？<br>
+带回答。。。。<br>
+你以后写的Spark代码，哪些代码运行在driver端，哪些代码运行在executor端？自己都需要很清楚。比如有些代码在driver端执行可能内存不够，有些代码在executor端执行内存不够，针对不同的场景需要不同的处理方式，所以都需要很清楚。<br>
+由上一节可以知道：一个Spark应用程序包含一个driver和多个executor。Driver program是一个进程，它运行应用程序application里面的main()函数，并在main函数里面创建SparkContext。Executor是在worker node上启动应用程序的进程，这个进程可以运行多个任务并将数据保存在内存或磁盘存储中。</li>
+<li>2）上面①②③对应的三个方法的输入Input和输出Output是什么？<br>
+①getPartitions是没有输入，输出是Array[Partition]，一个数组，数组里面是Partition；<br>
+②compute输入是Partition，输出是Iterator[T]迭代器；<br>
+（（迭代器）不是一个集合，迭代器Iterator提供了一种访问集合的方法，可以通过while或者for循环来实现对迭代器的遍历）<br>
+③getDependencies没有输入，输出是Seq[Dependency[_]]，一个数组，数组里面是一系列的依赖。</li>
+</ul>
+<h1 id="关于stage">关于Stage</h1>
+<p>Each job gets divided into smaller sets of tasks called stages that depend on each other (similar to the map and reduce stages in MapReduce); you’ll see this term used in the driver’s logs.<br>
+每个action触发一个job，每个job被切分成小的任务集，这些小的任务集叫做stages，并且他们之间相互依赖（类似于MapReduce中的map和reduce阶段）。一个job可以有多个stage。<br>
+遇到一个action就会触发一个job，遇到shuffle就会触发一个stage。</p>
+<p>访问：<a href="http://hadoop001:4040/jobs/" target="_blank" rel="noopener">http://hadoop001:4040/jobs/</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092413479.png" alt="image"></p>
+<h2 id="举例示范">举例示范：</h2>
+<p>执行代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.parallelize(List(&quot;a&quot;,&quot;wc&quot;,&quot;b&quot;,&quot;a&quot;,&quot;word&quot;,&quot;wc&quot;)).map((_,1)).collect</span><br><span class="line">res1: Array[(String, Int)] = Array((a,1), (wc,1), (b,1), (a,1), (word,1), (wc,1))</span><br></pre></td></tr></table></figure>
+<p>看页面：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092547671.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>遇到一个action就会触发一个job，上面的collect是一个action。<br>
+可以看出它总共有一个stage，有一个parallelize和map两个算子。总共有两个task任务。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092618209.png" alt="image"></p>
+<p>再具体点：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092652617.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092719153.png" alt="iamge"></p>
+<p>再来执行一下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.parallelize(List(&quot;a&quot;,&quot;wc&quot;,&quot;b&quot;,&quot;a&quot;,&quot;word&quot;,&quot;wc&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br><span class="line">res2: Array[(String, Int)] = Array((b,1), (word,1), (wc,2), (a,2))</span><br></pre></td></tr></table></figure>
+<p>看页面：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092859261.png" alt="image"></p>
+<p>遇到一个action就会触发一个job，上面的collect是一个action。<br>
+遇到shuffle就会触发一个stage，上面reduceByKey存在shuffle过程，会触发stage。<br>
+可以看出，它总共有2个stage，2个stage分别有两个任务，总共4个任务。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630092930560.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/2019063009300327.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093022329.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093040520.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093103433.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>总结，由上面可以看出，一个job可以有多个stage，一个stage是有一堆task组成的，一个task是被发送盗一个executor去执行的最小的工作单元。</p>
+<h1 id="rdd之cachepersist">RDD之cache(persist)</h1>
+<p>cache是lazy的</p>
+<p>RDD persistence  可以提升速度</p>
+<h2 id="官网解释">官网解释</h2>
+<p>看官网：<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-persistence" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-persistence</a></p>
+<p>One of the most important capabilities in Spark is persisting (or caching) a dataset in memory across operations. When you persist an RDD, each node stores any partitions of it that it computes in memory and reuses them in other actions on that dataset (or datasets derived from it). This allows future actions to be much faster (often by more than 10x). Caching is a key tool for iterative algorithms and fast interactive use.<br>
+Spark最为重要的特性之一就是可以在多个操作之间，把数据persisting（或caching）到内存中（在这里是executor里）。当你persist or cache一个RDD的时候，(RDD是由partition构成的)，每个节点会存储这些分区，每个节点在内存中计算这些分区的数据并在该数据集上的其他操作（或从中派生的数据集）中重用这些分区数据。这样后面的action操作会更快（通常超过10倍）。缓存是迭代算法和快速交互式使用的关键工具。</p>
+<p>You can mark an RDD to be persisted using the persist() or cache() methods on it. The first time it is computed in an action, it will be kept in memory on the nodes. Spark’s cache is fault-tolerant – if any partition of an RDD is lost, it will automatically be recomputed using the transformations that originally created it.<br>
+你可以用persist()或cache()方法将RDD标记为持久化。某个操作（Action）触发该RDD的数据第一次被计算时，它将保存在节点的内存中，计算的结果数据（也就是该RDD的数据）就会以分区的形式被缓存于计算节点的内存中。Spark的缓存是容错的 - 如果RDD的任何分区丢失，它将自动使用之前创建它的transformations重新计算，通过血缘信息（Lineage）。</p>
+<p>In addition, each persisted RDD can be stored using a different storage level, allowing you, for example, to persist the dataset on disk, persist it in memory but as serialized Java objects (to save space), replicate it across nodes. These levels are set by passing a StorageLevel object (Scala, Java, Python) to persist(). The cache() method is a shorthand for using the default storage level, which is StorageLevel.MEMORY_ONLY (store deserialized objects in memory).<br>
+此外，每个持久RDD可以使用不同的StorageLevel 进行存储，例如，允许你将数据集保存在磁盘上，保存在内存中，但作为序列化的Java对象（以节省空间），将其复制到节点上。这些级别通过传递一个 StorageLevel对象（Scala， Java， Python）来设置persist()。该cache()方法是使用默认存储级别的简写，它是StorageLevel.MEMORY_ONLY（将反序列化对象存储在内存中）。</p>
+<p>RDD的存储形式或存储介质是可以通过存储级别（Storage Level）被定义的。例如，将数据持久化到磁盘、将Java对象序列化之后（有利于节省空间）缓存至内存、开启复制（RDD的分区数据可以被备份到多个节点防止丢失）或者使用堆外内存（Tachyon）。persist()可以接收一个StorageLevel对象（Scala、Java、Python）用以定义存储级别，如果使用的是默认的存储级别（StorageLevel.MEMORY_ONLY)，Spark提供了一个便利方法：cache()。</p>
+<p>serialied序列化之后是能减少体积的，但是耗费CPU</p>
+<h2 id="举例介绍">举例介绍</h2>
+<p>执行一下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val lines = sc.textFile(&quot;hdfs://hadoop001:9000/data/wordcount.txt&quot;)</span><br><span class="line">lines: org.apache.spark.rdd.RDD[String] = hdfs://hadoop001:9000/data/wordcount.txt MapPartitionsRDD[6] at textFile at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; lines.collect</span><br><span class="line">res3: Array[String] = Array(world       world   hello, China    hello, people   person, love)</span><br></pre></td></tr></table></figure>
+<p>看一下页面上是没有的被cache的：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093259909.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>再执行一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; lines.cache</span><br><span class="line">res4: lines.type = hdfs://hadoop001:9000/data/wordcount.txt MapPartitionsRDD[6] at textFile at &lt;console&gt;:24</span><br></pre></td></tr></table></figure>
+<p>再看页面上，还是没有被cache，因为cache或persist是lazy的，和transformtion是一样的，它需要通过action才能被触发。<br>
+在上面基础上，再执行一下，含有action的，去触发它，再看页面，就有了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; lines.collect</span><br><span class="line">res5: Array[String] = Array(world       world   hello, China    hello, people   person, love)</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/2019063009335326.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093417865.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从上面可以看到，输入的是74.0B,缓存了之后变成了312.0 B,变大了。</p>
+<p>JMM：Java Memory Model<br>
+数据一致性：原子性、可见性、有序性<br>
+==&gt; volatile   i++</p>
+<p>cache和persist区别（面试经常问的）</p>
+<p>可以看相应的源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> // Persist this RDD with the default storage level (`MEMORY_ONLY`).</span><br><span class="line">def persist(): this.type = persist(StorageLevel.MEMORY_ONLY)</span><br><span class="line"></span><br><span class="line"> // Persist this RDD with the default storage level (`MEMORY_ONLY`).</span><br><span class="line">def cache(): this.type = persist()</span><br></pre></td></tr></table></figure>
+<p>可以看到cache底层调用的是persist，persist底层调用的是persist(StorageLevel.MEMORY_ONLY)(方法的重载)。</p>
+<h2 id="persist之storagelevel">persist之StorageLevel</h2>
+<p>存储级别选项如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Storage Level</th>
+<th style="text-align:center">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">MEMORY_ONLY</td>
+<td style="text-align:center">Spark将RDD作为反序列化的Java对象存储在JVM中，并不经过序列化处理。如果RDD在内存中存不下了，存不下的这些分区将不会被cache，它会在被需要的时候被重新计算。这个是默认级别。</td>
+</tr>
+<tr>
+<td style="text-align:center">MEMORY_AND_DISK</td>
+<td style="text-align:center">RDD作为反序列化的Java对象存储在JVM中，如果RDD在内存中存不下了，存不下的这些分区数据将被存储在磁盘上。当需要的时候直接从磁盘上读取。</td>
+</tr>
+<tr>
+<td style="text-align:center">MEMORY_ONLY_SER (Java and Scala)</td>
+<td style="text-align:center">将RDD进行序列化处理(每个分区序列化为一个字节数组)然后缓存在内存中。因为需要再进行序列化，会多使用CPU计算资源，但是比较省内存的存储空间。多余的RDD partitions不会缓存在内存中，而是需要重新计算。</td>
+</tr>
+<tr>
+<td style="text-align:center">MEMORY_AND_DISK_SER (Java and Scala)</td>
+<td style="text-align:center">相比于MEMORY_ONLY_SER，在内存空间不足的情况下，将序列化之后的数据存储于磁盘。</td>
+</tr>
+<tr>
+<td style="text-align:center">DISK_ONLY</td>
+<td style="text-align:center">仅仅使用磁盘存储RDD的数据（未经序列化）。</td>
+</tr>
+<tr>
+<td style="text-align:center">MEMORY_ONLY_2, etc.</td>
+<td style="text-align:center">以MEMORY_ONLY_2为例，MEMORY_ONLY_2相比于MEMORY_ONLY存储数据的方式是相同的，不同的是会将each partition备份到集群中两个不同的节点，其余情况类似。</td>
+</tr>
+<tr>
+<td style="text-align:center">OFF_HEAP (experimental)</td>
+<td style="text-align:center">与MEMORY_ONLY_SER类似，但将数据存储在 堆内存储器中。这需要启用堆堆内存。</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">源码：</span><br><span class="line">https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/storage/StorageLevel.scala</span><br></pre></td></tr></table></figure>
+<p>看一下源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">class StorageLevel private(</span><br><span class="line">    private var _useDisk: Boolean,   //是否使用磁盘</span><br><span class="line">    private var _useMemory: Boolean,   //是否使用内存</span><br><span class="line">    private var _useOffHeap: Boolean,   //是否使用Heap</span><br><span class="line">    private var _deserialized: Boolean,   //是否使用 反序列化</span><br><span class="line">    private var _replication: Int = 1)   //是否使用副本（不写就默认1）</span><br><span class="line">  extends Externalizable &#123;</span><br><span class="line">  // TODO: Also add fields for caching priority, dataset ID, and flushing.</span><br><span class="line">  private def this(flags: Int, replication: Int) &#123;</span><br><span class="line">    this((flags &amp; 8) != 0, (flags &amp; 4) != 0, (flags &amp; 2) != 0, (flags &amp; 1) != 0, replication)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>再看</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093803114.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>看页面：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630093838127.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>如何使用缓存？<br>
+定义了一个RDD lines，<br>
+可以这样使用：lines.persist(StorageLevel .MEMORY_ONLY_SER_2 )<br>
+如何去掉缓存？<br>
+lines.unpersist(true)<br>
+这样直接执行后，页面上就看不到它的缓存了，这也说明unpersist并不是lazy的，它是和action一样。</p>
+<h2 id="如何选择storage-level">如何选择Storage Level？</h2>
+<p>Spark also automatically persists some intermediate data in shuffle operations (e.g. reduceByKey), even without users calling persist. This is done to avoid recomputing the entire input if a node fails during the shuffle. We still recommend users call persist on the resulting RDD if they plan to reuse it.<br>
+即使用户没有主动使用persist，在含有shuffle的操作(比如reduceByKey)中， Spark也会自动persist缓存一些中介数据。这样做可以避免：在shuffle过程中，某个节点挂了，重新计算整个输入的数据。如果RDD的结果后面会重复使用，Spark仍然推荐用户去使用persist 或者cache去把数据缓存下来。<br>
+那么如何去选择存储级别？<br>
+实际上存储级别的选取就是Memory与CPU效率之间的双重权衡，可以参考下述内容：</p>
+<ul>
+<li>1）如果你的RDD适合默认的存储级别（MEMORY_ONLY），那么就让它们保持这种状态。这是CPU工作最为高效的一种方式，允许RDD上的操作以尽可能快的速度运行。</li>
+<li>2）如果 1）不能满足，就是说走不了 1）的话，再用 2），则尝试使用MEMORY_ONLY_SER，<a href="http://spark.apache.org/docs/latest/tuning.html" target="_blank" rel="noopener">且选择一种快速的序列化库selecting a fast serialization library</a>，以使对象更加节省空间，但访问速度仍然相当快。（Java和Scala）</li>
+<li>3）不要把数据persist或cache到磁盘，除非计算是非常“昂贵”的或者计算过程会过滤掉大量数据，因为重新计算一个分区数据的速度可能要高于从磁盘读取一个分区数据的速度；（仅仅针对于Spark core里面，只要带有存磁盘的一律不要）</li>
+<li>4）如果需要快速的失败恢复机制，则使用备份的存储级别，如MEMORY_ONLY_2、MEMORY_AND_DISK_2；虽然所有的存储级别都可以通过重新计算丢失的数据实现容错，但是备份机制使得大部分情况下应用无需中断，即数据丢失情况下，直接使用备份数据，而不需要重新计算数据的过程。（实际上生产上，是没有那么多资源给你用的，你如果副本搞个几份，得不偿失）（在这里都不需要副本，直接默认1就可以了）</li>
+<li>5）如果处于大内存或多应用的场景下，OFF_HEAP可以带来以下的好处：<br>
+a. 它允许Spark Executors可以共享Tachyon的内存数据；<br>
+b. 它很大程序上减少JVM垃圾回收带来的性能开销；<br>
+c. Spark Executors故障不会导致数据丢失。</li>
+</ul>
+<p>==综合上面，总结下来可以看出，对于Spark core里面，只要带有存磁盘的一律不要，然后都不需要副本，直接默认1就可以了，所以我们只需要考虑MEMORY_ONLY、MEMORY_ONLY_SER 这两种就可以了。==</p>
+<h2 id="去除缓存数据removing-data">去除缓存数据Removing Data</h2>
+<p>Spark automatically monitors cache usage on each node and drops out old data partitions in a least-recently-used (LRU) fashion. If you would like to manually remove an RDD instead of waiting for it to fall out of the cache, use the RDD.unpersist() method.<br>
+Spark会自动监视每个节点上的高速缓存使用情况，并以最近最少使用（LRU算法）方式删除旧数据分区数据。如果你想要手动删除RDD，而不是等待它退出缓存，请使用该RDD.unpersist()方法。<br>
+cache的数据在executor上面，当你sc.stop()后，理论上这些缓存都会消失，但是还是最好在最后加上xxx.unpersist(true)。</p>
+<h2 id="recompute重新计算">recompute重新计算</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190630094059171.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>看上图，当RDD1里面的某个分区r3挂掉了，后面的计算肯定不能继续往下走，那么就需要找到r3的父RDD的相应的分区，在这里它找到了p2，会由p2再重新计算一下得到r3，但是其他的分区不会参与计算的。再比如，如果p2也挂掉了，继续往前找，直到找到为止。<br>
+上面r3挂掉只是简单的重新计算，血缘关系比较简单。<br>
+下面介绍一下窄依赖和宽依赖。</p>
+<h2 id="窄依赖和宽依赖面试经常">窄依赖和宽依赖（面试经常）</h2>
+<p>RDD里面提供了容错机制，这是怎么体现的，不需要副本机制来容错</p>
+<p>RDD和它依赖的父RDD的关系有两种不同的类型，即窄依赖（narrow dependency）和宽依赖（wide dependency）。</p>
+<p>==窄依赖Narrow：一个父RDD的Partition只能被子RDD的某个partition使用一次。==</p>
+<p>==宽依赖Wide(shuffle)：一个父RDD的Partition会被子RDD的partition使用多次。==</p>
+<p>宽依赖存在shuffle的。</p>
+<p>如果问你join是窄依赖还是宽依赖，要分情况来说。<br>
+Lineage（血统）：RDD只支持粗粒度转换，即只记录单个块上执行的单个操作。将创建RDD的一系列Lineage（即血统）记录下来，以便恢复丢失的分区。RDD的Lineage会记录RDD的元数据信息和转换行为，当该RDD的部分分区数据丢失时，它可以根据这些信息来重新运算和恢复丢失的数据分区。<br>
+见下图，左边是窄依赖，右边是宽依赖：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630094226472.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>下图中有3个stage，A到B遇到groupBy有shuffle，拆了个stage1；<br>
+C到D，D、E到F，map、union都是窄依赖，没有shuffle，不会拆成stage。<br>
+B、F到G拆分stage3.</p>
+<p><img src="https://img-blog.csdnimg.cn/20190630094249658.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>遇到action之前，如果遇到shuffle算子，就会变成两个stage。遇到一个action会触发一个job。<br>
+一个action触发一个job，一个job由n个stage构成，一个stage由n个task构成。<br>
+并不是说一个算子就是一个task。<br>
+像上图，窄依赖中，它是以pipeline的方式运行的，一条水管子直接走到底。C中的一个partition到D中的对应的partition，再到F中的对应的那个partition，直接到底，这是一个task。一个partition是一个task。并行度 = partition数量 = task数量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">action ==&gt; Job ==&gt; n stages ==&gt; n task</span><br><span class="line"></span><br><span class="line">MR处理: 1+1+1+1</span><br><span class="line">    1+1 ==&gt; 2   读出来写到一个地方</span><br><span class="line">        2+1==&gt;3</span><br><span class="line">            3+1==&gt;4</span><br><span class="line">			</span><br><span class="line">每一步都需要落地</span><br><span class="line"></span><br><span class="line">而Spark是一个pipeline，一条水管干到底</span><br></pre></td></tr></table></figure>
+<h2 id="key-value-pairs键值对">Key-Value Pairs键值对</h2>
+<p>Spark可以对RDD做很多操作，这些RDD可以包含各种各样的类型，但是只有少部分特殊的操作只在键值对结构的RDD上可用。最常用的是含有shuffle的操作，如通过元素的 key 来进行 grouping 或 aggregating 操作。<br>
+在scala中，这些操作都是自动可用的scala包含了tuple2 RDDS（内置对象的元组的语言，由简单的写作（A，B）），键值对的操作都定义在了<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.PairRDDFunctions" target="_blank" rel="noopener">PairRDDFunctions</a>类中，该类将对元组RDD的功能进行增强。<br>
+例如，下面的代码使用的 Key-Value 对的 reduceByKey 操作统计文本文件中每一行出现了多少次:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val lines = sc.textFile(&quot;data.txt&quot;)</span><br><span class="line">val pairs = lines.map(s =&gt; (s, 1))</span><br><span class="line">val counts = pairs.reduceByKey((a, b) =&gt; a + b)</span><br><span class="line"></span><br><span class="line">//reduceByKey虽然表面上没有用PairRDDFunctions，但是底层还是调用PairRDDFunctions。  它是PairRDDFunctions.scala类里面的。有implict隐式转换的。可以跟踪一下源码。</span><br><span class="line">//面试题：reduceByKey是哪个类里面的？？？并不是RDD.scala类里面的。</span><br></pre></td></tr></table></figure>
+<p>我们也可以使用counts.sortByKey()，例如，对其进行按字母排序，最后使用counts.collect()方法收集结果数据返回到驱动程序。<br>
+注意：当你使用键值对RDD操作一个自定义的对象时，如果你重写了equals()方法也必须重写hashCode()方法。有关详情, 请参阅 Object.hashCode() documentation 中列出的约定。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/75Spark的driver理解和executor理解/" data-toggle="tooltip" data-placement="top" title="[Spark的driver理解和executor理解]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/73SparkCore之运行架构/" data-toggle="tooltip" data-placement="top" title="[SparkCore之运行架构]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd的五大特性以及五大特性在源码中的体现"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">RDD&#x7684;&#x4E94;&#x5927;&#x7279;&#x6027;&#x4EE5;&#x53CA;&#x4E94;&#x5927;&#x7279;&#x6027;&#x5728;&#x6E90;&#x7801;&#x4E2D;&#x7684;&#x4F53;&#x73B0;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#关于stage"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x5173;&#x4E8E;Stage</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#举例示范"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">&#x4E3E;&#x4F8B;&#x793A;&#x8303;&#xFF1A;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd之cachepersist"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">RDD&#x4E4B;cache(persist)</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#官网解释"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">&#x5B98;&#x7F51;&#x89E3;&#x91CA;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#举例介绍"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">&#x4E3E;&#x4F8B;&#x4ECB;&#x7ECD;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#persist之storagelevel"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">persist&#x4E4B;StorageLevel</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何选择storage-level"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">&#x5982;&#x4F55;&#x9009;&#x62E9;Storage Level&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#去除缓存数据removing-data"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">&#x53BB;&#x9664;&#x7F13;&#x5B58;&#x6570;&#x636E;Removing Data</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#recompute重新计算"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">recompute&#x91CD;&#x65B0;&#x8BA1;&#x7B97;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#窄依赖和宽依赖面试经常"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">&#x7A84;&#x4F9D;&#x8D56;&#x548C;&#x5BBD;&#x4F9D;&#x8D56;&#xFF08;&#x9762;&#x8BD5;&#x7ECF;&#x5E38;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#key-value-pairs键值对"><span class="toc-nav-number">3.8.</span> <span class="toc-nav-text">Key-Value Pairs&#x952E;&#x503C;&#x5BF9;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

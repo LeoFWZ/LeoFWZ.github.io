@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark之Monitor 官网翻译]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/80Spark之Monitor 官网翻译/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark之Monitor 官网翻译]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>翻译官网：Monitoring and Instrumentation</p>
+<p>在跑Spark作业的时候，或者半夜跑完之后第二天，你常常需要看它运行时的信息，看一下运行情况，以及根据这些信息进行调优等，那么对于Spark作业的运行时监控就显得很重要了。</p>
+<h1 id="monitoring-and-instrumentation监控和仪表化">Monitoring and Instrumentation（监控和仪表化）</h1>
+<p>有几种方法可以监控Spark应用程序：Web UI，metrics和external instrumentation。</p>
+<h2 id="1web-interfacesweb-接口">①Web Interfaces（Web 接口）</h2>
+<p>每一个SparkContext启动一个web UI用来展示应用相关的一些非常有用的信息，默认在4040端口。这些信息包括：</p>
+<ul>
+<li>task和stage调度的列表</li>
+<li>RDD大小和内存使用的概要信息</li>
+<li>环境信息</li>
+<li>正在运行的executor的信息</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20190701160655481." alt="image"></p>
+<p>你可以在浏览器中打开http://<driver-node>:4040网址来访问这些信息。如果在同一台机器上有多个SparkContext正在运行，那么他们的端口从4040开始依次增加（4041，4042等）。</driver-node></p>
+<p>这种方式有一个很严重的弊端就是这个4040 Web UI只在程序运行期间可以看，程序运行完毕后就看不了。所以就有了我们的第二种监控，spark-history-server。</p>
+<p>请注意，这些信息默认情况下仅在应用程序的生命周期内可以被访问，比如从你开始启动Spark Context，一直到sc.stop()停掉这个时间范围内可访问。 如果你想在sc.stop()后，就是你的Spark应用程序停掉后，还去访问 web UI ，那么就要在启动应用程序之前，把 spark.eventLog.enabled 这个参数设置成true。用这种方式来配置spark来记录spark事件，这些事件将UI中显示的信息编码为持久存储。</p>
+<h2 id="2viewing-after-the-fact通过history-server">②Viewing After the Fact(通过history server)</h2>
+<p>程序关闭后查看日志</p>
+<p>假定Spark 应用程序事件日志存在，仍然可以通过Spark的 history server来构建Spark 应用程序的UI。你可以通过执行命令来启动history server：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./sbin/start-history-server.sh</span><br></pre></td></tr></table></figure>
+<p>默认情况下，它会在http://<server-url>:18080这个地址上创建一个web接口，这个web接口，列举了未完成的和已完成的应用程序和尝试。</server-url></p>
+<p>使用文件系统提供程序类时（请参阅下面的spark.history.provider），必须在spark.history.fs.logDirectory配置选项中提供基本日志记录目录，并且应包含每个代表应用程序事件日志的子目录。</p>
+<p>The spark jobs themselves must be configured to log events, and to log them to the same shared, writable directory. For example, if the server was configured with a log directory of hdfs://namenode/shared/spark-logs, then the client-side options would be:</p>
+<p>必须去配置spark作业本身去记录事件，并将事件记录到同一个共享的可写目录中。 例如，如果服务器配置了 hdfs://namenode/shared/spark-logs的日志目录，那么客户端选项将是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">spark.eventLog.enabled true</span><br><span class="line">spark.eventLog.dir hdfs://namenode/shared/spark-logs</span><br></pre></td></tr></table></figure>
+<p>就是说先会将Spark Application信息写入到spark.eventLog.dir目录下，然后spark-history-server会去这个目录把日志信息渲染到Web UI供开发人员查看。</p>
+<p>history server可以按如下参数去配置：</p>
+<h2 id="environment-variables环境变量">Environment Variables(环境变量)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">环境变量</th>
+<th style="text-align:center">意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">SPARK_DAEMON_MEMORY</td>
+<td style="text-align:center">分配给history server的内存(默认1G)</td>
+</tr>
+<tr>
+<td style="text-align:center">SPARK_DAEMON_JAVA_OPTS</td>
+<td style="text-align:center">history server的JVM选项(默认值：none)</td>
+</tr>
+<tr>
+<td style="text-align:center">SPARK_DAEMON_CLASSPATH</td>
+<td style="text-align:center">history server的Classpath (默认值：none)</td>
+</tr>
+<tr>
+<td style="text-align:center">SPARK_PUBLIC_DNS</td>
+<td style="text-align:center">history server的公共地址，如果没有设置，则指向应用程序历史记录的链接可能只能使用history server的内部地址，从而导致链接断开(默认值：none)</td>
+</tr>
+<tr>
+<td style="text-align:center">SPARK_HISTORY_OPTS</td>
+<td style="text-align:center">对于history server而言的spark.history.* 配置选项 (默认: none).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spark-history-server-configuration-options配置选项">Spark History Server Configuration Options(配置选项)</h2>
+<p>这些配置在Spark-env.sh中配。</p>
+<p>下面只列了部分属性。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">属性名称</th>
+<th style="text-align:center">默认值</th>
+<th style="text-align:center">意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">spark.history.provider</td>
+<td style="text-align:center">org.apache.spark.deploy.history.FsHistoryProvider</td>
+<td style="text-align:center">实现应用程序历史后端的类的名称。 目前，Spark只提供了一个实现，用于查找存储在文件系统中的应用程序日志。</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.fs.logDirectory</td>
+<td style="text-align:center">file:/tmp/spark-events</td>
+<td style="text-align:center">对于文件系统历史记录提供程序，包含要加载的应用程序事件日志的目录的URL。 这可以是本地file：//路径，HDFS路径hdfs：// namenode / shared / spark-logs或Hadoop API支持的备用文件系统。</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.fs.update.interval</td>
+<td style="text-align:center">10s</td>
+<td style="text-align:center">文件系统历史记录提供程序检查日志目录中的新日志或更新日志的时间段。 较短的间隔可以更快地检测新应用程序，代价是更多服务器负载重新读取更新的应用程序。 更新完成后，已完成和未完成的应用程序列表将反映更改。</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.retainedApplications</td>
+<td style="text-align:center">50</td>
+<td style="text-align:center">保留缓存中UI数据的应用程序数。 如果超过此上限，则将从缓存中删除最旧的应用程序。 如果应用程序不在缓存中，则必须从磁盘加载它（如果从UI访问）。</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.ui.port</td>
+<td style="text-align:center">18080</td>
+<td style="text-align:center">history server 的Web界面绑定的端口</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.fs.cleaner.enabled</td>
+<td style="text-align:center">false</td>
+<td style="text-align:center">是否周期性的删除storage中的event log(生产必定是true)</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.fs.cleaner.interval</td>
+<td style="text-align:center">1d</td>
+<td style="text-align:center">多久删除一次</td>
+</tr>
+<tr>
+<td style="text-align:center">spark.history.fs.cleaner.maxAge</td>
+<td style="text-align:center">7d</td>
+<td style="text-align:center">每次删除多久的event log，配合上一个参数就是每天删除前七天的数据</td>
+</tr>
+</tbody>
+</table>
+<p>注意，在所有这些web接口可以通过点击“表头”来对这些表格进行排序。这使得鉴别运行速度慢的任务、判别数据倾斜等很容易。</p>
+<p>注意事项：</p>
+<ul>
+<li>1.history server对于已完成和未完成的Spark作业都会展示出来。 如果应用程序在失败后进行多次尝试，失败后的尝试将会被展示出来，以及任何正在进行的未完成尝试或最终成功尝试也会被展示出来。</li>
+<li>2.不完整的应用程序仅间歇性更新。更新间隔的时间由检查被更改文件（spark.history.fs.update.interval）的间隔定义。 在较大的集群上，可以将更新间隔设置为较大的值。 查看正在运行的应用程序的方法实际上是查看自己的Web UI。</li>
+<li>3.如果应用程序退出时未将自己注册为已完成，则将被列为未完成-即使它们不再运行。如果应用程序崩溃，就会发生这种情况。</li>
+<li>4.Spark作业完成的信号的一种方法是显式停止Spark Context ( sc.stop() )，或者在python中使用with SparkContext() as sc: construct来处理Spark Context 的设置和关闭。</li>
+</ul>
+<h2 id="3rest-api">③REST API</h2>
+<p>如果公司有自己的监控平台，想获取到Spark Application日志信息到平台展示可以通过REST API。这是通过rest ful请求的方式来获取spark的作业的信息，通过这种方式我们可以构建我们自己web界面。</p>
+<p>除了在UI界面中查看指标外，它们还可以<strong>以JSON格式</strong>的方式来提供使用。 <strong>这为开发人员提供了一种为Spark创建新的可视化和监视工具的简便方法。</strong> JSON既可用于正在运行的应用程序，也可用于历史记录服务。</p>
+<p>端点安装在/api/v1。 例如，对于历史服务器，它们通常可以在http://<server-url>:18080/api/v1访问，对于正在运行的应用程序，可以在http://localhost:4040/api/v1访问。</server-url></p>
+<p>在这个REST API中，应用程序由其application ID[app-id]引用。当在yarn上运行时，每个应用程序可能有多次尝试，但只有cluster 模式下的应用程序才有attempt ID，在client模式下的应用程序没有attempt ID。可以通过[attempt-id]来识别YARN cluster 模式中的应用程序。在下面列出的API中，当在YARN cluster 模式下运行时，[app-id]实际上是[base-app-id] / [attempt-id]，其中[base-app-id]是YARN application ID。</p>
+<p>具体API列表，这里不列了，需要去看官网。</p>
+<p>举几个例子说明一下如何使用：</p>
+<ul>
+<li>获取所有的application的信息:<a href="http://ip:18080/api/v1/applications" target="_blank" rel="noopener">http://ip:18080/api/v1/applications</a></li>
+<li>获取正在跑或者完成的application <a href="http://ip:18080/api/v1/applications/?status=running" target="_blank" rel="noopener">http://ip:18080/api/v1/applications/?status=running</a><br>
+<a href="http://ip:18080/api/v1/applications/?status=completed" target="_blank" rel="noopener">http://ip:18080/api/v1/applications/?status=completed</a></li>
+<li>只获取1条application:<a href="http://hadoop000:18080/api/v1/applications/?limit=1;" target="_blank" rel="noopener">http://hadoop000:18080/api/v1/applications/?limit=1;</a><br>
+获取某一具体的application:<a href="http://hadoop000:18080/api/v1/applications/local-1678247925731" target="_blank" rel="noopener">http://hadoop000:18080/api/v1/applications/local-1678247925731</a></li>
+</ul>
+<p>可以检索的job和stage的数量受standalone Spark UI的相同保留机制的限制；“spark.ui.retainedjobs”定义了触发关于job的垃圾收集（garbage collection 简称GC）的阈值，&quot;spark.ui.retainedstages&quot;定义了触发关于stage的垃圾收集的阈值。意思就是达到了这个阈值就进行垃圾回收。请注意，垃圾收集是在回放时进行的：通过增大这些值并重新启动history server，可以检索更多条目。</p>
+<h2 id="executor-task-metrics了解">Executor Task Metrics（了解）</h2>
+<p>The REST API exposes the values of the Task Metrics collected by Spark executors with the granularity of task execution. The metrics can be used for performance troubleshooting and workload characterization. A list of the available metrics, with a short description:</p>
+<p>REST API 以任务执行的粒度 暴露了Task Metrics的值，Task Metrics它是由Spark executors收集的。这些指标可用于性能故障排除和工作负载描述。</p>
+<p>可用指标的比如：executorRunTime、executorCpuTime、jvmGCTime等等，这里不进行描述，请看官网。</p>
+<h2 id="api-versioning-policyapi-版本策略了解">API Versioning Policy（API 版本策略）（了解）</h2>
+<p>这些终端经过了强大的版本控制，可以更轻松地开发应用程序。 尤其是Spark：</p>
+<ul>
+<li>不会从一个版本中移除端点</li>
+<li>对于任何给定的端点，永远不会删除单个字段</li>
+<li>可以添加新的端点</li>
+<li>可以将新字段添加到现有端点</li>
+<li>可以在将来添加新版本的api作为单独的端点（例如，api / v2）</li>
+<li>新版本不需要向后兼容</li>
+<li>Api版本可能会被删除，但只有在至少一个与新api版本共存的次要版本之后</li>
+</ul>
+<p>请注意，即使在检查正在运行的应用程序的UI时，仍然需要 applications / [app-id]部分，尽管只有一个应用程序可用。 例如， 要查看正在运行的应用程序的作业列表，您可以访问http://localhost:4040/api/v1/applications/[app-id]/jobs。 这是为了在两种模式下保持路径一致。</p>
+<h2 id="4metrics了解">④Metrics（了解）</h2>
+<p>此方式基本用不到，除非对spark研究很深的人才才可能会用。</p>
+<p>Spark基于<a href="https://metrics.dropwizard.io/4.0.0/" target="_blank" rel="noopener">Coda Hale Metrics</a>库提供一个可配置的 metrics system指标系统。这允许用户向不同的终端发送Spark指标信息，包括HTTP、JMX和CSV文件。指标系统可以通过配置文件来进行配置，Spark默认将配置文件保存在$SPARK_HOME/conf/metrics.properties。一个自定义文件路径可以通过 spark.metrics.conf 这个配置属性来指定。默认情况下，用于driver 或 executor metrics 的root namespace是spark.app.id的值。然而，通常情况下，用户希望能够在驱动程序和执行器的应用程序之间跟踪指标，这对于application ID（<a href="http://xn--spark-k97h.app.id" target="_blank" rel="noopener">即spark.app.id</a>）来说很难做到，因为它会随着应用程序的每次调用而改变。对于此类用例，可以使用spark.metrics.namespace配置属性为指标报告指定自定义命名空间。例如，如果用户希望将metrics命名空间设置为应用程序的名称，则可以将 spark.metrics.namespace属性设置为类似于${<a href="http://spark.app.name" target="_blank" rel="noopener">spark.app.name</a>}的值。然后，spark适当地扩展该值，并将其用作指标系统的root namespace。Non-driver and executor metrics从不以spark.app.id作为前缀，spark.metrics.namespace属性也不会对此类指标产生任何此类影响。</p>
+<p>因为基本用不到这个，这里不再介绍，请看官网。</p>
+<h2 id="5advanced-instrumentation了解">⑤Advanced Instrumentation（了解）</h2>
+<p>高级的仪器</p>
+<p>有几个外部工具可用来分析Spark作业的性能：</p>
+<ul>
+<li>集群范围的监控工具，比如 Ganglia，可以洞察整个集群的利用率和资源瓶颈。例如，Ganglia仪表盘可以迅速揭示出某个特定载荷是磁盘相关，网络相关，还是CPU相关的。</li>
+<li>OS性能分析工具，比如 dstat, iostat,和 iotop， 可以提供各个节点的细粒度的分析。</li>
+<li>VM工具，比如 jstack提供了堆栈跟踪，jmap提供了创建堆转储，jstat提供了时间序列统计报告，还有jconsole提供了各种JVM属性的视觉显示，它们对JVM内部构件的舒适运作都是非常有用的。</li>
+</ul>
+<p>另外基于ES的监控可参考：<br>
+<a href="https://tech.meituan.com/2016/11/04/spark-streaming-es.html" target="_blank" rel="noopener">Spark Streaming + Elasticsearch构建App异常监控平台</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/81Spark-Core之调优/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之调优]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/79Spark Shuffle operations-官网翻译/" data-toggle="tooltip" data-placement="top" title="[Spark Shuffle operations-官网翻译]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#monitoring-and-instrumentation监控和仪表化"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Monitoring and Instrumentation&#xFF08;&#x76D1;&#x63A7;&#x548C;&#x4EEA;&#x8868;&#x5316;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1web-interfacesweb-接口"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">&#x2460;Web Interfaces&#xFF08;Web &#x63A5;&#x53E3;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2viewing-after-the-fact通过history-server"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">&#x2461;Viewing After the Fact(&#x901A;&#x8FC7;history server)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#environment-variables环境变量"><span class="toc-nav-number">1.3.</span> <span class="toc-nav-text">Environment Variables(&#x73AF;&#x5883;&#x53D8;&#x91CF;)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-history-server-configuration-options配置选项"><span class="toc-nav-number">1.4.</span> <span class="toc-nav-text">Spark History Server Configuration Options(&#x914D;&#x7F6E;&#x9009;&#x9879;)</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3rest-api"><span class="toc-nav-number">1.5.</span> <span class="toc-nav-text">&#x2462;REST API</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#executor-task-metrics了解"><span class="toc-nav-number">1.6.</span> <span class="toc-nav-text">Executor Task Metrics&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#api-versioning-policyapi-版本策略了解"><span class="toc-nav-number">1.7.</span> <span class="toc-nav-text">API Versioning Policy&#xFF08;API &#x7248;&#x672C;&#x7B56;&#x7565;&#xFF09;&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4metrics了解"><span class="toc-nav-number">1.8.</span> <span class="toc-nav-text">&#x2463;Metrics&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5advanced-instrumentation了解"><span class="toc-nav-number">1.9.</span> <span class="toc-nav-text">&#x2464;Advanced Instrumentation&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

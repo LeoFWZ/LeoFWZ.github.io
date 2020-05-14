@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Scala语法（二）]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/58Scala语法（二）/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                            
+                        </div>
+                        <h1>[Scala语法（二）]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-06-12
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>1.父类和子类的继承关系</p>
+<p>new 子类() 会先触发 new 父类()</p>
+<p>子类 extends 父类</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedate.bigdata.scala03</span><br><span class="line"></span><br><span class="line">object ExtendsApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line"></span><br><span class="line">    //new 子类 ==》会先触发new 父类</span><br><span class="line">    val youngPerson = new YoungPerson(&quot;dashu&quot;,&quot;beijing&quot;,200.0f)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">class YoungPerson(name:String,city:String,money:Float)</span><br><span class="line">  extends Person(name,city)&#123;             //定义一个子类YoungPerson，继承的是父类Person</span><br><span class="line">  println(&quot;YoungPerson enter....&quot;)</span><br><span class="line"></span><br><span class="line">  println(&quot;YoungPerson leave....&quot;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Person(val name:String,val city:String) &#123;   //父类 （这是主构造器）</span><br><span class="line">  println(&quot;person enter....&quot;)</span><br><span class="line">  var age:Int =_</span><br><span class="line"></span><br><span class="line">  //附属构造器 第一行必须要调用主构造器或者其他附属构造器</span><br><span class="line">  def this(name:String,city:String,age:Int)&#123;</span><br><span class="line">    this(name,city)</span><br><span class="line">    this.age = age</span><br><span class="line">  &#125;</span><br><span class="line">  println(&quot;person leave....&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">YoungPerson enter....</span><br><span class="line">YoungPerson leave....</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>由此可知，new 子类() 会先触发 new 父类() ,所以从上面输出结果可以看出，先跑了父类的构造器，再跑了子类的构造器。</p>
+<p>2.子类重写父类的方法</p>
+<p>Animal : eat</p>
+<p>Dog eat</p>
+<p>Cat eat</p>
+<p>Pig eat</p>
+<p>父类Animal定义了一个 吃<br>
+但子类 每个具体动物 吃的东西不一样，所以需要去重写父类的吃的方法。<br>
+重写：父类有一个方法，子类中也有一个一样的方法。<br>
+override 用来在子类中重写父类的方法或者属性。<br>
+调用的时候，默认走的是父类的方法，如果子类重写了，那么调用的就是子类的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedate.bigdata.scala03</span><br><span class="line"></span><br><span class="line">object ExtendsApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val youngperson = new YoungPerson(&quot;dashu&quot;,&quot;beijing&quot;,200.0f)</span><br><span class="line"></span><br><span class="line">    //重要：默认走的是父类的方法，如果子类重写了，那么调用的就是子类的方法</span><br><span class="line">    println(youngperson.toString())</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class YoungPerson(name:String,city:String,money:Float)</span><br><span class="line">  extends Person(name,city)&#123;</span><br><span class="line">  println(&quot;YoungPerson enter....&quot;)</span><br><span class="line"></span><br><span class="line">  //在子类中写一个方法</span><br><span class="line">  override def toString() = &quot;toString......&quot;</span><br><span class="line"></span><br><span class="line">  //发现这个方法报错了，原因时因为 Object类中有toString方法</span><br><span class="line">  //所以我们必须要在前面加一个修饰词：override（表示重写方法）</span><br><span class="line"></span><br><span class="line">  println(&quot;YoungPerson leave....&quot;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Person(val name:String,val city:String)&#123;   //父类</span><br><span class="line">  println(&quot;person enter....&quot;)</span><br><span class="line">  var age:Int =_</span><br><span class="line"></span><br><span class="line">  //附属构造器 第一行必须要调用主构造器或者其他附属构造器</span><br><span class="line">  def this(name:String,city:String,age:Int)&#123;</span><br><span class="line">    this(name,city)</span><br><span class="line">    this.age = age</span><br><span class="line">  &#125;</span><br><span class="line">  println(&quot;person leave....&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">YoungPerson enter....</span><br><span class="line">YoungPerson leave....</span><br><span class="line">toString......</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>在父类中并没有找到toString方法，Java最顶层是object，它里面就有toString方法。<br>
+如果把 override def toString() = “toString…” 这句话注释掉，那么在main方法中就会调用父类的方法，这里调用的是object的方法。注释掉这一行之后，运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">person enter....</span><br><span class="line">person leave....</span><br><span class="line">YoungPerson enter....</span><br><span class="line">YoungPerson leave....</span><br><span class="line">com.ruozedate.bigdata.scala03.YoungPerson@6cc4c815</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>object中的toString方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public String toString() &#123;</span><br><span class="line">      return getClass().getName() + &quot;@&quot; + Integer.toHexString(hashCode());</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>一般在框架中，都是定义一些接口，或者抽象类，并没有写具体的实现，具体的实现都是在子类中去实现。这样对于一个框架来说非常容易扩展。</p>
+<p>3.抽象类 abstract</p>
+<p>用关键字abstract修饰：</p>
+<ul>
+<li>Class function 没有具体的实现</li>
+<li>抽象类不能直接new，而是通过子类（不能还是抽象的）来new</li>
+</ul>
+<p>除了以上两个特点，抽象类和普通的类基本上没有什么区别，该做什么就做什么。</p>
+<p>比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 抽象类 没有方法体</span><br><span class="line">//抽象类不能 new实例，但是可以通过子类来new，但是子类不能是抽象类</span><br><span class="line">abstract class A&#123;</span><br><span class="line">  val name:String</span><br><span class="line">  def Abstract()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>抽象类定义和使用举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">object AbstractApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val a = new(B)</span><br><span class="line">    a.speak()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">abstract class A&#123;</span><br><span class="line">  def speak()</span><br><span class="line">  val name:String</span><br><span class="line">&#125;</span><br><span class="line">class B extends A &#123;     //B继承A，并具体实现A，包括属性和方法</span><br><span class="line">  override def speak(): Unit = &#123;</span><br><span class="line">    println(&quot;B speak.....&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  val name = &quot;xiaoming&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>4.trait （类似Java中的接口）</p>
+<p>Scala中的trait：基本上可以等同于Java中的接口<br>
+trait和抽象类一样，也不能new的</p>
+<p>如果D是trait，C来继承它，可以这样写：<br>
+class C extends D 在Scala中第一个继承用extends，后面再继承的话都用with</p>
+<p>如果D是trait，A是类，C来继承它，可以这样写：<br>
+class C extends A with D<br>
+但是不能这样写：<br>
+class C extends D with A //类写在前面，trait写在后面</p>
+<p>extends后面跟的一定是抽象类吗？不是，也可以是trait<br>
+但是with后面跟的都是trait</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">trait和abstract 一样，不能new实例，没有方法体。</span><br><span class="line">如果既想继承 abstract又想继承trait，</span><br><span class="line"></span><br><span class="line">//第一个必须要用 extend</span><br><span class="line">class 类名 extend （abstract类名）with（trait类名）</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">abstract class A&#123;</span><br><span class="line">  def speak()</span><br><span class="line">  val name:String</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class B extends A &#123;</span><br><span class="line">  override def speak(): Unit = &#123;</span><br><span class="line">    println(&quot;B speak.....&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  val name = &quot;xiaoming&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">trait C&#123;    //定义一个trait</span><br><span class="line">  def c()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class D extends A with C &#123;</span><br><span class="line">  override def c(): Unit = &#123;</span><br><span class="line">    println(&quot;D jicheng C&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  override def speak(): Unit = &#123;</span><br><span class="line">    println(&quot;D extends A&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  override val name: String = _</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>5.高阶函数</p>
+<p>首先了解一下map<br>
+map可以理解为映射，就像曾经学的y = f(x) 这样的函数一样，x作用于函数f，结果变成了y。<br>
+如果对一个集合内的每个元素都做一个相同的操作，就可以理解为映射。<br>
+f:Int =&gt; B 这个Int指的是集合里面元素的类型</p>
+<p>现在来看一个例子：<br>
+现在有一个集合：l 里面有9个元素1~9</p>
+<p><img src="https://img-blog.csdnimg.cn/20190507164424503.png" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">  </span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)     //这里暂时先把 l 理解为一个集合，里面有9个元素1~9</span><br><span class="line">    </span><br><span class="line">    println(  l.map((x:Int) =&gt; x*2)  )</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在来看这行代码：l.map((x:Int) =&gt; x<em>2)<br>
+map 是对 l 集合里面的每个元素进行操作<br>
+(x:Int) 这个就是集合里面的每个元素 x这个名字可以随便写，Int这个指的是集合里元素的类型 (x:Int) 这个就是函数的入参 （就和 y = f(x) 这样的函数一样x是入参）<br>
+然后把入参(x:Int) 就是每一个元素 把它变成 x</em>2这个元素 就是每个元素乘以2</p>
+<p>其实我感觉 l.map((x:Int) =&gt; x2) 这个就是使用map这个函数，对立面的每个元素，进行操作，操作是x2，操作完成后，拿出来就是乘以2的结果了。</p>
+<p>上面运行的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List(2, 4, 6, 8, 10, 12, 14, 16, 18)</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>然后再看这个代码：l.map((x:Int) =&gt; x<em>2)<br>
+其实那个Int类型 Scala是可以自动推导出来的，<br>
+所以可以这样写：l.map((x) =&gt; x</em>2)<br>
+然后x的括号也可以去掉，所以可以这样写：<br>
+l.map(x =&gt; x*2) //可以很明显的看出来，是把里面的元素每个都乘以2<br>
+然后 还可以这样写：*l.map(_2)<br>
+这个下划线表示 l 集合里面的每一个元素<br>
+所以就可以这样了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line">    println(  l.map(_*2)  )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在如果要求筛选出集合里面大于10的元素，如何筛选？<br>
+有个函数： filter(p: A =&gt; Boolean) 进来一个A，出来一个布尔型<br>
+比如进来一个 100，出来一个 100&gt;0 ，100&gt;0 的结果是true，那么结果就是true</p>
+<p>源码里面对这个filter函数的描述是：Selects all elements of this $coll which satisfy a predicate 选择集合里面满足条件的元素</p>
+<p>所以就可以这样筛选了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">l.map(_*2).filter(_ &gt; 10)</span><br></pre></td></tr></table></figure>
+<p>这个其实就是链式编程<br>
+先用map对l集合里面的没个元素乘以2，然后再用filter对前面的结果进行筛选，大于10的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line">    println(  l.map(_*2)  )</span><br><span class="line">    println(  l.map(_*2).filter(_ &gt; 10)  )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出的结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List(2, 4, 6, 8, 10, 12, 14, 16, 18)</span><br><span class="line">List(12, 14, 16, 18)</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>现在如果再进行筛选，取集合里前面2个元素呢？<br>
+有个 take(n: Int) 函数，就是取集合里面前n个元素。<br>
+所以：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line">    //println(  l.map((x:Int) =&gt; x*2)  )</span><br><span class="line">    println(  l.map(_*2)  )</span><br><span class="line">    println(  l.map(_*2).filter(_ &gt; 10)  )</span><br><span class="line">    println(  l.map(_*2).filter(_ &gt; 10).take(2)  )    //take</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List(2, 4, 6, 8, 10, 12, 14, 16, 18)</span><br><span class="line">List(12, 14, 16, 18)</span><br><span class="line">List(12, 14)</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>那现在如果求两两相邻的数字加起来，求和，如何写？<br>
+List(1,2,3,4,5,6,7,8,9)<br>
+1+2+3+4+5+6+7+8+9=？<br>
+实现：<br>
+1+2=3<br>
+3+3=6<br>
+6+4=10<br>
+10+5=15<br>
+…<br>
+Scala中，两两操作，比如两两相加，可以借助于reduce这个函数。<br>
+reduce(op: (A1, A1) =&gt; A1) 进去两个值，进行一番操作后，出来一个值</p>
+<p>相加的话就可以这样写了，</p>
+<p>l.reduce( (x:Int,y:Int) =&gt; x+y) 进去x y 出来 x+y<br>
+在这基础上，可以简写：<br>
+l.reduce(_ + _)</p>
+<p>再举例：<br>
+这个函数 l.reduceLeft((x:Int,y:Int) =&gt; x-y)<br>
+进行扩展之后可以这样：</p>
+<p>l.reduceLeft((x:Int,y:Int) =&gt; {<br>
+println(x + “,” + y)<br>
+x-y<br>
+})</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line"></span><br><span class="line">    //l.reduceLeft((x:Int,y:Int) =&gt; x-y)</span><br><span class="line">    l.reduceLeft((x:Int,y:Int) =&gt; &#123;</span><br><span class="line">      println(x + &quot;,&quot; + y)</span><br><span class="line">      x-y</span><br><span class="line">    &#125;)</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1,2</span><br><span class="line">-1,3</span><br><span class="line">-4,4</span><br><span class="line">-8,5</span><br><span class="line">-13,6</span><br><span class="line">-19,7</span><br><span class="line">-26,8</span><br><span class="line">-34,9</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>再看一个函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">def fold[A1 &gt;: A](z: A1)(op: (A1, A1) =&gt; A1): A1 = foldLeft(z)(op)</span><br></pre></td></tr></table></figure>
+<p>使用： l.fold(10)((x:Int,y:Int) =&gt; x-y)<br>
+有两个括号 两个参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">object FunctionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line">    </span><br><span class="line">    l.fold(10)((x:Int,y:Int) =&gt; &#123;</span><br><span class="line">            println(x + &quot;,&quot; + y)</span><br><span class="line">            x+y</span><br><span class="line">          &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">10,1</span><br><span class="line">11,2</span><br><span class="line">13,3</span><br><span class="line">16,4</span><br><span class="line">20,5</span><br><span class="line">25,6</span><br><span class="line">31,7</span><br><span class="line">38,8</span><br><span class="line">46,9</span><br><span class="line"></span><br><span class="line">Process finished with exit code 0</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出，给了它一个初始值10，从10开始相加的。</p>
+<p>另外对于集合 val l = List(1,2,3,4,5,6,7,8,9)<br>
+可以直接这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val l = List(1,2,3,4,5,6,7,8,9)</span><br><span class="line">l: List[Int] = List(1, 2, 3, 4, 5, 6, 7, 8, 9)</span><br><span class="line"></span><br><span class="line">scala&gt; l.max</span><br><span class="line">res0: Int = 9</span><br><span class="line"></span><br><span class="line">scala&gt; l.min</span><br><span class="line">res1: Int = 1</span><br><span class="line"></span><br><span class="line">scala&gt; l.sum</span><br><span class="line">res2: Int = 45</span><br><span class="line"></span><br><span class="line">scala&gt; l.count(_ &gt;3)</span><br><span class="line">res3: Int = 6</span><br><span class="line"></span><br><span class="line">scala&gt;</span><br></pre></td></tr></table></figure>
+<p>高阶函数  --补充</p>
+<p>spark中Scala写的WordCount源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/HdfsWordCount.scala</span><br></pre></td></tr></table></figure>
+<p>这个复杂一些：<br>
+List里面套 List：<br>
+val a = List(List(1,2),List(3,4),List(5,6),List(7,8))</p>
+<p>再调用a.flatten 这个，效果如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190507181529106.png" alt="image"></p>
+<p>然后</p>
+<p><img src="https://img-blog.csdnimg.cn/20190507181754108.png" alt="image"></p>
+<p>下面看这个函数：flatMap<br>
+flatMap ==等价于 flatten + map</p>
+<p>val a = List(List(1,2),List(3,4),List(5,6),List(7,8))</p>
+<p>a.flatMap(<em>.map(</em>*2))<br>
+_下划线 表示里面每个元素，每个元素都是一个List，先压扁，然后每个元素乘以2<br>
+效果如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190507182216325.png" alt="image"></p>
+<p>6.WordCount</p>
+<p>现在假如有个List，这个List叫做line，List里面还是List</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#line=</span><br><span class="line">hello  hello  world</span><br><span class="line">count china</span><br><span class="line">hello  count</span><br><span class="line">love</span><br></pre></td></tr></table></figure>
+<p>val words = lines.flatMap(_.split(&quot; &quot;))<br>
+表示先把它压扁，压扁之后，按照空格进行分割，<br>
+这个操作之后变成这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#words =</span><br><span class="line">hello hello world count china hello count love</span><br></pre></td></tr></table></figure>
+<p>words.map(x =&gt; (x, 1))<br>
+这个是对里面元素，每个元素赋上一个1，<br>
+变成了这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(hello,1) (hello,1) (world,1) (count,1) (china,1) (hello,1) (count,1) (love,1)</span><br></pre></td></tr></table></figure>
+<p>备注：做reduce的时候，入参是（key,&lt;1,1,1…&gt;）,<br>
+按照上面就是reduce(hello,&lt;1,1,1&gt;) 输出的结果是 (hello,3)</p>
+<p>reduceByKey(_ + _) 这个是根据相同的key进行相加求和</p>
+<p>所以：<br>
+val wordCounts = words.map(x =&gt; (x, 1)).reduceByKey(_ + _)<br>
+输出结果就是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(hello,4)  (world,1) (count,2) (china,1)(love,1)</span><br></pre></td></tr></table></figure>
+<p>以上只是简单分析一下，后面还要详细进行分析。</p>
+<p>7.MySQL JDBC编程</p>
+<p>1)步骤<br>
+<img src="https://s2.ax1x.com/2019/04/26/EmEvFJ.png" alt="image"><br>
+2）编程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">//生产上很少用这种方法，都是借助于框架实现的</span><br><span class="line">object Jdbc &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">      </span><br><span class="line">      //Class.forName(&quot;com.mysql.jdbc.Driver&quot;)   这个时java中加载驱动的方法</span><br><span class="line">      </span><br><span class="line">  生产上需要加： classOf[com.mysql.jdbc.Driver]   //scala 中建议这么写</span><br><span class="line">      </span><br><span class="line">      </span><br><span class="line">    val url=&quot;jdbc:mysql://192.168.137.130:3306/test?characterEncoding=UTF-8&quot;</span><br><span class="line">    val user=&quot;root&quot;</span><br><span class="line">    val pass=&quot;123456&quot;</span><br><span class="line">    val sql=&quot;select * from user&quot;</span><br><span class="line">    //通过连接池获取连接</span><br><span class="line">    val connection=DriverManager.getConnection(url,user,pass);</span><br><span class="line">    val statment=connection.createStatement()</span><br><span class="line">        //通过statment来拿到一个结果集</span><br><span class="line">   val rs= statment.executeQuery(sql)//执行一个sql语句</span><br><span class="line">           </span><br><span class="line">      while(rs.next())&#123;      //判断下一个是否有结果，有就输出出来</span><br><span class="line">      var a=rs.getInt(&quot;id&quot;)</span><br><span class="line">      var b=rs.getString(&quot;name&quot;)</span><br><span class="line">      var c=rs.getInt(&quot;age&quot;)</span><br><span class="line">      println(a+&quot;====&quot;+b+&quot;====&quot;+c)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">结果：</span><br><span class="line">1====xiaoqiang====25</span><br><span class="line">2====xiaogong====18</span><br><span class="line">3====lizi====15</span><br><span class="line">4====mingren====20</span><br><span class="line">5====zuozhu====38</span><br><span class="line">6====qiya====30</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/59Scala去操作MySQL数据库/" data-toggle="tooltip" data-placement="top" title="[Scala去操作MySQL数据库]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/57Scala语法（一）/" data-toggle="tooltip" data-placement="top" title="[初识Scala]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

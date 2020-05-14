@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark Streaming整合Kafaka]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/96Spark Streaming整合Kafaka/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Kafka" title="Kafka">Kafka</a>
+                            
+                        </div>
+                        <h1>[Spark Streaming整合Kafaka]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-30
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="kafka版本选择">Kafka版本选择</h1>
+<p>Kafka属于Spark Streaming中的高级Sources。<br>
+Kafka：Spark Streaming 2.4.3与Kafka broker版本0.8.2.1或更高版本兼容，跟0.8.2.1之前的版本是不兼容的。详情请看<a href="http://spark.apache.org/docs/latest/streaming-kafka-integration.html" target="_blank" rel="noopener">Kafka Integration Guide</a>。</p>
+<p>Apache Kafka is publish-subscribe messaging rethought as a distributed, partitioned, replicated commit log service.</p>
+<p>Apache Kafka 是一个高吞吐量分布式消息系统，由LinkedIn开源。Apache Kafka 是发布-订阅机制的消息传递系统，可以认为具有分布式、分区、复制的日志提交功能的服务。</p>
+<p>Kafka项目在0.8和0.10版本之间引入了一个新的消费者API，因此有两个独立的相关的Spark Streaming packages可用。请根据你的brokers 和所需功能选择正确的package；请注意，0.8集成与 后面的0.9和0.10 的brokers兼容，但0.10集成与之前的brokers是不兼容的。</p>
+<p>Note: Kafka 0.8 support is deprecated as of Spark 2.3.0.</p>
+<p>请注意：在Spark 2.3.0版本，Kafka 0.8 被标记为过时。标记为过时的，在以后有可能会直接不用了，只是现在还保留。<br>
+如果生产上是0.8版本，请看<a href="http://spark.apache.org/docs/latest/streaming-kafka-0-8-integration.html" target="_blank" rel="noopener">spark-streaming-kafka-0-8</a>（0.8及以上版本到0.10以下版本）</p>
+<p>如果生产上是0.10版本，请看<a href="http://spark.apache.org/docs/latest/streaming-kafka-0-8-integration.html" target="_blank" rel="noopener">spark-streaming-kafka-0-10</a><br>
+（0.10及以上版本）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730180411161.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从上面可以看出来，</p>
+<p>spark-streaming-kafka-0-8支持0.8.2.1的Broker Version以及更高版本，而spark-streaming-kafka-0-10支持的是0.10.0的Broker Version以及更高版本。所以0.10.0版本之前的Broker Version只能使用spark-streaming-kafka-0-8。<br>
+Receiver DStream是个很古老的东西，在0.10.0以及没有了，只有一种模式Direct DStream。<br>
+Offset Commit API偏移量管理，在以前需要自己管理，但在0.10.0，它可以自动管理自己提交了。（这个在本文最后会用到）</p>
+<p>总结：生产上，要根据Kafka的版本（就是broker）去选择相应的Spark Streaming Kafka的版本。</p>
+<h1 id="环境准备">环境准备</h1>
+<h2 id="zookeeper和kafka单节点部署">zookeeper和kafka单节点部署</h2>
+<p>需要安装：</p>
+<p>zookeeper-3.4.5-cdh5.7.0.tar.gz</p>
+<p>kafka_2.11-0.10.1.1.tgz</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">下载网址：</span><br><span class="line">wget http://archive.cloudera.com/cdh5/cdh/5/zookeeper-3.4.5-cdh5.7.0.tar.gz</span><br><span class="line">wget http://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz</span><br></pre></td></tr></table></figure>
+<p>安装配置步骤网上找一下就好了，这里是单节点，具体不再详述，可参考：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">https://yq.aliyun.com/articles/413884</span><br><span class="line">https://www.cppentry.com/bencandy.php?fid=120&amp;id=198730</span><br></pre></td></tr></table></figure>
+<p>另外需要注意的是：kafka里面的config/server.properties这个配置文件，有个地方需要配置一下，<strong>advertised.listeners</strong>，否则外面是无法访问进来的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># Hostname and port the broker will advertise to producers and consumers. If not set,</span><br><span class="line"># it uses the value for &quot;listeners&quot; if configured.  Otherwise, it will use the value</span><br><span class="line"># returned from java.net.InetAddress.getCanonicalHostName().</span><br><span class="line">#advertised.listeners=PLAINTEXT://your.host.name:9092</span><br></pre></td></tr></table></figure>
+<p>假如不配置advertised.listeners这个的话，运行IDEA streaming去访问kafka，会报警告：无法和Broker建立连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WARN NetworkClient: [Consumer clientId=consumer-1, groupId=use_a_separate_group_id_for_each_stream]  Connection to node 1 could not be established. Broker may not be available.</span><br></pre></td></tr></table></figure>
+<h2 id="启动zookeeper和kafka">启动zookeeper和kafka</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">启动zookeeper</span><br><span class="line">[hadoop@hadoop001 bin]$ pwd</span><br><span class="line">/home/hadoop/app/zookeeper-3.4.5-cdh5.7.0/bin</span><br><span class="line">[hadoop@hadoop001 bin]$ ./zkServer.sh start</span><br><span class="line">Connecting to localhost:2181</span><br><span class="line">.....此处省略1000字</span><br></pre></td></tr></table></figure>
+<h2 id="启动kafka">启动kafka</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-server-start.sh -daemon config/server.properties</span><br><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ jps</span><br><span class="line">23522 QuorumPeerMain</span><br><span class="line">25395 Kafka</span><br></pre></td></tr></table></figure>
+<p>创建topic</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-topics.sh \</span><br><span class="line">&gt; --create \</span><br><span class="line">&gt; --zookeeper hadoop001:2181\kafka \</span><br><span class="line">&gt; --partitions 1 \</span><br><span class="line">&gt; --replication-factor 1 \</span><br><span class="line">&gt; --topic liweitest</span><br><span class="line">Created topic &quot;liweitest&quot;.</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-topics.sh  --list --zookeeper hadoop001:2181/kafka</span><br><span class="line">liweitest</span><br></pre></td></tr></table></figure>
+<p>启动生产者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-producer.sh --broker-list hadoop001:9092 --topic liweitest</span><br></pre></td></tr></table></figure>
+<p>启动消费者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-consumer.sh --zookeeper hadoop001:2181/kafka --topic liweitest</span><br><span class="line">Using the ConsoleConsumer with old consumer is deprecated and will be removed in a future major release. Consider using the new consumer by passing [bootstrap-server] instead of [zookeeper].</span><br></pre></td></tr></table></figure>
+<p>在生产者这边，生产一条数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-producer.sh --broker-list hadoop001:9092 --topic liweitest</span><br><span class="line">this is a kafka test</span><br></pre></td></tr></table></figure>
+<p>消费者那边即可看到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-consumer.sh --zookeeper hadoop001:2181 --topic liweitest</span><br><span class="line">Using the ConsoleConsumer with old consumer is deprecated and will be removed in a future major release. Consider using the new consumer by passing [bootstrap-server] instead of [zookeeper].</span><br><span class="line">this is a kafka test</span><br></pre></td></tr></table></figure>
+<h2 id="spark-streaming整合kafaka">Spark Streaming整合Kafaka</h2>
+<blockquote>
+<p>参考官网：<br>
+<a href="http://spark.apache.org/docs/latest/streaming-kafka-0-10-integration.html" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/streaming-kafka-0-10-integration.html</a></p>
+</blockquote>
+<p>在设计上，Spark Streaming集成Kafka对于 0.10版本的类似于0.8版本（现在只讲Direct Stream，其它不管，这里没有receiver）。</p>
+<p>Spark StreamingKafka对于 0.10版本的集成提供了更简化的并行度，在Kafka分区和Spark分区之间是 1:1 的对应关系，能够去访问偏移量和元数据。在有receiver的Spark Streaming里，Spark的分区和Kafka的分区根本不是一回事，但是现在是Direct Stream，那么两个分区就是一样了，一个Spark里的partition去消费一个Kafka里的partition更好。（以前是receiver的方式，现在是Direct Stream的方式，具体可以看上面提到的0.8.2.1官网）。</p>
+<p>但是，由于较新的集成使用新的 Kafka consumer API而不是之前的simple API，因此在使用上存在显著的差异。<br>
+此版本的集成被标记为实验性的，因此API可能会发生更改。</p>
+<h2 id="依赖">依赖</h2>
+<p>对于使用SBT/Maven项目定义的Scala/Java应用程序，用以下工件artifact连接你的streaming应用程序：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">groupId = org.apache.spark</span><br><span class="line">artifactId = spark-streaming-kafka-0-10_2.12</span><br><span class="line">version = 2.4.3</span><br></pre></td></tr></table></figure>
+<p>上面是官网给的，下面是本次的，版本根据自己的情况去选择：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">&lt;artifactId&gt;spark-streaming-kafka-0-10_2.11&lt;/artifactId&gt;</span><br><span class="line">&lt;version&gt;2.4.0&lt;/version&gt;</span><br></pre></td></tr></table></figure>
+<p>注意：不用手动添加org.apache.kafka artifacts 的依赖 (e.g. kafka-clients) 。spark-streaming-kafka-0-10 artifact 已经具有适当的可传递依赖项，并且不同的版本可能会在难以诊断的方式不兼容。意思就是说org.apache.kafka 相关的依赖已经被spark-streaming-kafka-0-10间接的给加进来了，所以不需要再添加。</p>
+<h2 id="创建direct-stream">创建Direct Stream</h2>
+<h3 id="代码10">代码1.0</h3>
+<p>注意，导入的名称空间包括版本org.apache.spark.streaming.kafka010<br>
+参考官网代码，并修改一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line">import org.apache.kafka.clients.consumer.ConsumerRecord</span><br><span class="line">import org.apache.kafka.common.serialization.StringDeserializer</span><br><span class="line">import org.apache.spark.streaming.kafka010._</span><br><span class="line">import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent</span><br><span class="line">import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe</span><br><span class="line"></span><br><span class="line">object DirectKafkaApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">  //因为是Direct Stream，没有receiver，所以可以是local[1]</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[1]&quot;).setAppName(&quot;DirectKafkaApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line"></span><br><span class="line">    val kafkaParams = Map[String, Object](</span><br><span class="line">      &quot;bootstrap.servers&quot; -&gt; &quot;hadoop001:9092&quot;,</span><br><span class="line">      &quot;key.deserializer&quot; -&gt; classOf[StringDeserializer],</span><br><span class="line">      &quot;value.deserializer&quot; -&gt; classOf[StringDeserializer],</span><br><span class="line">      &quot;group.id&quot; -&gt; &quot;use_a_separate_group_id_for_each_stream&quot;,</span><br><span class="line">      &quot;auto.offset.reset&quot; -&gt; &quot;latest&quot;, //earlist</span><br><span class="line">      &quot;enable.auto.commit&quot; -&gt; (false: java.lang.Boolean)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    //如果多个topic，用逗号分隔(&quot;topicA&quot;, &quot;topicB&quot;)</span><br><span class="line">    val topics = Array(&quot;liweitest&quot;)</span><br><span class="line">    val stream = KafkaUtils.createDirectStream[String, String](</span><br><span class="line">      ssc,</span><br><span class="line">      PreferConsistent,</span><br><span class="line">      Subscribe[String, String](topics, kafkaParams)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    stream.map(record =&gt; (record.value)).flatMap(_.split(&quot;,&quot;)).map((_,1)).reduceByKey(_+_)</span><br><span class="line">    .print()</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>让程序跑起来后，去kafka生产者上，生产一条数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-producer.sh --broker-list hadoop001:9092 --topic liweitest</span><br><span class="line">word,love,shanghai,beijing,word,word,love</span><br></pre></td></tr></table></figure>
+<p>然后在IDEA中就可以看到输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564498450000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line"></span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564498460000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,2)</span><br><span class="line">(word,3)</span><br><span class="line">(beijing,1)</span><br><span class="line">(shanghai,1)</span><br></pre></td></tr></table></figure>
+<h3 id="代码20">代码2.0</h3>
+<p>上面虽然跑通了，但是很多东西都是写死的，生产上肯定不可能这样的，很多东西需要用参数传进去。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line">import org.apache.kafka.clients.consumer.ConsumerRecord</span><br><span class="line">import org.apache.kafka.common.serialization.StringDeserializer</span><br><span class="line">import org.apache.spark.streaming.kafka010._</span><br><span class="line">import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent</span><br><span class="line">import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe</span><br><span class="line"></span><br><span class="line">object DirectKafkaApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //需要传进来三个参数，判断传进来的参数是不是三个</span><br><span class="line">    if(args.length !=3)&#123;</span><br><span class="line">      System.err.print(&quot;Usage: DirectKafkaApp &lt;brokers&gt; &lt;topic&gt; &lt;groupid&gt;&quot;)</span><br><span class="line">      System.exit(1)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //把参数赋值给一个数组</span><br><span class="line">    val Array(brokers,topic,groupid) =args</span><br><span class="line"></span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[1]&quot;).setAppName(&quot;DirectKafkaApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line"></span><br><span class="line">    val kafkaParams = Map[String, Object](</span><br><span class="line">      &quot;bootstrap.servers&quot; -&gt; brokers,</span><br><span class="line">      &quot;key.deserializer&quot; -&gt; classOf[StringDeserializer],</span><br><span class="line">      &quot;value.deserializer&quot; -&gt; classOf[StringDeserializer],</span><br><span class="line">      &quot;group.id&quot; -&gt; groupid,</span><br><span class="line">      &quot;auto.offset.reset&quot; -&gt; &quot;latest&quot;, //earlist</span><br><span class="line">      &quot;enable.auto.commit&quot; -&gt; (false: java.lang.Boolean)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    //Spark是支持多个topic的</span><br><span class="line">    //如果多个topic，用逗号分隔(&quot;topicA&quot;, &quot;topicB&quot;)</span><br><span class="line">    val topics = topic.split(&quot;,&quot;)</span><br><span class="line">    val stream = KafkaUtils.createDirectStream[String, String](</span><br><span class="line">      ssc,</span><br><span class="line">      PreferConsistent,</span><br><span class="line">      Subscribe[String, String](topics, kafkaParams)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    stream.map(record =&gt; (record.value)).flatMap(_.split(&quot;,&quot;)).map((_,1)).reduceByKey(_+_)</span><br><span class="line">    .print()</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>IDEA参数传递，如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730232041963.png" alt="image"></p>
+<p>参数之间空格分割</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730232200221.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>然后运行程序，生产者产生一条数据，输出和上面运行的是一样的。</p>
+<h3 id="代码打成jar包瘦包上传服务器运行">代码打成jar包（瘦包）上传服务器运行</h3>
+<p>然后把代码打包上传至服务器，然后使用。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730232802338.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190730232842736.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><strong>打包成功。这里打包打的是瘦包，只包含代码，不包含依赖，建议打瘦包，不要打胖包，生产上绝对不允许打胖包的。</strong></p>
+<p>上传至服务器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 lib]$ ls</span><br><span class="line">spark-train-1.0.jar</span><br><span class="line">[hadoop@hadoop001 lib]$ pwd</span><br><span class="line">/home/hadoop/lib</span><br></pre></td></tr></table></figure>
+<p>然后用spark-submit提交：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master local[2] \</span><br><span class="line">--name DirectKafkaApp \</span><br><span class="line">--class com.ruozedata.spark.com.ruozedata.spark.streaming.DirectKafkaApp \</span><br><span class="line">/home/hadoop/lib/spark-train-1.0.jar \</span><br><span class="line">hadoop001:9092 liweitest use_a_separate_group_id_for_each_stream</span><br></pre></td></tr></table></figure>
+<p>然后报错，找不到相关kafka的依赖：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread &quot;main&quot; java.lang.NoClassDefFoundError: org/apache/kafka/common/serialization/StringDeserializer</span><br><span class="line">......</span><br><span class="line">Caused by: java.lang.ClassNotFoundException: org.apache.kafka.common.serialization.StringDeserializer......</span><br></pre></td></tr></table></figure>
+<p>因为代码里导入的kafka（代码：import org.apache.kafka…）相关包都是依赖这个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;spark-streaming-kafka-0-10_2.11&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;$&#123;spark.version&#125;&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>因为打包的时候，spark-streaming-kafka-0-10_2.11这些包都没有打进来，所以找不到kafka相关的包。<br>
+解决方法是借助于 --pagages</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//把第三方jar包，比如maven相关的jar包，传到driver和executor端，多个jar包用逗号分隔</span><br><span class="line">//格式为：groupId:artifactId:version</span><br><span class="line">//--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0</span><br><span class="line">  --packages                  Comma-separated list of maven coordinates of jars to include</span><br><span class="line">                              on the driver and executor classpaths. Will search the local</span><br><span class="line">                              maven repo, then maven central and any additional remote</span><br><span class="line">                              repositories given by --repositories. The format for the</span><br><span class="line">                              coordinates should be groupId:artifactId:version.</span><br></pre></td></tr></table></figure>
+<p>调整好再来：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master local[2] \</span><br><span class="line">--name DirectKafkaApp \</span><br><span class="line">--class com.ruozedata.spark.com.ruozedata.spark.streaming.DirectKafkaApp \</span><br><span class="line">--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0 \</span><br><span class="line">/home/hadoop/lib/spark-train-1.0.jar \</span><br><span class="line">hadoop001:9092 liweitest use_a_separate_group_id_for_each_stream</span><br></pre></td></tr></table></figure>
+<p>生产上可以写个shell脚本，就不用每次都写了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">//第一次运行，要去maven仓库下载依赖</span><br><span class="line">[hadoop@hadoop001 lib]$ spark-submit \</span><br><span class="line">&gt; --master local[2] \</span><br><span class="line">&gt; --name DirectKafkaApp \</span><br><span class="line">&gt; --class com.ruozedata.spark.com.ruozedata.spark.streaming.DirectKafkaApp \</span><br><span class="line">&gt; --packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0 \</span><br><span class="line">&gt; /home/hadoop/lib/spark-train-1.0.jar \</span><br><span class="line">&gt; hadoop001:9092 liweitest use_a_separate_group_id_for_each_stream</span><br><span class="line">Ivy Default Cache set to: /home/hadoop/.ivy2/cache</span><br><span class="line">The jars for the packages stored in: /home/hadoop/.ivy2/jars</span><br><span class="line">:: loading settings :: url = jar:file:/home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/jars/ivy-2.4.0.jar!/org/apache/ivy/core/settings/ivysettings.xml</span><br><span class="line">org.apache.spark#spark-streaming-kafka-0-10_2.11 added as a dependency</span><br><span class="line">:: resolving dependencies :: org.apache.spark#spark-submit-parent-4a185e21-b722-4a42-9669-6b11ff55575c;1.0</span><br><span class="line">        confs: [default]</span><br><span class="line">        found org.apache.spark#spark-streaming-kafka-0-10_2.11;2.4.0 in central</span><br><span class="line">                found org.apache.kafka#kafka-clients;2.0.0 in central</span><br><span class="line">        found org.lz4#lz4-java;1.4.0 in central</span><br><span class="line">        found org.xerial.snappy#snappy-java;1.1.7.1 in central</span><br><span class="line">        found org.slf4j#slf4j-api;1.7.16 in central</span><br><span class="line">        found org.spark-project.spark#unused;1.0.0 in central</span><br><span class="line">downloading https://repo1.maven.org/maven2/org/apache/spark/spark-streaming-kafka-0-10_2.11/2.4.0/spark-streaming-kafka-0-10_2.11-2.4.0.jar ...</span><br><span class="line">        [SUCCESSFUL ] org.apache.spark#spark-streaming-kafka-0-10_2.11;2.4.0!spark-streaming-kafka-0-10_2.11.jar (8845ms)</span><br><span class="line">downloading https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/2.0.0/kafka-clients-2.0.0.jar ...</span><br><span class="line">............此处省略1000字</span><br><span class="line">        org.xerial.snappy#snappy-java;1.1.7.1 from central in [default]</span><br><span class="line">        ---------------------------------------------------------------------</span><br><span class="line">        |                  |            modules            ||   artifacts   |</span><br><span class="line">        |       conf       | number| search|dwnlded|evicted|| number|dwnlded|</span><br><span class="line">        ---------------------------------------------------------------------</span><br><span class="line">        |      default     |   6   |   6   |   6   |   0   ||   6   |   6   |</span><br><span class="line">        ---------------------------------------------------------------------</span><br><span class="line">:: retrieving :: org.apache.spark#spark-submit-parent-4a185e21-b722-4a42-9669-6b11ff55575c</span><br><span class="line">        confs: [default]</span><br><span class="line">        6 artifacts copied, 0 already retrieved (4436kB/10ms)</span><br><span class="line">...........</span><br></pre></td></tr></table></figure>
+<p>然后去kafka生产者上面生产一条数据，就可以在spark-submit里看到了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">...........</span><br><span class="line">INFO TaskSchedulerImpl: Removed TaskSet 31.0, whose tasks have all completed, from pool </span><br><span class="line">INFO DAGScheduler: ResultStage 31 (print at DirectKafkaApp.scala:44) finished in 0.046 s</span><br><span class="line">INFO DAGScheduler: Job 15 finished: print at DirectKafkaApp.scala:44, took 0.150553 s</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564502720000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,4)</span><br><span class="line">(word,6)</span><br><span class="line">(beijing,2)</span><br><span class="line">(shanghai,2)</span><br></pre></td></tr></table></figure>
+<p>另外可以去WebUI上面看：<a href="http://hadoop001:4040/jobs/" target="_blank" rel="noopener">http://hadoop001:4040/jobs/</a><br>
+去环境里可以看到，下面这些都是自己添加的，最后一个是我们自己上传的，另外几个是通过–packages加的。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190731001121296.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>另外，–packages直接会根据g、a、v三个参数把所有依赖下载下来，但是如果是–jars的话，需要你去手动一个一个的指定具体的jar包。jar包很少的时候可以使用–jars，但是如果jar包比较多，而且比较乱，不要使用–jars。<br>
+但是–packages这个需要条件：需要联网，不然无法去仓库下载依赖；要有私服。</p>
+<h3 id="打成小胖包只包含部依赖">打成小胖包（只包含部依赖）</h3>
+<p>除了上面说的–packages和–jars这两种方式，还可以打成一个小胖包。</p>
+<p>比如：上面这些代码的依赖假如、有很多，如spark-core、spark-sql、spark-streaming、scala、hadoop、spark-streaming-kafka等等。生产环境上一般来说spark-core、spark-sql、spark-streaming、scala、hadoop这些jar包都是已经存在的了（比如Spark安装的时候就已经自带存在了），因为这些都是最基本的，而spark-streaming-kafka这个依赖很少用，生产上就没有，那么现在只需要设置一下其它的包不打进去（设置成provided），而只把spark-streaming-kafka这个依赖打进去即可。</p>
+<p>①第一步</p>
+<p>pom.xml文件里，如果某个依赖不要，就在后面加个 provided</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//不需要hadoop的依赖，就在后面加个&lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">    &lt;!--添加Hadoop依赖--&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">      &lt;groupId&gt;org.apache.hadoop&lt;/groupId&gt;</span><br><span class="line">      &lt;artifactId&gt;hadoop-client&lt;/artifactId&gt;</span><br><span class="line">      &lt;version&gt;$&#123;hadoop.version&#125;&lt;/version&gt;</span><br><span class="line">      &lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>其它类似，这里只需要两个，所以这两个不加provided</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;com.jolbox&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;bonecp&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;0.8.0.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;spark-streaming-kafka-0-10_2.11&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;$&#123;spark.version&#125;&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>②第二步</p>
+<p>除了上面之外，还需要一个插件的支持，因为在编译的时候要用到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">//放到&lt;build&gt;里面</span><br><span class="line">&lt;pluginManagement&gt;</span><br><span class="line">    &lt;plugins&gt;</span><br><span class="line">        &lt;plugin&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;</span><br><span class="line">            &lt;configuration&gt;</span><br><span class="line">                &lt;descriptorRefs&gt;</span><br><span class="line">                    &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;</span><br><span class="line">                &lt;/descriptorRefs&gt;</span><br><span class="line">            &lt;/configuration&gt;</span><br><span class="line">        &lt;/plugin&gt;</span><br><span class="line">    &lt;/plugins&gt;</span><br><span class="line">&lt;/pluginManagement&gt;</span><br></pre></td></tr></table></figure>
+<p>③第三步</p>
+<p><img src="https://img-blog.csdnimg.cn/20190731234624972.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190731234511900.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>④第四步 打包</p>
+<p>可以看到你设置的就出现了，然后点击运行</p>
+<p><img src="https://img-blog.csdnimg.cn/20190731235614961.png" alt="image"></p>
+<p>然后去相关文件夹下面可以看到，第一个是之前打的瘦包，不包含依赖，只有代码，总共是199kb。后面一个是刚刚打的jar包，包含我们需要的依赖，当然去除了hadoop、spark、scala等的依赖（如果完全打胖包会非常大），这里大概是12M大小。可以用解压软件打开jar包，看一下，里面已经加上了我们需要的依赖，不需要的依赖上没有的。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190731235554373.png" alt="image"></p>
+<p>⑤上传jar包，运行</p>
+<p>上传后</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 lib]$ ls</span><br><span class="line">spark-train-1.0.jar  spark-train-1.0-jar-with-dependencies.jar</span><br></pre></td></tr></table></figure>
+<p>启动：（不需要–packages了）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">spark-submit \</span><br><span class="line">--master local[2] \</span><br><span class="line">--name DirectKafkaApp \</span><br><span class="line">--class com.ruozedata.spark.com.ruozedata.spark.streaming.DirectKafkaApp \</span><br><span class="line">/home/hadoop/lib/spark-train-1.0-jar-with-dependencies.jar \</span><br><span class="line">hadoop001:9092 liweitest use_a_separate_group_id_for_each_stream</span><br></pre></td></tr></table></figure>
+<p>在Kafka生产者上面生产一条数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 kafka_2.11-0.10.1.1]$ bin/kafka-console-producer.sh --broker-list hadoop001:9092 --topic liweitest</span><br><span class="line">word,love,china,word,china,word</span><br></pre></td></tr></table></figure>
+<p>在spark-submit这边就可以看到输出结果了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564589170000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,1)</span><br><span class="line">(word,3)</span><br><span class="line">(china,2)</span><br></pre></td></tr></table></figure>
+<p>然后去WebUI界面的Environment看一下：<a href="http://hadoop001:4040/jobs/" target="_blank" rel="noopener">http://hadoop001:4040/jobs/</a></p>
+<p><img src="https://img-blog.csdnimg.cn/20190801000938753.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>至此，完成。这种方式不需要服务器去联网。</p>
+<h2 id="一些配置了解">一些配置（了解）</h2>
+<p>kafka的参数，请参考kafka官网。如果，你的spark批次时间超过了kafka的心跳时间(30s)，需要增加 <a href="http://heartbeat.interval.xn--mssession-rw9o.timeout.ms" target="_blank" rel="noopener">heartbeat.interval.ms和session.timeout.ms</a>。如果批处理时间是5min，那么就需要调整 <a href="http://group.max.session.timeout.ms" target="_blank" rel="noopener">group.max.session.timeout.ms</a>。注意，例子中是将enable.auto.commit设置为了false。</p>
+<h2 id="本地策略">本地策略</h2>
+<p>新版本Kafka的消费者API会预先获取消息（数据）到buffer缓冲区。因此，为了提升性能，在Executor端缓存消费者（这些数据）(而不是每个批次重新创建)是非常有必要的，并且优先在拥有适合的消费者所在的主机上调度安排分区。</p>
+<p>可以使用LocationStrategies.PreferConsistent（在上面代码中有这个）这个参数会将分区尽量均匀地分配到可用的executors上去。如果你的executors和Kafka brokers在相同机器上，请使用PreferBrokers，它将优先将分区调度到kafka分区leader所在的主机上。这是不太可能的，因为是生产上基本上Kafka brokers和executors不会在相同的机器上的，一般Kafka都是单独的。所以呢用LocationStrategies.PreferConsistent这个就可以了。</p>
+<h2 id="关于offset">关于offset</h2>
+<p>上面的代码中，在代码程序（Spark Streaming）启动之前，如果在Kafka生产者生产了一些数据，那么代码程序启动了之后，这些前面生产的数据都丢失了，Streaming程序是消费不了前面的数据的，只能消费streaming启动之后生产出来的数据。<br>
+这个跟这个设置有关，因为这里设置了&quot;latest&quot;只消费最新的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&quot;auto.offset.reset&quot; -&gt; &quot;latest&quot;</span><br><span class="line"> &quot;enable.auto.commit&quot; -&gt; (false: java.lang.Boolean) //这个要设置成false，原因后面会讲到</span><br></pre></td></tr></table></figure>
+<p>但是如果把这个设置修改成&quot;earliest&quot;，从最早的地方开始消费：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;auto.offset.reset&quot; -&gt; &quot;earliest&quot;</span><br></pre></td></tr></table></figure>
+<p>那么它会从最开始把历史的数据都消费，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564671300000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(beijin,2)</span><br><span class="line">(quit,1)</span><br><span class="line">(love,62)</span><br><span class="line">(,48)</span><br><span class="line">(word,79)</span><br><span class="line">(beijing,49)</span><br><span class="line">(china,12)</span><br><span class="line">(this is a test,1)</span><br><span class="line">(this is a kafka test,7)</span><br><span class="line">(shanghai,51)</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564671310000 ms</span><br><span class="line">-------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>那应该怎么办呢？<br>
+把下面代码放到上面代码后面运行一下，可以打印一些东西：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//可以点进去看offsetRanges源码</span><br><span class="line">stream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges</span><br><span class="line">  rdd.foreachPartition &#123; iter =&gt;</span><br><span class="line">    val o: OffsetRange = offsetRanges(TaskContext.get.partitionId)</span><br><span class="line">    println(s&quot;$&#123;o.topic&#125; $&#123;o.partition&#125; $&#123;o.fromOffset&#125; $&#123;o.untilOffset&#125;&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行一下，可以看到输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564672020000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(beijin,2)</span><br><span class="line">(quit,1)</span><br><span class="line">(love,62)</span><br><span class="line">(,48)</span><br><span class="line">(word,79)</span><br><span class="line">(beijing,49)</span><br><span class="line">(china,12)</span><br><span class="line">(this is a test,1)</span><br><span class="line">(this is a kafka test,7)</span><br><span class="line">(shanghai,51)</span><br><span class="line"></span><br><span class="line">liweitest 0 0 114</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564672030000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line"></span><br><span class="line">liweitest 0 114 114</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564672080000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(this is a new test,1)</span><br><span class="line"></span><br><span class="line">liweitest 0 114 115</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564672090000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line"></span><br><span class="line">liweitest 0 115 115</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564672100000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,1)</span><br><span class="line">(word,1)</span><br><span class="line"></span><br><span class="line">liweitest 0 115 116</span><br></pre></td></tr></table></figure>
+<p>第一次输出：liweitest 0 0 114</p>
+<p>liweitest（topic主题） 0（分区数（本次就1个分区）） 0（从哪里开始消费） 114（到哪里）</p>
+<p>后面我又增加了生产了几条新的记录，所以后面又有了：</p>
+<p>liweitest 0 114 115</p>
+<p>liweitest 0 115 116</p>
+<p>那么如果你希望从某个地方开始消费，你肯定要提前把这个地方先存下来，到用的时候再把它拿出来就行了。</p>
+<p>先来看一下streaming里的语义这个概念：</p>
+<p>streaming系统的语义通常是根据系统可以处理每条记录的次数来捕获的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">①At most once：每条记录要么被处理一次要么不被处理。（这种方式生产上不能用，可能会丢数据）</span><br><span class="line">②At least once：每条记录被处理一次或多次。这种方式可以确保不会丢失任何数据，但是可能有重复的数据。</span><br><span class="line">③Exactly once: 每条记录被处理一次且仅有一次。这种方式，数据不会丢失，数据也不会被处理多次，没有重复。这种是三种方式中最强的一种保障。</span><br></pre></td></tr></table></figure>
+<p>官网上有说道：Spark output operations are at-least-once. 就是说Spark的输出操作是 at-least-once。这种方式可以确保不会丢失任何数据，但是可能有重复的数据。</p>
+<p>所以说，如果你想保证Exactly once: 每条记录被处理一次且仅有一次，那么你必须在幂等的输出之后，把offset给存储下来。</p>
+<p>那么怎么存下来呢？（重点）</p>
+<p>Kafka has an offset commit API that stores offsets in a special Kafka topic.</p>
+<p>Kafka有一个offset commit API，用于在特殊的Kafka topic中存储offset。</p>
+<p>Offset Commit API偏移量管理，在以前需要自己管理，但在0.10.0，它可以自动管理自己提交了。</p>
+<p>默认情况下，新消费者将周期性的自动提交offset。 但是，消费者虽然消费了这些消息，也成功了，不过在Spark中却没有进行输出或者输出失败了，消费者并不知道Spark是否把数据输出了，意思就是说虽然消费了这些数据，但是却输出却没有存下来，那么有什么用呢。那么这个结果就是没有定义的语义。这就是上面的代码中将“enable.auto.commit”设置为false的原因。</p>
+<p>来看下图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190801235450316.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>一般流程是：Kafka数据到Spark，Spark首先处理业务逻辑，然后进行commit offset，然后用foreachRDD把数据输出到DB。但是如果先commit offset，再处理业务逻辑就会有问题，提交以后，你不知道业务到底有没有成功处理完成。</p>
+<p>如果你知道消费数据后的输出已被存储之后，就是说你的Spark结果处理完之后，再来把offset提交到Kafka上面去，（使用commitAsync API来进行提交）。</p>
+<p>代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> //可以点击看源码</span><br><span class="line">// some time later, after outputs have completed</span><br><span class="line">stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)</span><br></pre></td></tr></table></figure>
+<p>源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">//Array[OffsetRange]是数组，因为它可能它有多个partition</span><br><span class="line">  @Experimental</span><br><span class="line">  def commitAsync(offsetRanges: Array[OffsetRange]): Unit</span><br><span class="line">  ......</span><br><span class="line"></span><br><span class="line">final class OffsetRange private(</span><br><span class="line">    val topic: String,</span><br><span class="line">    val partition: Int,</span><br><span class="line">    val fromOffset: Long,</span><br><span class="line">    val untilOffset: Long) extends Serializable &#123;</span><br><span class="line">    ......</span><br></pre></td></tr></table></figure>
+<p>代码详细一点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">stream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges</span><br><span class="line">  rdd.foreachPartition &#123; iter =&gt;</span><br><span class="line">    val o: OffsetRange = offsetRanges(TaskContext.get.partitionId)</span><br><span class="line">    println(s&quot;$&#123;o.topic&#125; $&#123;o.partition&#125; $&#123;o.fromOffset&#125; $&#123;o.untilOffset&#125;&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">  // some time later, after outputs have completed</span><br><span class="line">  stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样的话就OK了。</p>
+<p>具体分析：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">①上面代码输出的结果是liweitest 0 115 116</span><br><span class="line">就是topic是liweitest ，partition是0，消费从第115条到116条。</span><br><span class="line">②把代码程序关掉。</span><br><span class="line">③重新启动，那么就是：liweitest 0 0 116</span><br><span class="line">就是topic是liweitest ，partition是0，消费从第0条到116条。</span><br><span class="line">④过一会，会是liweitest 0 116 116</span><br><span class="line">就是topic是liweitest ，partition是0，消费从第116条到116条。</span><br><span class="line">④Kafka那边生产一条记录，Spark这边会输出liweitest 0 116 117</span><br><span class="line">就是topic是liweitest ，partition是0，消费从第116条到117条。</span><br><span class="line">⑤然后停掉Spark程序</span><br><span class="line">⑥Kafka那边再生产2条记录（现在就有119条了）</span><br><span class="line">⑦再重新启动，那么就是：liweitest 0 117 119</span><br></pre></td></tr></table></figure>
+<p>就是topic是liweitest ，partition是0，消费从第117条到119条。</p>
+<p>就是说Spark停掉之后，Kafka又生产的数据不会丢失，它还会从上次记住的那个offset开始进行消费。</p>
+<p><strong>上面一部分讲的是offset存到哪里去，优先推荐Kafka。</strong></p>
+<p>**其实offset可以存到很多地方，你可以自己去定义，比如ZK/HBase/MySQL/Redis…**都可以。生产上，如果Kafka是0.8到1.0之间的版本，那么Kafka是没有Offset Commit API的，那么只能自己去实现。</p>
+<p>实现的逻辑？步骤？</p>
+<p><strong>（思路掌握，面试会被问到offset管理。offset偏移量管理是Spark Streaming的核心所在。具体代码可以不用，现在都可以用上面Kafka那种方式）</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1）batch job批处理时间到了的时候，这个作业应该要去查询到已经消费过的offset的最大值（存到哪里就去哪里去取）；</span><br><span class="line">2）获取数据；</span><br><span class="line">3）处理数据；</span><br><span class="line">4）commit offset 提交offset （这个就是存到哪里去）</span><br></pre></td></tr></table></figure>
+<p>来看官网给的具体代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">// The details depend on your data store, but the general idea looks like this</span><br><span class="line"></span><br><span class="line">// begin from the the offsets committed to the database</span><br><span class="line">//从你的数据库中拿到offset，</span><br><span class="line">//拿出来，有三个东西：topic、partition、offset</span><br><span class="line">//有了这三个东西，就可以确定offset存的最大的值了</span><br><span class="line">//拿到之后转成map</span><br><span class="line">val fromOffsets = selectOffsetsFromYourDatabase.map &#123; resultSet =&gt;</span><br><span class="line">  new TopicPartition(resultSet.string(&quot;topic&quot;), resultSet.int(&quot;partition&quot;)) -&gt; resultSet.long(&quot;offset&quot;)</span><br><span class="line">&#125;.toMap</span><br><span class="line"></span><br><span class="line">val stream = KafkaUtils.createDirectStream[String, String](</span><br><span class="line">  streamingContext,</span><br><span class="line">  PreferConsistent,</span><br><span class="line">  </span><br><span class="line">  //这个看源码都做了什么</span><br><span class="line">  Assign[String, String](fromOffsets.keys.toList, kafkaParams, fromOffsets)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">stream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges</span><br><span class="line"></span><br><span class="line">  val results = yourCalculation(rdd)</span><br><span class="line"></span><br><span class="line">  // begin your transaction</span><br><span class="line"></span><br><span class="line">  //下面是更新offset，把offset写回去，写回去之后，下次再拿的时候才能知道从从哪里开始消费</span><br><span class="line">  // update results</span><br><span class="line">  // update offsets where the end of existing offsets matches the beginning of this batch of offsets</span><br><span class="line">  // assert that offsets were updated correctly</span><br><span class="line"></span><br><span class="line">  // end your transaction</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如你要把offset存到MySQL里，你肯定要在MySQL建个表来存：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">MySQL</span><br><span class="line">+-----------------------+-------------------------+------------+--------+</span><br><span class="line">| topic                 | groupid                 | partitions | offset |</span><br><span class="line">+-----------------------+-------------------------+------------+--------+</span><br><span class="line">| offset_topic          | offset_test_group       |          0 |   118 |</span><br><span class="line">+-----------------------+-------------------------+------------+--------+</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/97Flume之生产正确的使用方式一(Singel Agent)/" data-toggle="tooltip" data-placement="top" title="[Flume之生产正确的使用方式一(Singel Agent)]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/95Kafka入门介绍、安装部署/" data-toggle="tooltip" data-placement="top" title="[Kafka入门介绍、安装部署]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#kafka版本选择"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Kafka&#x7248;&#x672C;&#x9009;&#x62E9;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x73AF;&#x5883;&#x51C6;&#x5907;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#zookeeper和kafka单节点部署"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">zookeeper&#x548C;kafka&#x5355;&#x8282;&#x70B9;&#x90E8;&#x7F72;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#启动zookeeper和kafka"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">&#x542F;&#x52A8;zookeeper&#x548C;kafka</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#启动kafka"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">&#x542F;&#x52A8;kafka</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-streaming整合kafaka"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Spark Streaming&#x6574;&#x5408;Kafaka</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#依赖"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">&#x4F9D;&#x8D56;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建direct-stream"><span class="toc-nav-number">2.6.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;Direct Stream</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#代码10"><span class="toc-nav-number">2.6.1.</span> <span class="toc-nav-text">&#x4EE3;&#x7801;1.0</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#代码20"><span class="toc-nav-number">2.6.2.</span> <span class="toc-nav-text">&#x4EE3;&#x7801;2.0</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#代码打成jar包瘦包上传服务器运行"><span class="toc-nav-number">2.6.3.</span> <span class="toc-nav-text">&#x4EE3;&#x7801;&#x6253;&#x6210;jar&#x5305;&#xFF08;&#x7626;&#x5305;&#xFF09;&#x4E0A;&#x4F20;&#x670D;&#x52A1;&#x5668;&#x8FD0;&#x884C;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#打成小胖包只包含部依赖"><span class="toc-nav-number">2.6.4.</span> <span class="toc-nav-text">&#x6253;&#x6210;&#x5C0F;&#x80D6;&#x5305;&#xFF08;&#x53EA;&#x5305;&#x542B;&#x90E8;&#x4F9D;&#x8D56;&#xFF09;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#一些配置了解"><span class="toc-nav-number">2.7.</span> <span class="toc-nav-text">&#x4E00;&#x4E9B;&#x914D;&#x7F6E;&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#本地策略"><span class="toc-nav-number">2.8.</span> <span class="toc-nav-text">&#x672C;&#x5730;&#x7B56;&#x7565;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#关于offset"><span class="toc-nav-number">2.9.</span> <span class="toc-nav-text">&#x5173;&#x4E8E;offset</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Kafka" title="Kafka">Kafka</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

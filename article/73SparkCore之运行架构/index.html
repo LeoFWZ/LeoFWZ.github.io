@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [SparkCore之运行架构]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/73SparkCore之运行架构/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[SparkCore之运行架构]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-08-18
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>参考官网：<a href="http://spark.apache.org/docs/latest/cluster-overview.html" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/cluster-overview.html</a></p>
+<h1 id="cluster-mode-overview">Cluster Mode Overview</h1>
+<h2 id="集群模式概述">集群模式概述</h2>
+<p>This document gives a short overview of how Spark runs on clusters, to make it easier to understand the components involved. Read through the application submission guide to learn about launching applications on a cluster.</p>
+<p>这篇文档简短概述了Spark如何在集群上运行，以便理解所涉及到的组件更加容易一些。阅读应用程序提交指南 ，了解有关在群集上启动应用程序的信息。</p>
+<h2 id="components">Components</h2>
+<h3 id="组件">组件</h3>
+<p>Spark applications run as independent sets of processes on a cluster, coordinated by the SparkContext object in your main program (called the driver program).</p>
+<p>sets of processes：进程的集合</p>
+<p>Spark应用程序在集群上以独立的进程集合运行，由主程序（称作驱动程序）中的SparkContext对象来协调和组织。一个Spark应用程序包括一个driver和多个executors。</p>
+<p>分析：Spark应用程序是一组独立的进程，这些进程有哪些？一个driver program进程和多个executors进程组成。</p>
+<p>Specifically, to run on a cluster, the SparkContext can connect to several types of cluster managers (either Spark’s own standalone cluster manager, Mesos or YARN), which allocate resources across applications. Once connected, Spark acquires executors on nodes in the cluster, which are processes that run computations and store data for your application. Next, it sends your application code (defined by JAR or Python files passed to SparkContext) to the executors. Finally, SparkContext sends tasks to the executors to run.</p>
+<p>具体来说，集群模式下，SparkContext 能够连接不同类型的cluster managers集群管理器，比如说Spark自己的standalone cluster manager， Mesos或者YARN，而这些cluster managers所扮演的角色是在各个应用程序application之间分配资源。一旦Spark连接上这些cluster managers，Spark就获得了分布在集群各个节点上的executors，这些executors其实是一系列的进程，这些进程负责执行我们的应用程序application中的计算并存储相关的数据。接着，SparkContext将我们的应用程序代码发送给executors，这些应用程序代码是由JAR或者Python文件所定义并且传给SparkContext。最后，SparkContext把tasks发送给executors去执行。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190625223902346.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>Driver program里面包含SparkContext，它为了能够在集群上去运行，能够把作业运行到集群上面，需要SparkContext需要通过Cluster manager去集群上申请资源，比如去了两个节点上面申请了两个executors。一旦连接上，拿到了资源，获得了分布在集群各个节点上的executors后，SparkContext就可以将我们的应用程序代码发送给executors。最后，SparkContext把tasks发送给executors去执行。</p>
+<p>关于这个体系结构，需要注意以下几点：</p>
+<ul>
+<li>1.Each application gets its own executor processes, which stay up for the duration of the whole application and run tasks in multiple threads. This has the benefit of isolating applications from each other, on both the scheduling side (each driver schedules its own tasks) and executor side (tasks from different applications run in different JVMs). However, it also means that data cannot be shared across different Spark applications (instances of SparkContext) without writing it to an external storage system.<br>
+每个Spark应用程序都有属于它自己本身的executor进程，这些进程在这个Spark应用程序的整个生命周期都一直存活着，并且以多线程的方式来执行内部的多个tasks。这样做的好处是使各个应用之间相互隔离，无论是在调度层面scheduling side还是在执行层面executor side都是相互隔离的，从调度层面来看，每个driver调度属于它自身的tasks，从执行层面上来看，属于不同applications的tasks运行在不同的JVM上，（假如现在有两个Spark应用程序，分别有多个executors，这些executors分布在各个节点之上，假如两个Spark应用程序的其中分别有一个executor，它俩是可以在同一个节点上运行的，而且互不影响） 。然而，这也意味着不同的Spark applications（就是SparkContext的实例）之间是不能共享各自所属的数据，除非，你把数据写到外部存储系统。还有一个方法可以不用写到外部存储系统，比如说Alluxio内存高速虚拟分布式存储系统。</li>
+</ul>
+<p>每一个Application都有自己独立的excutor，这就意味着跨Spark  Application是不能共享数据的，这里就引出了一个框架Alluxio框架：分布式内存存储框架，有兴趣的可以了解一下</p>
+<ul>
+<li>
+<p>2.Spark is agnostic to the underlying cluster manager. As long as it can acquire executor processes, and these communicate with each other, it is relatively easy to run it even on a cluster manager that also supports other applications (e.g. Mesos/YARN).<br>
+Spark并不关心底层的cluster manager。只要Spark可以获取得到executor进程，并且这些executor进程能够互相通信，那么这个Spark应用程序即使运行在 同样支持其他applications的cluster manager(比如Mesos/YARN)上面相对来说也是比较容易的。<br>
+就是说spark可以跑在好多个地方，但是它并不去关心你的底层，不管你是standalone 还是Mesos还是YARN，它的代码都是一样的。</p>
+</li>
+<li>
+<p>3.The driver program must listen for and accept incoming connections from its executors throughout its lifetime (e.g., see spark.driver.port in the network config section). As such, the driver program must be network addressable from the worker nodes.<br>
+在driver program的整个生命周期中，它一直在监听并且接收来自其executors的连接。(可以查看spark.driver.port in the network config sectio)。因此，driver program必须跟各个worker nodes节点网络互通。</p>
+</li>
+<li>
+<p>4.Because the driver schedules tasks on the cluster, it should be run close to the worker nodes, preferably on the same local area network. If you’d like to send requests to the cluster remotely, it’s better to open an RPC to the driver and have it submit operations from nearby than to run a driver far away from the worker nodes.<br>
+由于driver是在集群上调度各个任务的，所以它应该靠近工作节点运行，最好是在同一局域网上运行。如果你想发送请求给远端的集群，最好向驱动程序打开RPC并让它从附近提交操作，而不是远离工作节点运行驱动程序。</p>
+</li>
+</ul>
+<h1 id="cluster-manager-types">Cluster Manager Types</h1>
+<h2 id="集群管理类型">集群管理类型</h2>
+<p>The system currently supports several cluster managers:</p>
+<ul>
+<li>Standalone – a simple cluster manager included with Spark that makes it easy to set up a cluster.</li>
+<li>Apache Mesos – a general cluster manager that can also run Hadoop MapReduce and service applications.</li>
+<li>Hadoop YARN – the resource manager in Hadoop 2.</li>
+<li>Kubernetes – an open-source system for automating deployment, scaling, and management of containerized applications.</li>
+</ul>
+<p>Spark现在直接支持以下几种集群管理器：</p>
+<ul>
+<li>Standalone – 一个简单的cluster manager，Spark内置的，使得我们设置一个集群变得很容易。</li>
+<li>Apache Mesos – 一个通用的cluster manager，它也可以运行Hadoop MapReduce以及service applications。</li>
+<li>Hadoop YARN – Hadoop 2.x中的resource manager。</li>
+<li>Kubernetes – 一个开源的项目，用于自动部署，扩容以及容器内部应用的管理。</li>
+</ul>
+<h2 id="submitting-applications">Submitting Applications</h2>
+<p>Applications can be submitted to a cluster of any type using the spark-submit script. The application submission guide describes how to do this.<br>
+通过spark-submit脚本，我们可以把应用Applications提交到任何类型的集群上。这篇 application submission guide 文章描述了具体的实现方式。</p>
+<h2 id="monitoring">Monitoring</h2>
+<p>Each driver program has a web UI, typically on port 4040, that displays information about running tasks, executors, and storage usage. Simply go to http://:4040 in a web browser to access this UI. The monitoring guide also describes other monitoring options.<br>
+每个驱动程序有一个web UI，典型的是在4040端口，你可以看到有关运行的任务、executors和存储空间大小等信息。我们可以通过浏览器访问http://:4040来浏览这个UI界面。这篇monitoring guide文章详细介绍了其他监控选项。</p>
+<h2 id="job-scheduling">Job Scheduling</h2>
+<p>Spark gives control over resource allocation both across applications (at the level of the cluster manager) and within applications (if multiple computations are happening on the same SparkContext). The job scheduling overview describes this in more detail.<br>
+Spark在跨应用程序(在集群管理器的级别)和应用程序内(在同一个SparkContext上运行多个计算)中，对资源分配进行控制。 job scheduling overview 更加详细的描述了这个特性。</p>
+<h2 id="glossary术语">Glossary(术语)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Term</th>
+<th style="text-align:center">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Application</td>
+<td style="text-align:center">User program built on Spark. Consists of a driver program and executors on the cluster.</td>
+</tr>
+<tr>
+<td style="text-align:center">Application  jar</td>
+<td style="text-align:center">A jar containing the user’s Spark application. In some cases users will want to create an “uber jar” containing their application along with its dependencies. The user’s jar should never include Hadoop or Spark libraries, however, these will be added at runtime.</td>
+</tr>
+<tr>
+<td style="text-align:center">Driver program</td>
+<td style="text-align:center">The process running the main() function of the application and creating the SparkContext</td>
+</tr>
+<tr>
+<td style="text-align:center">Cluster manager</td>
+<td style="text-align:center">An external service for acquiring resources on the cluster (e.g. standalone manager, Mesos, YARN)</td>
+</tr>
+<tr>
+<td style="text-align:center">Deploy mode</td>
+<td style="text-align:center">Distinguishes where the driver process runs. In “cluster” mode, the framework launches the driver inside of the cluster. In “client” mode, the submitter launches the driver outside of the cluster.</td>
+</tr>
+<tr>
+<td style="text-align:center">Worker node</td>
+<td style="text-align:center">Any node that can run application code in the cluster</td>
+</tr>
+<tr>
+<td style="text-align:center">Executor</td>
+<td style="text-align:center">A process launched for an application on a worker node, that runs tasks and keeps data in memory or disk storage across them. Each application has its own executors.</td>
+</tr>
+<tr>
+<td style="text-align:center">Task</td>
+<td style="text-align:center">A unit of work that will be sent to one executor</td>
+</tr>
+<tr>
+<td style="text-align:center">Job</td>
+<td style="text-align:center">A parallel computation consisting of multiple tasks that gets spawned in response to a Spark action (e.g. save, collect); you’ll see this term used in the driver’s logs.</td>
+</tr>
+<tr>
+<td style="text-align:center">Stage</td>
+<td style="text-align:center">Each job gets divided into smaller sets of tasks called stages that depend on each other (similar to the map and reduce stages in MapReduce); you’ll see this term used in the driver’s logs.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application</td>
+<td>基于Spark进行构建的用户程序 。由集群中的一个driver program以及多个executors组成。</td>
+</tr>
+<tr>
+<td>Application jar</td>
+<td>包含用户的Spark应用程序的Jar包。在某些场景下，用户可能想创建“Uber jar”，它包含用户的应用程序和它的依赖。用户的Jar不应该包含Hadoop和Spark的类库。不过这些类库将会在运行时被加载。</td>
+</tr>
+<tr>
+<td>Driver program</td>
+<td>Driver program是一个进程，它运行应用程序application里面的main()函数，并在main函数里面创建SparkContext</td>
+</tr>
+<tr>
+<td>Cluster manager</td>
+<td>一个外部服务，用于获取集群资源（比如： standalone manager, Mesos, YARN ）</td>
+</tr>
+<tr>
+<td>Deploy mode</td>
+<td>区分驱动程序进程的运行位置。在“集群”模式下，框架在集群内部启动驱动程序。在“客户端”模式下，提交者在集群外部启动驱动程序，在本地local启动driver，就是你在哪里提交，在哪台机器上提交，就在哪台机器上运行这个driver program。</td>
+</tr>
+<tr>
+<td>Worker node</td>
+<td>任何可以在群集中运行应用程序代码的节点</td>
+</tr>
+<tr>
+<td>Executor</td>
+<td>在worker node上启动应用程序的进程，这个进程可以运行多个任务并将数据保存在内存或磁盘存储中。每个Spark应用程序都有它自己的一组executors。</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>被发送给一个executor的工作单元。每个executor上面可以跑多个task。</td>
+</tr>
+<tr>
+<td>Job</td>
+<td>由Spark action触发的由多个tasks组成的并行计算。当一个Spark action（如save, collect）被触发，一个包含很多个tasks的并行计算的job将会生成。你可以在driver’s logs看到这个术语。就是说只要Spark 程序触发了一个action，它就是一个job。</td>
+</tr>
+<tr>
+<td>Stage</td>
+<td>每个job被切分成小的任务集，这些小的任务集叫做stages，并且他们之间相互依赖（类似于MapReduce中的map和reduce阶段）。你可以在driver’s logs看到这个术语。</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://img-blog.csdnimg.cn/20190626222051522.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>总结一下，所谓的Spark应用程序，它包含一个driver加上多个executor。所谓的driver，它是运行我们的Spark应用程序里面的main方法，并且在里面创建SparkContext的一个进程。所谓的Cluster manager，它是一个外部服务，用于申请集群资源。所谓的Deploy mode，它分为两种模式，client和cluster模式，client模式下，就是driver跑在本地，如果是cluster模式，就是driver跑在集群里面。所谓的Worker node，就是在它上面可以跑executor进程，对于Yarn来说，就是NM上面运行container。所谓的executor，它是一个进程，这个进程可以运行多个任务并将数据保存在内存或磁盘存储中，每个Spark应用程序都有它自己的一组executors。所谓的job，就是当一个Spark应用程序遇到一个action的时候，就会创建一个job，job里面会有很多个task，task是进行计算的最小单元，task将会被发送到executor上面去执行。</p>
+<p>Spark CM: Cluster Manager</p>
+<p>CDH   CM: Cloudera Manager</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/74SparkCore之运行架构(续--术语知识点)/" data-toggle="tooltip" data-placement="top" title="[SparkCore之运行架构(续--术语知识点)]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/72SparkCore的Topn的代码书写案例/" data-toggle="tooltip" data-placement="top" title="[SparkCore的Topn的代码书写案例]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#cluster-mode-overview"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Cluster Mode Overview</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#集群模式概述"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">&#x96C6;&#x7FA4;&#x6A21;&#x5F0F;&#x6982;&#x8FF0;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#components"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">Components</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#组件"><span class="toc-nav-number">1.2.1.</span> <span class="toc-nav-text">&#x7EC4;&#x4EF6;</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#cluster-manager-types"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Cluster Manager Types</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#集群管理类型"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">&#x96C6;&#x7FA4;&#x7BA1;&#x7406;&#x7C7B;&#x578B;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#submitting-applications"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Submitting Applications</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#monitoring"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Monitoring</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#job-scheduling"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Job Scheduling</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#glossary术语"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">Glossary(&#x672F;&#x8BED;)</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

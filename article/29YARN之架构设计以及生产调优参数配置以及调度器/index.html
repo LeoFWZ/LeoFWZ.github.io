@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [YARN之架构设计以及生产调优参数配置以及调度器]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/29YARN之架构设计以及生产调优参数配置以及调度器/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                            
+                        </div>
+                        <h1>[YARN之架构设计以及生产调优参数配置以及调度器]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-01-20
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>本节分为三部分：</p>
+<p>1.YARN架构设计</p>
+<p>2.YARN生产上资源管理–生产调优参数配置</p>
+<p>3.YARN生产上调度器</p>
+<p>YARN :Yet Another Resource Negotiator</p>
+<h1 id="1yarn架构设计">1.YARN架构设计</h1>
+<p>（和上一篇的MapReduce其实是一样，在这里再过一遍）<br>
+（当面试的时候，问到 MapReduce job执行流程、MapReduce on yarn架构、 yarn架构设计的时候，这三个问题实际上是同一个问题。）</p>
+<p>参考官网:hadoop.apache.org  多读读里面写的过程。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190302202948211.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>MapReduce状态、job提交、节点状态、资源请求。</p>
+<p>ResourceManager里面包括：Applications Manager应用程序管理器和 Resource Scheduler资源调度器。</p>
+<p>App Master:指的是用户提交的应用程序的主程序，主要负责程序的监控、跟踪状态、重启我们失败的任务。</p>
+<p>‘这里不再多说，参照上一篇博客。</p>
+<h1 id="2yarn生产上资源管理-至关重要的yarn的资源调优">2.YARN生产上资源管理 至关重要的—yarn的资源调优☆☆☆</h1>
+<p>参照这张图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190303000402434.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>①内存方面：</p>
+<p>假如一台机器是48G物理内存，一般8个物理core，对应的16个虚拟core（16vcore）（新版本默认<br>
+的是1:1，是8vcore，如果设置的话，记得改参数）<br>
+Linux系统本身要占内存+空留:  20% =9.6G   （生产上一般20%–30%都是可以的）<br>
+（当机器内存剩余的特别少的时候，有些操作系统会触发OOM killer的机制，把使用内存最大的<br>
+进程给kill掉，所以要有剩余的内存，让机器有些缓冲。）<br>
+剩余: 80% =38.4G=38G   （这80%就是给大数据用的组件、部署的进程所使用的，因为是主从架<br>
+构，都是小弟干活，小弟占的最多）</p>
+<p>②</p>
+<p>如何设置nn、dn、rm、nm这几个组件所要求的分配的内存的大小？如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">DataNode进程: 生产4G  （并不是越多越好）</span><br><span class="line">    默认是1000m</span><br><span class="line">    hadoop-env.sh</span><br><span class="line">    HADOOP_NAMENODE_OPTS=-Xmx1024m</span><br><span class="line">    HADOOP_DATANODE_OPTS=-Xmx1024m</span><br><span class="line">NodeManager进程: 生产4G</span><br><span class="line">    yarn-env.sh</span><br><span class="line">    export YARN_RESOURCEMANAGER_HEAPSIZE=1024</span><br><span class="line">    export YARN_NODEMANAGER_HEAPSIZE=1024</span><br></pre></td></tr></table></figure>
+<p>（正常情况下，DataNode进程和NodeManager进程部署在同一台机器： 数据本地化<br>
+比如：在NM上运行task任务，task任务需要数据，数据是放在当前机器的hdfs上面的，发现当前<br>
+有DataNode进程，节点上有需要的数据，那就只需要从当前节点拿数据就行了。但是如果发现当<br>
+前机器上没有数据，要去另外的机器上拿数据，那就会通过网络，这时候会网络消耗，计算就会<br>
+变慢了。）</p>
+<p>（NN RM 经常性部署同一台  说白了 因为集群节点少，也就100多台。也可以不是同一台）</p>
+<p>③<br>
+资源内存: 38G-4-4=30G （这30G是做什么？就是运行container容器）<br>
+yarn.nodemanager.resource.memory-mb   这里我们是设置30*1024 （这是总的大小）<br>
+yarn.scheduler.minimum-allocation-mb  官方默认1024          （最小可分配容器的大小）<br>
+yarn.scheduler.maximum-allocation-mb  官方默认8192          （最大可分配容器的大小）<br>
+（分配的容器的大小就是根据上面的参数来进行分配的）</p>
+<p>30G 30G/1G=30个container    （总共30G，如果全是最小的容器，就是30个容器）<br>
+30G 30/8=3个container …6G （总共30G，如果全是最大的容器，就是3个容器,还有6G浪费了）<br>
+30个~3个  这台机器可以运行3-30个容器。生产上可以这样吗？最好是可以整除。<br>
+那么生产上面怎么设置呢？</p>
+<p>生产一（大作业的环境）:</p>
+<p>yarn.nodemanager.resource.memory-mb   30G<br>
+yarn.scheduler.minimum-allocation-mb  2G<br>
+yarn.scheduler.maximum-allocation-mb  30G<br>
+（这个是大作业的情况。要看每个公司的作业情况，如果作业特别大的情况，就设成和总的一样<br>
+大）</p>
+<p>容器最小2G，就是这台机器最多可以运行15个容器，容器最大30G，就是这台机器最多可以运行1<br>
+个容器。那这台机器可以运行1-15个容器。<br>
+当你去请求资源的时候，它先给你分配一个最小的值，比如说2G，然后你如果不够，给你加比如<br>
+说1G，直到加到最大比如说30G。（这个是有参数可以去配置的，在hadoop官网没有，在cdh官网<br>
+是可以找到的）</p>
+<p>生产二（小作业的环境）：</p>
+<p>yarn.nodemanager.resource.memory-mb   32G （这个由30G调整到32G，就需要从预留的20%里面<br>
+拿出2G出来。这样32/8=4个容器，可以整除，不会浪费了）<br>
+yarn.scheduler.minimum-allocation-mb  2G<br>
+yarn.scheduler.maximum-allocation-mb  8G</p>
+<p>16c~4c</p>
+<p>生产三:</p>
+<p>服务器是256G（还有其它进程，比如hbase、kafka、zookeeper等，所以只放出60%的资源给它）<br>
+yarn.nodemanager.resource.memory-mb   168G<br>
+yarn.scheduler.minimum-allocation-mb  4G<br>
+yarn.scheduler.maximum-allocation-mb  24G</p>
+<p>④<br>
+一个容器它使用的是物理内存，如果它使用超的话，默认情况下，会把它kill掉。这是由参数去<br>
+控制的。（oom：out of memory）<br>
+生产默认（生产上尽量都要开着，生产不去修改，都是默认）：<br>
+yarn.nodemanager.pmem-check-enabled    true  （nm检查容器物理内存）<br>
+yarn.nodemanager.vmem-check-enabled    true  （nm检查容器虚拟内存）<br>
+yarn.nodemanager.vmem-pmem-ratio    2.1   （物理内存与虚拟内存比率）<br>
+物理内存如果是1G，那么虚拟内存就是2.1G<br>
+两个中，哪一个超出了设定的值，就会把它kill掉。</p>
+<p>⑤<br>
+新版本参数<br>
+yarn.nodemanager.resource.pcores-vcores-multiplier 1    （老的是2，现在是1，需要手动把它修改成2）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yarn.nodemanager.resource.memory-mb   </span><br><span class="line">yarn.scheduler.minimum-allocation-mb </span><br><span class="line">yarn.scheduler.maximum-allocation-mb </span><br><span class="line">这些参数的需要看官网里的默认配置yarn-default.xml。</span><br><span class="line">比如：yarn.nodemanager.resource.memory-mb如果设置成-1：</span><br><span class="line">Amount of physical memory, in MB, that can be allocated for containers. If set to -1and yarn.nodemanager.resource.detect-hardware-capabilities is true, it is automatically calculated(in case of Windows and Linux). In other cases, the default</span><br><span class="line">is 8192MB.</span><br><span class="line">yarn.nodemanager.resource.detect-hardware-capabilities：Enable auto-detection of nodecapabilities such as memory and CPU.（默认是false）</span><br></pre></td></tr></table></figure>
+<p>⑥<br>
+CPU方面:  （pcore物理core  vcore虚拟core）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">yarn.nodemanager.resource.cpu-vcores     12（总共16个(8个pcore)，只拿出了12个(6个pcore)）</span><br><span class="line">yarn.scheduler.minimum-allocation-vcores  1</span><br><span class="line">yarn.scheduler.maximum-allocation-vcores  4</span><br></pre></td></tr></table></figure>
+<p>（core不会像内存那样，如果不够还会再申请加内存，它申请了之后，就不会再涨了）</p>
+<p>container: 2G 3c</p>
+<p>问题：一个容器既有内存，又有CPU，那么内存和CPU分配的数量，是不是要接近于相等？是的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yarn.nodemanager.resource.memory-mb   32G </span><br><span class="line">yarn.scheduler.minimum-allocation-mb  2G</span><br><span class="line">yarn.scheduler.maximum-allocation-mb  8G</span><br><span class="line">（从这个可以看出来，可以启用32/2=16,32/8=4，也就是可以启用4-16个容器）</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yarn.nodemanager.resource.cpu-vcores     12</span><br><span class="line">yarn.scheduler.minimum-allocation-vcores  1</span><br><span class="line">yarn.scheduler.maximum-allocation-vcores  4</span><br><span class="line">（从这个可以看出来，可以启用12/1=12,12/4=3，也就是可以启用3-12个容器）</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">container: </span><br><span class="line">    memory 16container~4container</span><br><span class="line">    vcores 12container~3container</span><br></pre></td></tr></table></figure>
+<p>生产上，需求肯定是要取最大的，16到4个容器，但是按照上面来说，容器的最终个数是上面最小<br>
+的来决定的，就是12到3个容器。如果你想要用4个容器，这个时候就用不了，那另外的8个G的内<br>
+次你就浪费了。如果你想要调到最大，你就需要适当的调整这些参数，说白了就是资源最大化。<br>
+比如下面设置成：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yarn.nodemanager.resource.cpu-vcores     16</span><br><span class="line">yarn.scheduler.minimum-allocation-vcores  1</span><br><span class="line">yarn.scheduler.maximum-allocation-vcores  4</span><br><span class="line">这样是可以的，vcores就是16c~4c了，和memory一样了。</span><br></pre></td></tr></table></figure>
+<p>很多人做了多年的大数据，都不知道这种情况。</p>
+<p>（上面是理想情况，不过发生这种情况还是很多的）</p>
+<p>⑦</p>
+<p>看博客:YARN的Memory和CPU调优配置详解</p>
+<p><a href="http://blog.itpub.net/30089851/viewspace-2127851/" target="_blank" rel="noopener">http://blog.itpub.net/30089851/viewspace-2127851/</a></p>
+<p>⑧面试题：</p>
+<p><a href="https://blog.csdn.net/qq_24073707/article/details/80476480" target="_blank" rel="noopener">https://blog.csdn.net/qq_24073707/article/details/80476480</a></p>
+<h1 id="3调度器-面试题">3.调度器 （面试题）</h1>
+<p>理想情况下，我们应用对Yarn资源的请求应该立刻得到满足，但现实情况资源往往是有限的，特别是在一个很繁忙的集群，一个应用资源的请求经常需要等待一段时间才能的到相应的资源。在Yarn中，负责给应用分配资源的就是Scheduler。其实调度本身就是一个难题，很难找到一个完美的策略可以解决所有的应用场景。为此，Yarn提供了多种调度器和可配置的策略供我们选择。</p>
+<p>在Yarn中有三种调度器可以选择：FIFO Scheduler ，Capacity Scheduler，FairScheduler。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190303103859349.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>大作业小作业是由谁来决定的，是由Applications manager来决定的。</p>
+<p>FIFO Scheduler把应用按提交的顺序排成一个队列，这是一个先进先出队列，在进行资源分配的时候，先给队列中最头上的应用进行分配资源，待最头上的应用需求满足后再给下一个分配，以此类推。</p>
+<p>FIFO Scheduler是最简单也是最容易理解的调度器，也不需要任何配置，但它并不适用于共享集群。大的应用可能会占用所有集群资源，这就导致其它应用被阻塞。在共享集群中，更适合采用Capacity Scheduler或Fair Scheduler，这两个调度器都允许大任务和小任务在提交的同时获得一定的系统资源。在FIFO 调度器中，小任务会被大任务阻塞。</p>
+<p>而对于Capacity调度器，有一个专门的队列用来运行小任务，但是为小任务专门设置一个队列会预先占用一定的集群资源，这就导致大任务的执行时间会落后于使用FIFO调度器时的时间。这个专门的队列不管有没有小任务运行，它都会一直占着资源，这样会造成资源的浪费。</p>
+<p>在Fair调度器中，我们不需要预先占用一定的系统资源，Fair调度器会为所有运行的job动态的调整系统资源。当第一个大job提交时，只有这一个job在运行，此时它获得了所有集群资源；当第二个小任务提交后，Fair调度器会分配一半资源给这个小任务，让这两个任务公平的共享集群资源。</p>
+<p>需要注意的是，在Fair调度器中，假如第一个任务很大提交了，过了一段时间，第二个任务很小也提交了，从第二个任务提交到获得资源==会有一定的延迟，因为它需要等待第一个任务task释放占用的Container==。小任务执行完成之后也会释放自己占用的资源，大任务又获得了全部的系统资源。最终的效果就是Fair调度器即得到了高的资源利用率又能保证小任务及时完成。</p>
+<p>调度器参考：<a href="http://www.cnblogs.com/gxc2015/p/5267957.html" target="_blank" rel="noopener">http://www.cnblogs.com/gxc2015/p/5267957.html</a></p>
+<p>调度器具体怎么配置，不用关心，扩展知识。生产上是用CDH的。（生产真的用apache的，就参照官网的去配置，或者Google一下，比如谷歌上：<a href="https://netjs.blogspot.com/2018/04/fair-scheduler-in-yarn-hadoop.html%EF%BC%89" target="_blank" rel="noopener">https://netjs.blogspot.com/2018/04/fair-scheduler-in-yarn-hadoop.html）</a></p>
+<p>生产上CDH下载：<a href="https://www.cloudera.com/downloads/manager/6-1-1.html" target="_blank" rel="noopener">https://www.cloudera.com/downloads/manager/6-1-1.html</a><br>
+CDH有动态资源池，里面有放置规则。（面试）</p>
+<p>放置规则 比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&lt;queuePlacementPolicy&gt;</span><br><span class="line">    &lt;rule name=&quot;specified&quot; /&gt;</span><br><span class="line">    &lt;rule name=&quot;primaryGroup&quot; create=&quot;false&quot; /&gt;</span><br><span class="line">    &lt;rule name=&quot;default&quot; queue=&quot;ABC&quot;/&gt;</span><br><span class="line">&lt;/queuePlacementPolicy&gt;</span><br><span class="line"></span><br><span class="line">  &lt;?xml version=&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;allocations&gt;</span><br><span class="line">  &lt;queue name=&quot;ABC&quot;&gt;</span><br><span class="line">    &lt;minResources&gt;10000 mb,10vcores&lt;/minResources&gt;</span><br><span class="line">    &lt;maxResources&gt;60000 mb,30vcores&lt;/maxResources&gt;</span><br><span class="line">    &lt;weight&gt;2.0&lt;/weight&gt;</span><br><span class="line">    &lt;schedulingPolicy&gt;fair&lt;/schedulingPolicy&gt;</span><br><span class="line">  &lt;/queue&gt; </span><br><span class="line">  </span><br><span class="line">&lt;queue name=&quot;XYZ&quot;&gt;</span><br><span class="line">      &lt;minResources&gt;20000 mb,0vcores&lt;/minResources&gt;</span><br><span class="line">      &lt;maxResources&gt;80000 mb,0vcores&lt;/maxResources&gt;</span><br><span class="line">      &lt;weight&gt;3.0&lt;/weight&gt;</span><br><span class="line">      &lt;schedulingPolicy&gt;fifo&lt;/schedulingPolicy&gt;</span><br><span class="line">    </span><br><span class="line">&lt;/queue&gt;</span><br><span class="line">&lt;queueMaxResourcesDefault&gt;40000 mb,20vcores&lt;/queueMaxResourcesDefault&gt;</span><br><span class="line"></span><br><span class="line">&lt;queuePlacementPolicy&gt;</span><br><span class="line">    &lt;rule name=&quot;specified&quot; /&gt;</span><br><span class="line">    &lt;rule name=&quot;primaryGroup&quot; create=&quot;false&quot; /&gt;</span><br><span class="line">    &lt;rule name=&quot;default&quot; queue=&quot;ABC&quot;/&gt;</span><br><span class="line">  &lt;/queuePlacementPolicy&gt;</span><br><span class="line">&lt;/allocations&gt;</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/30MapReduce优化----Shuffle过程剖析及性能优化/" data-toggle="tooltip" data-placement="top" title="[MapReduce优化----Shuffle过程剖析及性能优化]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/28MapReduce工作原理图文详解/" data-toggle="tooltip" data-placement="top" title="[MapReduce工作原理图文详解]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1yarn架构设计"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1.YARN&#x67B6;&#x6784;&#x8BBE;&#x8BA1;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2yarn生产上资源管理-至关重要的yarn的资源调优"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2.YARN&#x751F;&#x4EA7;&#x4E0A;&#x8D44;&#x6E90;&#x7BA1;&#x7406; &#x81F3;&#x5173;&#x91CD;&#x8981;&#x7684;&#x2014;yarn&#x7684;&#x8D44;&#x6E90;&#x8C03;&#x4F18;&#x2606;&#x2606;&#x2606;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3调度器-面试题"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3.&#x8C03;&#x5EA6;&#x5668; &#xFF08;&#x9762;&#x8BD5;&#x9898;&#xFF09;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hadoop" title="Hadoop">Hadoop</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [初识SparkSQL]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/86初识SparkSQL/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[初识SparkSQL]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-05
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="背景">背景</h1>
+<p>SQL：结构化查询语言，主要用来进行统计分析。</p>
+<p>Oracle、MySQL、DB2、SQLserver等关系型数据库都用SQL。但是这些关系型数据库对数据量是有限制的。</p>
+<p>但是随着互联网的发展，数据量越来越大，关系型数据库越来越难操作这些大数据量的数据。越来越多的传统行业，比如银行、保险等会把原来传统的数据库逐渐’云化’，转到大数据上面来进行操作。但是传统的那些语句分析、优化等的SQL，不会轻易改变，如果发生改变就意味着很多业务逻辑的修改，所以在传统向大数据平台迁移到过程中尽可能保持原有的SQL不发生改变。但是不可能都不会改变，就算Oracle和MySQL数据库，也有些SQL不一样的语法。传统的数据库SQL在大数据里面的SQL，比如hiveSQL，如果找不到相关的，就是说hiveSQL不支持传统数据库的SQL，那么就需要开发大量的udf函数了，udf函数支持原有RDBMS内置的一些函数。当然udf还有其它比如业务需要的专门的udf函数的。</p>
+<p><strong>一个框架如果最终不能落地到SQL，那么这个框架是不太行的。</strong></p>
+<p>举个例子，如果你要客户通过某个语言比如Python、scala、Java去开发RDD，或者用Java开发MapReduce，来达到处理某个业务的目的，那么肯定是很困难的，这个对客户要求而言太高了。虽然RDD运行起来很快，但是不可行。那如果，现在让客户用SQL就可以处理这些业务，那么就很简单了，SQL相对来说，<strong>SQL简单易用,很多人都可以掌握。</strong></p>
+<p>大数据平台数据库比如：SQL on Hadoop（广义）<br>
+从传统关系型数据库向大数据平台数据库迁移需要考虑:</p>
+<ul>
+<li>1)SQL</li>
+<li>2)存储：<br>
+关系型数据库里的数据是存在本地的文件上的，对数据的大小有限制。<br>
+大数据平台上的数据库，数据可以存储在分布式文件系统上，比如HDFS上面。</li>
+<li>3)计算：<br>
+关系型数据库，比如MySQL数据库引擎：ISAM、MyISAM、InnoDB、MEMORY、HEAP，用这些进行计算分析处理<br>
+大数据平台上的数据库，比如MapReduce或者Spark等计算框架，用这些进行计算分析处理</li>
+</ul>
+<p>在传统向大数据平台迁移到过程中尽可能保持原有的SQL不发生改变，而去修改优化存储框架和计算框架。</p>
+<h1 id="sql-on-hadoop框架介绍">SQL on Hadoop框架介绍</h1>
+<p>比如</p>
+<h2 id="1hive-sql">1.Hive SQL：</h2>
+<p>Hive：它运用的计算框架可以是：MapReduce、Tez、Spark（可以通过配置来切换）<br>
+在Hive上运行SQL，它会把SQL转换为底层的MapReduce作业、Tez作业、Spark作业。</p>
+<p>metastore元数据信息：很多SQL on Hadoop框架都共用metastore的，比如hive上面创建的表，用spark SQL等框架也可以访问，因为它们共用一个metastore。</p>
+<p>数据地图，hive元数据整个体系的UML图，通过这个数据地图可以知道整个集群上所有的，一个数据存储量，比如哪个业务占用多少存储空间。这个对公司的成本控制有很大帮助的，你可以知道最近数据存储量增加了多少。</p>
+<h2 id="2impala">2.Impala：</h2>
+<p>它为了解决hive中交互式查询比较慢的问题。它也是用SQL，它的底层是有自己的一些守护进程的。它和hive共享metastore。hive里面有的，在Impala里面也可以访问。Impala推荐使用的数据存储格式为parquet。但是其它比如hive的存储不是parquet格式的，现在用Impala来查询，肯定需要先转换一下的。可以用Spark SQL来进行转换。<br>
+相对来说，Impala是很消耗资源的，比如memory。所以一般机器最好不要用。</p>
+<h2 id="3presto京东用的就是这个">3.Presto：京东用的就是这个</h2>
+<p>Distributed SQL Query Engine for Big Data<br>
+Presto is an open source distributed SQL query engine for running interactive analytic queries against data sources of all sizes ranging from gigabytes to petabytes.<br>
+Presto was designed and written from the ground up for interactive analytics and approaches the speed of commercial data warehouses while scaling to the size of organizations like Facebook.</p>
+<h2 id="4drill-这个还是不错的">4.Drill ：这个还是不错的</h2>
+<p>Schema-free SQL Query Engine for Hadoop, NoSQL and Cloud Storage<br>
+Drill supports a variety of NoSQL databases and file systems, including HBase, MongoDB, MapR-DB, HDFS, MapR-FS, Amazon S3, Azure Blob Storage, Google Cloud Storage, Swift, NAS and local files. A single query can join data from multiple datastores. For example, you can join a user profile collection in MongoDB with a directory of event logs in Hadoop.<br>
+Drill’s datastore-aware optimizer automatically restructures a query plan to leverage the datastore’s internal processing capabilities. In addition, Drill supports data locality, so it’s a good idea to co-locate Drill and the datastore on the same nodes.</p>
+<h2 id="5phoenix">5.Phoenix</h2>
+<p>OLTP and operational analytics for Apache Hadoop</p>
+<p><a href="http://phoenix.apache.org/" target="_blank" rel="noopener">http://phoenix.apache.org/</a></p>
+<p><a href="https://github.com/apache/phoenix" target="_blank" rel="noopener">https://github.com/apache/phoenix</a></p>
+<h1 id="spark-sql概述">Spark SQL概述</h1>
+<p>官网：<a href="http://spark.apache.org/sql/" target="_blank" rel="noopener">http://spark.apache.org/sql/</a></p>
+<h2 id="spark-sql是spark-10出来的13毕业的">Spark SQL是Spark 1.0出来的，1.3毕业的。</h2>
+<p>Spark SQL is Apache Spark’s module for working with structured data.</p>
+<p>Spark SQL是Apache Spark中的一个模块，用来处理结构化数据的，结构化数据类似于表，有列名、字段类型</p>
+<p>需要注意的是：Spark SQL只是用来处理<strong>结构化数据</strong>的一种渠道而已。并不是简简单单的写SQL。Spark SQL是通过sql、DataFrame、DataSet来处理结构化的数据，其中<strong>SQL只是占到Spark SQL其中一点点的部分</strong>。<br>
+结构化数据：可以理解为类似表一样的，有列、有列名。表是结构化数据，ORC和Parquet格式的数据也是结构化数据。JSON也是。</p>
+<p>Spark SQL框架在一开始分的时候分为两个分支：<br>
+①Spark分支：Spark SQL<br>
+②Hive分支：Hive on Spark<br>
+这个意思是：Hive跑在Spark之上，之前学的是跑在MapReduce之上，只需要set hive.execution.engine=spark;这样设置一下即可。<br>
+这个生产上面慎用，里面有很多缺陷。<br>
+<a href="https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark:+Getting+Started" target="_blank" rel="noopener">https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark:+Getting+Started</a></p>
+<p>从语法层面看Hive更强大，Spark很多语法也是抄的Hive的，当然现在也差不多了</p>
+<p>特点：</p>
+<ul>
+<li>
+<p>1)Integrated 集成<br>
+Seamlessly mix SQL queries with Spark programs.<br>
+无缝地将SQL查询与Spark程序混合。<br>
+Spark SQL lets you query structured data inside Spark programs, using either SQL or a familiar DataFrame API. Usable in Java, Scala, Python and R.<br>
+Spark SQL可以让你查询结构化数据内嵌到Spark应用程序里面，比如SQL或者DF API。在 Java, Scala, Python and R的Spark应用程序里都是可以使用的。</p>
+</li>
+<li>
+<p>2)Uniform Data Access 统一的数据访问<br>
+Connect to any data source the same way.<br>
+用相同的方式访问任何数据源<br>
+DataFrames and SQL provide a common way to access a variety of data sources, including Hive, Avro, Parquet, ORC, JSON, and JDBC. You can even join data across these sources.</p>
+</li>
+<li>
+<p>3)Hive Integration Hive集成<br>
+Run SQL or HiveQL queries on existing warehouses.<br>
+在已经存在的数据仓库上面能够运行SQL或者HiveQL的查询。意思就是原来的数据仓库是用HiveQL来实现的，那么你可以用Spark SQL来对接。因为共用metastore，SerDes，and UDFs。<br>
+Spark SQL supports the HiveQL syntax as well as Hive SerDes and UDFs, allowing you to access existing Hive warehouses.<br>
+Spark SQL支持HiveQL 语法以及 Hive SerDes和UDF，允许您访问现有的Hive 仓库。</p>
+</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20190930153806750.png" alt="image"></p>
+<p>看到MetaStore，就可以访问Hive里面的东西，同理，反过来也是可以的，包括impla等共享元数据库的也都是能访问的</p>
+<ul>
+<li>4)Standard Connectivity标准连接<br>
+Connect through JDBC or ODBC.<br>
+A server mode provides industry standard JDBC and ODBC connectivity for business intelligence tools.<br>
+就是Spark SQL拥有标准的JDBC and ODBC连接，那么你可以用BI的工具来进行访问，然后查询数据。</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20190930154005666.png" alt="image"></p>
+<p>用BI 工具，通过JDBC/ODBC查询Spark SQL里的结果数据或者统计数据。不可能去查询大量的数据，那样通过JDBC是不行的。</p>
+<ul>
+<li>
+<p>5)Performance &amp; Scalability 性能和可扩展<br>
+Spark SQL includes a cost-based optimizer, columnar storage and code generation to make queries fast. At the same time, it scales to thousands of nodes and multi hour queries using the Spark engine, which provides full mid-query fault tolerance. Don’t worry about using a different engine for historical data.</p>
+</li>
+<li>
+<p>6)Community</p>
+</li>
+</ul>
+<h2 id="spark-sql-dataframes-and-datasets-向导">Spark SQL, DataFrames and Datasets 向导</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">官网：http://spark.apache.org/docs/latest/sql-programming-guide.html</span><br></pre></td></tr></table></figure>
+<p>官网的每句话，都值得去理解，用例子和上面每句话对的上来，去深层次理解。</p>
+<p>Spark SQL是Spark中处理结构化数据的模块。与基础的Spark RDD API不同，Spark SQL所提供的接口为Spark提供了更多关于数据的结构信息和正在执行的计算结构的信息。（这个更多的信息指的是schema,比如列名以及数据类型）。Spark SQL 在其内部利用这些额外的信息去做更多的优化。有几种用于和 Sparrk SQL交互的方法，包括SQL API 、Dataset API和DataFrame API。 当你运行一个计算去得到一个计算结果， 会使用同一个执行引擎， 无论你使用哪种API或语言来描述这个计算，Spark SQL使用的执行引擎都是同一个。这种底层的统一，使开发者可以在不同的API之间来回切换，你可以选择一种最自然的方式，来表达你的需求。</p>
+<h3 id="sql">SQL</h3>
+<p>Spark SQL的一种用法是直接执行SQL查询语句，你可使用最基本的SQL语法，也可以选择HiveQL语法。Spark SQL可以从已有的Hive中读取数据。更详细的请参考Hive Tables 这一节。如果用其他编程语言运行SQL，Spark SQL将以Dataset 或者DataFrame返回结果。你同样可以使用命令行或者 JDBC/ODBC 与 SQL 接口进行交互。</p>
+<p>没有Hive也是可以访问的，因为共用一套元数据，言下之意就是只要有那个hive-site.xml配置文件就行了</p>
+<h3 id="datasets-and-dataframes">Datasets and DataFrames</h3>
+<ul>
+<li>Datasets</li>
+</ul>
+<p>A Dataset is a distributed collection of data</p>
+<p><strong>Dataset 是一种分布式数据集合，是 Spark1.6 新增的接口。</strong></p>
+<p>它提供了RDD（强类型，可以使用强大的 lambda 表达式）的优点，并受益于Spark SQL 的优化执行引擎。Dataset 可以通过 JVM 构建，然后在Dataset上可以使用各种transformation算子进行操作（map，flatMap，filter 等）。<strong>Dataset API 在 Java 和 Scala 中可用。 Python 并不支持Dataset API。</strong> 但是由于Python的动态特性优势（例如，你可以使用row.columnName来访问每一行的字段），这些优势都可以去利用。R 语言的情况类似。</p>
+<ul>
+<li>DataFrame</li>
+</ul>
+<p>DataFrame是Spark1.3版本出来的。 1.3之前它的名字叫做SchemaRDD。</p>
+<p>Python、R语言、Pandas里面很早就有DataFrame，Spark是借鉴过来的</p>
+<p>R/Pandas： 开发会简单点，但是单机，没法分布式，数据量有限</p>
+<p>A DataFrame is a distributed collection of data organized into named columns.<br>
+DataFrame是一个Dataset，它是一种分布式数据集合，就是说它是一个集合，集合里面有很多数据，数据又被组织成带有名字的列。你可以把它等价于数据库里面的表，有数据有列名，你暂且可以认为DataFrame就是一个table。那么因为这个特性，你就可以写SQL了，很方便。而且它在底层还做了很多的优化。你要用RDD写，也可以，但是编程很痛苦，写出来的代码性能也不确定。</p>
+<p><strong>DataFrame是一个Dataset，它每一条数据都由几个命名字段组成。</strong> 它在概念上等价于关系型数据库的一个表或者 R/Python 的一个data frame， 但是它（DataFrame）在底层做了更多的优化。DataFrame 可以通过大量的数据源构建，例如：结构化的数据文件， HIVE 的表，外部数据库，或已有的RDD。Java、Python、Scala、R语言都支持 DataFrame API。 在 Scala 和 Java， DataFrame 由Dataset的 rowS 表示。 在 <strong>Scala API</strong> 中，DataFrame 可以简单地认为是 Dataset[Row] 的别名，就是说：**DataFrame =Dataset[Row] **。 然而，在 Java API 中， 用户需要使用 Dataset<row> 来表示 DataFrame。</row></p>
+<h3 id="面试题rdd-dataframe-dataset的区别">面试题：RDD、DataFrame、Dataset的区别？</h3>
+<p>通过textfile源码可以看出，一个文件都进来，返回的是一个RDD[String]，我们可以自定义一个RDD[Student]，只知道Student但是id、<br>
+name、age面这些信息是不知道的</p>
+<p>三个都是分布式的数据集合，都可以进行分布式执行。<br>
+一个RDD，它里面的元素有一个类型，比如你读取一个文件给一个RDD，这个RDD里面元素是String类型，但是具体里面有什么，比如有没有列，它并不知道，它不知道里面的具体信息。<br>
+但是DataFrame你暂且可以认为就是一个table，就是一个表，它是有各个列的，每个列都有它的数据。它是知道里面的详细信息的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">这个在官网一开始就给了解释：</span><br><span class="line">Spark SQL is a Spark module for structured data processing. </span><br><span class="line">Unlike the basic Spark RDD API, </span><br><span class="line">the interfaces provided by Spark SQL provide Spark with more information </span><br><span class="line">about the structure of both the data and the computation being performed.</span><br><span class="line">Internally, Spark SQL uses this extra information to perform extra optimizations.</span><br></pre></td></tr></table></figure>
+<p>Spark SQL比Spark RDD提供了more information，就是named columns，包括the structure of the data和the structure of the computation being performed。即数据的结构和内部计算的结构。</p>
+<p>1)数据的结构就是上面的集合里面有很多数据，数据又被组织成带有名字的列，每个列都有它的数据。</p>
+<p>2)计算的结构，比如说现在是列式存储，它计算的时候按照列 来进行计算，比较快。</p>
+<p>3)第三个角度</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930154608573.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>用Java或scala写的RDD，跑在JVM里面，用的是JVM执行引擎；Python写的RDD，用的是它自己的执行引擎。同样的功能，使用相似的代码，使用Java或scala，或者Python，这两种去开发，结果执行性能肯定不一样，差别非常大，Python是非常的慢。<br>
+现在有了DataFrame，不管你用Java或scala或者Python哪种语言开发的代码，中间都要转成逻辑执行计划，后面执行都是一样的，所以它们性能一样的。</p>
+<h2 id="入口点sparksession">入口点SparkSession</h2>
+<p>我们之前基于RDD编程一直用的sc，在spark-shell启动时还有个SparkSession，叫’spark’</p>
+<p>Spark 所有功能的入口是 SparkSession 类，是整个Spark的入口点。</p>
+<p>以前在Spark SQL里有两个入口：SQLContext（不支持Hive）和HiveContext（支持Hive），HiveContext继承了SQLContext，所以用HiveContext就可以了，而发展到现在全部的Spark都用SparkSession作为入口。</p>
+<p>创建最基本的 SaprkSession， 只需要调用 SparkSession.builder():</p>
+<p><strong>scala版:</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.spark.sql.SparkSession</span><br><span class="line"></span><br><span class="line">val spark = SparkSession</span><br><span class="line">  .builder()</span><br><span class="line">  .master(&quot;local[2]&quot;)</span><br><span class="line">  .appName(&quot;Spark SQL basic example&quot;)</span><br><span class="line">  .config(&quot;spark.some.config.option&quot;, &quot;some-value&quot;)</span><br><span class="line">  .getOrCreate()</span><br><span class="line"></span><br><span class="line">// For implicit conversions like converting RDDs to DataFrames</span><br><span class="line">//用于像 RDD到DataFrame 隐式转换操作</span><br><span class="line">import spark.implicits._</span><br><span class="line"></span><br><span class="line">spark.stop()</span><br></pre></td></tr></table></figure>
+<p>上面这些设置，最好不要写在代码里，推荐在用spark-submit提交的时候设置。</p>
+<p>在 Spark 仓库 “examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java” 中可以找到完整的示例代码。<strong>这个示例代码非常好，对于学习非常有帮助。要非常熟悉这里面的示例。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 sql]$ pwd</span><br><span class="line">/home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/examples/src/main/scala/org/apache/spark/examples/sql</span><br><span class="line">[hadoop@hadoop001 sql]$ ls</span><br><span class="line">hive               SparkSQLExample.scala       streaming                          UserDefinedUntypedAggregation.scala</span><br><span class="line">RDDRelation.scala  SQLDataSourceExample.scala  UserDefinedTypedAggregation.scala</span><br><span class="line">[hadoop@hadoop001 sql]$ cd ..</span><br><span class="line">[hadoop@hadoop001 examples]$ ls</span><br><span class="line">BroadcastTest.scala          HdfsTest.scala     LogQuery.scala                 SkewedGroupByTest.scala  SparkPi.scala</span><br><span class="line">DFSReadWriteTest.scala       LocalALS.scala     ml                             SparkALS.scala           SparkRemoteFileTest.scala</span><br><span class="line">DriverSubmissionTest.scala   LocalFileLR.scala  mllib                          SparkHdfsLR.scala        SparkTC.scala</span><br><span class="line">ExceptionHandlingTest.scala  LocalKMeans.scala  MultiBroadcastTest.scala       SparkKMeans.scala        sql</span><br><span class="line">graphx                       LocalLR.scala      pythonconverters               SparkLR.scala            streaming</span><br><span class="line">GroupByTest.scala            LocalPi.scala      SimpleSkewedGroupByTest.scala  SparkPageRank.scala</span><br><span class="line">[hadoop@hadoop001 examples]$</span><br></pre></td></tr></table></figure>
+<p>Spark2.0 的 SparkSession 提供了对 HIVE 特性的内置支持， 包括使用 HiveQL 编写查询语句的能力，访问 Hive UDFs 和 从 Hive Table 中读取数据的能力。为了使用这些特性，您不需要去安装一个 HIVE。</p>
+<h2 id="spark-sql整合hive以及性能对比">Spark SQL整合Hive以及性能对比</h2>
+<p>现在你要用Spark SQL来访问hive里面的表，需要做以下操作：</p>
+<p>1)把$HIVE_HOME/conf/hive-site.xml拷贝到$SPARK_HOME /conf/下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 conf]$ pwd</span><br><span class="line">/home/hadoop/app/hive-1.1.0-cdh5.7.0/conf</span><br><span class="line">[hadoop@hadoop001 conf]$ cp hive-site.xml /home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/conf</span><br></pre></td></tr></table></figure>
+<p>2)因为hive的数据都是存放在hdfs上面的，所以需要把hdfs启动起来。当然yarn也要启动起来。</p>
+<p>3)需要添加MySQL的jar包，因为要访问元数据，元数据是存放在MySQL里的。<br>
+用下面命令启动spark-shell;</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">spark-shell --master local[2] --jars ~/soft/mysql-connector-java.jar</span><br><span class="line"></span><br><span class="line">//加上去的jar包可以到UI界面上环境中看到，这些jar包都在Classpath,而Classpath在#SPARK_HOME的jars目录下</span><br><span class="line"></span><br><span class="line">//而对于Spark同Hive整合时，mysql-connector-java.jar直接copy到指定目录下也是不合适的，这样以后每次启动都会加载，可能会有冲突，影响到别人，当然也可以试着配进spark-default.xml</span><br></pre></td></tr></table></figure>
+<p>这样就可以用Spark SQL来访问hive里面的表了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Spark context Web UI available at http://hadoop001:4040</span><br><span class="line">Spark context available as &apos;sc&apos; (master = local[2], app id = local-1561878671792).</span><br><span class="line">Spark session available as &apos;spark&apos;.</span><br></pre></td></tr></table></figure>
+<p>可以看到Spark context用sc，Spark session用spark来表示。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sql(&quot;show databases&quot;).show;</span><br><span class="line">+------------+</span><br><span class="line">|databaseName|</span><br><span class="line">+------------+</span><br><span class="line">|     default|</span><br><span class="line">|          g6|</span><br><span class="line">+------------+</span><br><span class="line"></span><br><span class="line">scala&gt; spark.sql(&quot;select * from g6.test&quot;).show;</span><br><span class="line">+--------+---+---+</span><br><span class="line">|    name|sex|age|</span><br><span class="line">+--------+---+---+</span><br><span class="line">|zhangsan|  m| 16|</span><br><span class="line">+--------+---+---+</span><br></pre></td></tr></table></figure>
+<h2 id="spark-sql和hiveql性能对比">Spark SQL和HiveQL性能对比：</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">scala&gt; spark.sql(&quot;select * from dept&quot;).show;</span><br><span class="line">+------+----------+-------+</span><br><span class="line">|deptno|     dname|    loc|</span><br><span class="line">+------+----------+-------+</span><br><span class="line">|    10|accounting|newyork|</span><br><span class="line">|    20|  research| dallas|</span><br><span class="line">|    30|     sales|chicago|</span><br><span class="line">|    40|operations| boston|</span><br><span class="line">+------+----------+-------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; spark.sql(&quot;select * from emp&quot;).show;</span><br><span class="line">+----+------+---------+----+----------+-------+------+------+</span><br><span class="line">| emp| ename|      job| mgr|  hiredate|    sal|  comm|deptno|</span><br><span class="line">+----+------+---------+----+----------+-------+------+------+</span><br><span class="line">|7369| SMITH|    CLERK|7902|1980-12-17|  800.0|  null|    20|</span><br><span class="line">|7499| ALLEN| SALESMAN|7698|1981-02-20| 1600.0| 300.0|    30|</span><br><span class="line">|7521|  WARD| SALESMAN|7698|1981-02-22| 1250.0| 500.0|    30|</span><br><span class="line">|7566| JONES|  MANAGER|7839|1981-04-02| 2975.0|  null|    20|</span><br><span class="line">|7654|MARTIN| SALESMAN|7698|1981-09-28| 1250.0|1400.0|    30|</span><br><span class="line">|7698| BLAKE|  MANAGER|7839|1981-05-01| 2850.0|  null|    30|</span><br><span class="line">|7782| CLARK|  MANAGER|7839|1981-06-09| 2450.0|  null|    10|</span><br><span class="line">|7788| SCOTT|  ANALYST|7566|1987-04-19| 3000.0|  null|    20|</span><br><span class="line">|7839|  KING|PRESIDENT|    |1981-11-17| 5000.0|  null|    10|</span><br><span class="line">|7844|TURNER| SALESMAN|7698|1981-09-08| 1500.0|   0.0|    30|</span><br><span class="line">|7876| ADAMS|    CLERK|7788|1987-05-23| 1100.0|  null|    20|</span><br><span class="line">|7900| JAMES|    CLERK|7698|1981-12-03|  950.0|  null|    30|</span><br><span class="line">|7902|  FORD|  ANALYST|7566|1981-12-03| 3000.0|  null|    20|</span><br><span class="line">|7934|MILLER|    CLERK|7782|1982-01-23| 1300.0|  null|    10|</span><br><span class="line">|8888|  HIVE|  PROGRAM|7839|1988-01-23|10300.0|  null|  null|</span><br><span class="line">+----+------+---------+----+----------+-------+------+------+</span><br></pre></td></tr></table></figure>
+<p>现在用Spark SQL和HiveQL分别对两个表做join，看一下时间长短。<br>
+Spark SQL执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sql(&quot;select * from emp join dept on emp.deptno = dept.deptno&quot;).show;</span><br></pre></td></tr></table></figure>
+<p>HiveQL执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from emp join dept on emp.deptno = dept.deptno;</span><br></pre></td></tr></table></figure>
+<p>结果发现，Spark SQL执行完命令瞬间就出来结果了，而HiveQL跑出结果的时间为10几秒，要慢很多。</p>
+<p>另外：<br>
+spark编译的时候，要加上下面参数，不然 Spark SQL集成不了Hive。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930155228893.png" alt="image"></p>
+<h2 id="使用spark-sql替换spark-shell">使用spark-sql替换spark-shell</h2>
+<p>上面是使用spark-shel来操作的，现在用spark-sql来操作，是一样的。<br>
+可以用下面来启动spark-sql</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark-sql --master local[2] --jars ~/soft/mysql-connector-java.jar</span><br></pre></td></tr></table></figure>
+<p>但是启动的时候报错，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java.sql.SQLException: Unable to open a test connection to the given database. JDBC url = jdbc:mysql。。。。。。</span><br><span class="line">java.sql.SQLException: No suitable driver found for jdbc:mysql://。。。。。。。</span><br></pre></td></tr></table></figure>
+<p>报错，原因：<br>
+用spark-shell --help或者spark-sql --help看一下，有两个参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//--jars  会把jar包传到driver端和executor 端，但是有时候会传不到driver端</span><br><span class="line">//官方上面也有不对的地方</span><br><span class="line">--jars JARS                 Comma-separated list of jars to include on the driver</span><br><span class="line">                              and executor classpaths.</span><br><span class="line"></span><br><span class="line">//如果上面传不到driver端，那么就用这个把jar包传到driver端</span><br><span class="line">//jars added with  --jars  这个东西有时候不准，有些版本不能自动添加，就像上面那样就没有自动添加</span><br><span class="line">-driver-class-path         Extra class path entries to pass to the driver. Note that</span><br><span class="line">                              jars added with --jars are automatically included in the</span><br><span class="line">                              classpath.</span><br></pre></td></tr></table></figure>
+<p>于是用下面这种方式来启动，可以启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//小知识点：spark-sql 底层调用的也是spark-submit</span><br><span class="line">spark-sql --master local[2] --driver-class-path ~/soft/mysql-connector-java.jar</span><br></pre></td></tr></table></figure>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">spark-sql (default)&gt; select * from dept;</span><br><span class="line">......</span><br><span class="line">10      accounting      newyork</span><br><span class="line">20      research        dallas</span><br><span class="line">30      sales   chicago</span><br><span class="line">40      operations      boston</span><br><span class="line">Time taken: 1.422 seconds, Fetched 4 row(s)</span><br><span class="line">19/06/30 16:21:21 INFO SparkSQLCLIDriver: Time taken: 1.422 seconds, Fetched 4 row(s)</span><br><span class="line">spark-sql (default)&gt;</span><br></pre></td></tr></table></figure>
+<p>你那边在hive创建的表，这边就可以使用Spark SQL来访问了。<br>
+因为它们用的都是同一个metastore，你可以随意切换计算框架，可以用hive也可以用Spark SQL，或者其它。</p>
+<p><strong>小知识点：</strong></p>
+<p>用下面命令启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark-shell --master local[2] --jars ~/soft/mysql-connector-java.jar</span><br></pre></td></tr></table></figure>
+<p>启动之后去webUI 页面的Environment里面看一下，Classpath Entries这个属性下面，有很多很多jar包，这是 $SPARK_HOME/jars/下面的jar包， 每次都要上传上去的，基本都是System Classpath，但是拉到最下面，可以看到mysql-connector-java.jar 这个是Added By User，就是被用户添加的。可以把需要的jar包放在 $SPARK_HOME/jars/ 这个目录，但是要根据需要，很多情况下并不需要，放在这个目录，可能会影响别人的操作。<br>
+生产上，如果你添加了jar包，发现少了几个，你可以通过这种方式来查看。</p>
+<p><img src="https://img-blog.csdnimg.cn/2019093015543779.png" alt="image"></p>
+<h3 id="cache-一个表到内存中">cache 一个表到内存中</h3>
+<p>现在把emp这个表持久化到内存中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cache table emp;</span><br></pre></td></tr></table></figure>
+<p>到web UI页面上的Storage页面就可以看到了：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190930155520723.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>从上面可以看出，Spark SQL里的cache操作并不是lazy的，它是eager的，Spark core里面的cache是lazy的。<br>
+去除表emp的缓存：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uncache table emp;</span><br></pre></td></tr></table></figure>
+<p>另外需要注意的是，如果Spark SQL要访问Hive里的数据，并不需要安装Hive，只需要Spark SQL能够访问metastore就行了，只是这里巧了，只要用hive-site.xml就可以访问metastore了，因为这里面有metastore的配置信息。</p>
+<h2 id="spark-sql-之-thriftserver和beeline">Spark SQL 之 thriftserver和beeline</h2>
+<p>和Hive一样，Spark SQL也可以使用thriftserver和beeline。<br>
+第一步启动thriftserver：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//小知识点：--jars ~/soft/mysql-connector-java.jar 这个东西可以配置到spark-defaults.conf里面</span><br><span class="line">//这样就不用每次都要添加jars了，包括spark-shell和spark-sql</span><br><span class="line">[hadoop@hadoop001 sbin]$ ./start-thriftserver.sh --jars ~/soft/mysql-connector-java.jar </span><br><span class="line">starting org.apache.spark.sql.hive.thriftserver.HiveThriftServer2, logging to /home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/logs/spark-hadoop-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1-hadoop001.out</span><br></pre></td></tr></table></figure>
+<p>tail一下上面的…out日志，看一下启动起来了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">INFO AbstractService: Service:ThriftBinaryCLIService is started.</span><br><span class="line">INFO AbstractService: Service:HiveServer2 is started.</span><br><span class="line">INFO HiveThriftServer2: HiveThriftServer2 started</span><br><span class="line">INFO ThriftCLIService: Starting ThriftBinaryCLIService on port 10000 with 5...500 worker threads</span><br></pre></td></tr></table></figure>
+<p>第二步启动beeline：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//注意，这里要用当前目录./来执行，不然hive里也有beeline，如果直接beeline启动，有可能启动的是hive里的，因为环境变量里可能把hive的配置到spark前面了</span><br><span class="line"></span><br><span class="line">[hadoop@hadoop001 spark-2.4.2-bin-2.6.0-cdh5.7.0]$ ./bin/beeline -u jdbc:hive2://hadoop001:10000 -n hadoop</span><br><span class="line">Connecting to jdbc:hive2://hadoop001:10000</span><br><span class="line">log4j:WARN No appenders could be found for logger (org.apache.hive.jdbc.Utils).</span><br><span class="line">log4j:WARN Please initialize the log4j system properly.</span><br><span class="line">log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.</span><br><span class="line">Connected to: Spark SQL (version 2.4.2)</span><br><span class="line">Driver: Hive JDBC (version 1.2.1.spark2)</span><br><span class="line">Transaction isolation: TRANSACTION_REPEATABLE_READ</span><br><span class="line">Beeline version 1.2.1.spark2 by Apache Hive</span><br><span class="line">0: jdbc:hive2://hadoop001:10000&gt; select * from dept;</span><br><span class="line">+---------+-------------+----------+--+</span><br><span class="line">| deptno  |    dname    |   loc    |</span><br><span class="line">+---------+-------------+----------+--+</span><br><span class="line">| 10      | accounting  | newyork  |</span><br><span class="line">| 20      | research    | dallas   |</span><br><span class="line">| 30      | sales       | chicago  |</span><br><span class="line">| 40      | operations  | boston   |</span><br><span class="line">+---------+-------------+----------+--+</span><br><span class="line">4 rows selected (2.245 seconds)</span><br><span class="line">0: jdbc:hive2://hadoop001:10000&gt; </span><br><span class="line">0: jdbc:hive2://hadoop001:10000&gt; show tables;</span><br><span class="line">+-----------+---------------+--------------+--+</span><br><span class="line">| database  |   tableName   | isTemporary  |</span><br><span class="line">+-----------+---------------+--------------+--+</span><br><span class="line">| default   | dept          | false        |</span><br><span class="line">| default   | emp           | false        |</span><br><span class="line">| default   | sparksqltest  | false        |</span><br><span class="line">+-----------+---------------+--------------+--+</span><br><span class="line">3 rows selected (0.066 seconds)</span><br><span class="line">0: jdbc:hive2://hadoop001:10000&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="spark-sql架构流程">Spark SQL架构流程</h2>
+<p>和Hive里面的执行过程是一样的。<br>
+<a href="https://www.cnblogs.com/ulysses-you/p/9762133.html" target="_blank" rel="noopener">https://www.cnblogs.com/ulysses-you/p/9762133.html</a><br>
+<img src="https://img-blog.csdnimg.cn/20190930155702904.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>用下面这个语句看一下执行计划：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">explain extended</span><br><span class="line">select</span><br><span class="line">a.id*(4+5),</span><br><span class="line">b.name</span><br><span class="line">from</span><br><span class="line">sparksqltest a join sparksqltest b</span><br><span class="line">on a.id = b.id and a.id&gt;10;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">spark-sql (default)&gt; explain extended</span><br><span class="line">                   &gt; select</span><br><span class="line">                   &gt; a.id*(4+5),</span><br><span class="line">                   &gt; b.name</span><br><span class="line">                   &gt; from</span><br><span class="line">                   &gt; sparksqltest a join sparksqltest b</span><br><span class="line">                   &gt; on a.id = b.id and a.id&gt;10;</span><br><span class="line"> INFO HiveMetaStore: 0: get_table : db=default tbl=sparksqltest</span><br><span class="line"> INFO audit: ugi=hadoop        ip=unknown-ip-addr      cmd=get_table : db=default tbl=sparksqltest</span><br><span class="line"> INFO HiveMetaStore: 0: get_table : db=default tbl=sparksqltest</span><br><span class="line"> INFO audit: ugi=hadoop        ip=unknown-ip-addr      cmd=get_table : db=default tbl=sparksqltest</span><br><span class="line"> INFO CodeGenerator: Code generated in 6.774914 ms</span><br><span class="line">== Parsed Logical Plan ==</span><br><span class="line">&apos;Project [unresolvedalias((&apos;a.id * (4 + 5)), None), &apos;b.name]</span><br><span class="line">+- &apos;Join Inner, ((&apos;a.id = &apos;b.id) &amp;&amp; (&apos;a.id &gt; 10))</span><br><span class="line">   :- &apos;SubqueryAlias `a`</span><br><span class="line">   :  +- &apos;UnresolvedRelation `sparksqltest`</span><br><span class="line">   +- &apos;SubqueryAlias `b`</span><br><span class="line">      +- &apos;UnresolvedRelation `sparksqltest`</span><br><span class="line"></span><br><span class="line">== Analyzed Logical Plan ==</span><br><span class="line">(id * (4 + 5)): int, name: string</span><br><span class="line">Project [(id#173 * (4 + 5)) AS (id * (4 + 5))#177, name#176]</span><br><span class="line">+- Join Inner, ((id#173 = id#175) &amp;&amp; (id#173 &gt; 10))</span><br><span class="line">   :- SubqueryAlias `a`</span><br><span class="line">   :  +- SubqueryAlias `default`.`sparksqltest`</span><br><span class="line">   :     +- HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#173, name#174]</span><br><span class="line">   +- SubqueryAlias `b`</span><br><span class="line">      +- SubqueryAlias `default`.`sparksqltest`</span><br><span class="line">         +- HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#175, name#176]</span><br><span class="line"></span><br><span class="line">== Optimized Logical Plan ==</span><br><span class="line">Project [(id#173 * 9) AS (id * (4 + 5))#177, name#176]</span><br><span class="line">+- Join Inner, (id#173 = id#175)</span><br><span class="line">   :- Project [id#173]</span><br><span class="line">   :  +- Filter (isnotnull(id#173) &amp;&amp; (id#173 &gt; 10))</span><br><span class="line">   :     +- HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#173, name#174]</span><br><span class="line">   +- Filter ((id#175 &gt; 10) &amp;&amp; isnotnull(id#175))</span><br><span class="line">      +- HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#175, name#176]</span><br><span class="line"></span><br><span class="line">== Physical Plan ==</span><br><span class="line">*(5) Project [(id#173 * 9) AS (id * (4 + 5))#177, name#176]</span><br><span class="line">+- *(5) SortMergeJoin [id#173], [id#175], Inner</span><br><span class="line">   :- *(2) Sort [id#173 ASC NULLS FIRST], false, 0</span><br><span class="line">   :  +- Exchange hashpartitioning(id#173, 200)</span><br><span class="line">   :     +- *(1) Filter (isnotnull(id#173) &amp;&amp; (id#173 &gt; 10))</span><br><span class="line">   :        +- Scan hive default.sparksqltest [id#173], HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#173, name#174]</span><br><span class="line">   +- *(4) Sort [id#175 ASC NULLS FIRST], false, 0</span><br><span class="line">      +- Exchange hashpartitioning(id#175, 200)</span><br><span class="line">         +- *(3) Filter ((id#175 &gt; 10) &amp;&amp; isnotnull(id#175))</span><br><span class="line">            +- Scan hive default.sparksqltest [id#175, name#176], HiveTableRelation `default`.`sparksqltest`, org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, [id#175, name#176]</span><br><span class="line">Time taken: 0.148 seconds, Fetched 1 row(s)</span><br><span class="line"> INFO SparkSQLCLIDriver: Time taken: 0.148 seconds, Fetched 1 row(s)</span><br><span class="line">spark-sql (default)&gt;</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/87SparkSQL之DataFrame以及ShuffleManager补充/" data-toggle="tooltip" data-placement="top" title="[SparkSQL之DataFrame以及ShuffleManager补充]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/85JVM深入浅出/" data-toggle="tooltip" data-placement="top" title="[JVM深入浅出]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x80CC;&#x666F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#sql-on-hadoop框架介绍"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">SQL on Hadoop&#x6846;&#x67B6;&#x4ECB;&#x7ECD;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1hive-sql"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">1.Hive SQL&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2impala"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">2.Impala&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3presto京东用的就是这个"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">3.Presto&#xFF1A;&#x4EAC;&#x4E1C;&#x7528;&#x7684;&#x5C31;&#x662F;&#x8FD9;&#x4E2A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#4drill-这个还是不错的"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">4.Drill &#xFF1A;&#x8FD9;&#x4E2A;&#x8FD8;&#x662F;&#x4E0D;&#x9519;&#x7684;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#5phoenix"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">5.Phoenix</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#spark-sql概述"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Spark SQL&#x6982;&#x8FF0;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql是spark-10出来的13毕业的"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">Spark SQL&#x662F;Spark 1.0&#x51FA;&#x6765;&#x7684;&#xFF0C;1.3&#x6BD5;&#x4E1A;&#x7684;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql-dataframes-and-datasets-向导"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">Spark SQL, DataFrames and Datasets &#x5411;&#x5BFC;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#sql"><span class="toc-nav-number">3.2.1.</span> <span class="toc-nav-text">SQL</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#datasets-and-dataframes"><span class="toc-nav-number">3.2.2.</span> <span class="toc-nav-text">Datasets and DataFrames</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#面试题rdd-dataframe-dataset的区别"><span class="toc-nav-number">3.2.3.</span> <span class="toc-nav-text">&#x9762;&#x8BD5;&#x9898;&#xFF1A;RDD&#x3001;DataFrame&#x3001;Dataset&#x7684;&#x533A;&#x522B;&#xFF1F;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#入口点sparksession"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">&#x5165;&#x53E3;&#x70B9;SparkSession</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql整合hive以及性能对比"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">Spark SQL&#x6574;&#x5408;Hive&#x4EE5;&#x53CA;&#x6027;&#x80FD;&#x5BF9;&#x6BD4;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql和hiveql性能对比"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">Spark SQL&#x548C;HiveQL&#x6027;&#x80FD;&#x5BF9;&#x6BD4;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#使用spark-sql替换spark-shell"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">&#x4F7F;&#x7528;spark-sql&#x66FF;&#x6362;spark-shell</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#cache-一个表到内存中"><span class="toc-nav-number">3.6.1.</span> <span class="toc-nav-text">cache &#x4E00;&#x4E2A;&#x8868;&#x5230;&#x5185;&#x5B58;&#x4E2D;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql-之-thriftserver和beeline"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">Spark SQL &#x4E4B; thriftserver&#x548C;beeline</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#spark-sql架构流程"><span class="toc-nav-number">3.8.</span> <span class="toc-nav-text">Spark SQL&#x67B6;&#x6784;&#x6D41;&#x7A0B;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

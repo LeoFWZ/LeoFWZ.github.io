@@ -3,7 +3,91 @@
 
     <url>
         <loc>https://leofwz.github.io/tags/Hexo/</loc>
-        <lastmod>2020-05-14T04:21:37.753Z</lastmod>
+        <lastmod>2020-05-14T06:52:37.601Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/MySQL/</loc>
+        <lastmod>2020-05-14T07:50:07.761Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Linux/</loc>
+        <lastmod>2020-05-14T08:39:58.957Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Hive/</loc>
+        <lastmod>2020-05-14T08:50:53.586Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Scala/</loc>
+        <lastmod>2020-05-14T08:56:43.646Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Hadoop/</loc>
+        <lastmod>2020-05-14T08:58:17.129Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/JVM/</loc>
+        <lastmod>2020-05-14T09:36:21.987Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Spark/</loc>
+        <lastmod>2020-05-14T09:45:44.987Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Kafka/</loc>
+        <lastmod>2020-05-14T09:47:54.905Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Flume/</loc>
+        <lastmod>2020-05-14T09:50:23.513Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/ZooKeeper/</loc>
+        <lastmod>2020-05-14T09:51:37.255Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/Azkaban/</loc>
+        <lastmod>2020-05-14T09:52:43.540Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>https://leofwz.github.io/tags/ELK/</loc>
+        <lastmod>2020-05-14T09:54:03.686Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>

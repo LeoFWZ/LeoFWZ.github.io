@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark之Tuning Spark官网翻译]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/83Spark之Tuning Spark官网翻译/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark之Tuning Spark官网翻译]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-23
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>Tuning Spark官网：<a href="http://spark.apache.org/docs/latest/tuning.html" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/tuning.html</a></p>
+</blockquote>
+<p>Because of the in-memory nature of most Spark computations, Spark programs can be bottlenecked by any resource in the cluster: CPU, network bandwidth, or memory. Most often, if the data fits in memory, the bottleneck is network bandwidth, but sometimes, you also need to do some tuning, such as storing RDDs in serialized form, to decrease memory usage. This guide will cover two main topics: data serialization, which is crucial for good network performance and can also reduce memory use, and memory tuning. We also sketch several smaller topics.</p>
+<p>因为大部分Spark计算都具有基于“内存”的特点，所以集群的任何资源都有可能成为Spark程序的瓶颈:CPU，网络带宽，或者内存。大多数情况下，如果内存容得下数据，瓶颈会是网络带宽，但是有时候你仍然需要做些优化，例如以<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-persistence" target="_blank" rel="noopener">序列化的格式来存储RDD</a>，来降低内存的使用。该指南将涵盖两个主要主题：<strong>数据序列化和内存调优</strong>，其中数据序列化对网络性能至关重要而且可以减少内存的使用。另外我们也会提到几个小的话题。</p>
+<h1 id="data-serialization">Data Serialization</h1>
+<p>数据序列化</p>
+<p>Serialization plays an important role in the performance of any distributed application. Formats that are slow to serialize objects into, or consume a large number of bytes, will greatly slow down the computation. Often, this will be the first thing you should tune to optimize a Spark application. Spark aims to strike a balance between convenience (allowing you to work with any Java type in your operations) and performance. It provides two serialization libraries:</p>
+<p>序列化在任何分布式应用程序的性能中都扮演着重要的角色。如果序列化对象的过程缓慢，或者需要占用字节很多，都会大大拖慢整体的计算效率。通常这会是进行Spark应用调优时你需要做的第一件事。Spark的目标是找到易用性(允许你在操作中使用任何Java类型)以及性能间的平衡。它提供了两个序列化类库：</p>
+<ul>
+<li>
+<p><a href="https://docs.oracle.com/javase/8/docs/api/java/io/Serializable.html" target="_blank" rel="noopener">Java serialization</a>:By default, Spark serializes objects using Java’s ObjectOutputStream framework, and can work with any class you create that implements java.io.Serializable. You can also control the performance of your serialization more closely by extending java.io.Externalizable. Java serialization is flexible but often quite slow, and leads to large serialized formats for many classes.</p>
+</li>
+<li>
+<p><a href="https://github.com/EsotericSoftware/kryo" target="_blank" rel="noopener">Kryo serialization</a>: Spark can also use the Kryo library (version 4) to serialize objects more quickly. Kryo is significantly faster and more compact than Java serialization (often as much as 10x), but does not support all Serializable types and requires you to register the classes you’ll use in the program in advance for best performance.</p>
+</li>
+<li>
+<p><strong>Java序列化</strong>：默认情况下，Spark使用Java的<font color="#FF0000" size="2.5" face="黑体">ObjectOutputStream</font>框架去序列化对象，这样任何实现了<font color="#FF0000" size="2.5" face="黑体">java.io.Serializable</font>接口的对象，都能被序列化。你也可以通过继承 <font color="#FF0000" size="2.5" face="黑体">java.io.Externalizable</font> 来更进一步控制序列化性能。Java序列化灵活但是通常很慢，而且对于很多Class来说序列化结果比较大。</p>
+</li>
+<li>
+<p><strong>Kryo序列化</strong>： Spark还可以使用 Kryo 类库(version 4)来进行更快的去序列化对象。比起Java的序列化来说，Kryo不但速度更快，而且产生的结果更为紧凑，（通常能提高10倍）。但是，Kryo不支持所有实现了Serializable接口的类型，而且需要在程序中提前 注册你将去使用的序列化的类，以得到最佳性能。</p>
+</li>
+</ul>
+<p>You can switch to using Kryo by initializing your job with a SparkConf and calling conf.set(“spark.serializer”, “org.apache.spark.serializer.KryoSerializer”). This setting configures the serializer used for not only shuffling data between worker nodes but also when serializing RDDs to disk. The only reason Kryo is not the default is because of the custom registration requirement, but we recommend trying it in any network-intensive application. Since Spark 2.0.0, we internally use Kryo serializer when shuffling RDDs with simple types, arrays of simple types, or string type.</p>
+<p>通过用SparkConf初始化任务并调用<font color="#FF0000" size="2.5" face="黑体">conf.set(“spark.serializer”, “org.apache.spark.serializer.KryoSerializer”)</font>，你可以切换到Kryo序列化。这个配置设定的序列化框架不仅用于worker节点间的数据的shuffling，也用于将RDD持续化到磁盘。不将Kryo作为默认序列化框架的唯一原因是它需要自定义注册，但我们推荐在网络资源紧张的场景下使用它。从<font color="#FF0000" size="2.5" face="黑体">Spark 2.0.0</font>版本开始，当RDD里的元素类型为简单类型、简单类型数组或字符串类型，在进行shuffle的时候，Spark 内部默认使用 Kryo 序列化。</p>
+<p>Spark automatically includes Kryo serializers for the many commonly-used core Scala classes covered in the AllScalaRegistrar from the Twitter chill library.</p>
+<p>Spark对一些常用的Scala核心类型（包括在Twitter chill 库的AllScalaRegistrar中）自动使用Kryo序列化格式。</p>
+<p>To register your own custom classes with Kryo, use the registerKryoClasses method.</p>
+<p>如果你的自定义类需要使用Kryo序列化，可以用 registerKryoClasses 方法先注册：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">val conf = new SparkConf().setMaster(...).setAppName(...)</span><br><span class="line">conf.registerKryoClasses(Array(classOf[MyClass1], classOf[MyClass2]))</span><br><span class="line">val sc = new SparkContext(conf)</span><br></pre></td></tr></table></figure>
+<p>The <a href="https://github.com/EsotericSoftware/kryo" target="_blank" rel="noopener">Kryo documentation</a> describes more advanced registration options, such as adding custom serialization code.</p>
+<p>Kryo 文档描述了更多高级的注册选项，例如添加用户自定义的序列化代码。</p>
+<p>If your objects are large, you may also need to increase the spark.kryoserializer.buffer <a href="http://spark.apache.org/docs/latest/configuration.html#compression-and-serialization" target="_blank" rel="noopener">config</a>. This value needs to be large enough to hold the largest object you will serialize.</p>
+<p>如果对象很大，你或许需要提高<font color="#FF0000" size="2.5" face="黑体">spark.kryoserializr.buffer</font>  配置。这个值需要足够大，可以r容纳你需要序列化的最大的对象。</p>
+<p>Finally, if you don’t register your custom classes, Kryo will still work, but it will have to store the full class name with each object, which is wasteful.</p>
+<p>最后，如果你不注册你定制的对象，Kryo仍然可以运作，但是它需要为了每一个对象保存其对应的全类名，这是很浪费的。</p>
+<h1 id="memory-tuning">Memory Tuning</h1>
+<p>内存调优</p>
+<p>There are three considerations in tuning memory usage: the amount of memory used by your objects (you may want your entire dataset to fit in memory), the cost of accessing those objects, and the overhead of garbage collection (if you have high turnover in terms of objects).</p>
+<p>内存调优主要有三个方面的考虑:对象使用的内存大小(你可能想要整个数据集都加载到内存)，访问这些对象的成本，还有垃圾回收的消耗(如果你需要大批量地创建和销毁对象)。</p>
+<p>By default, Java objects are fast to access, but can easily consume a factor of 2-5x more space than the “raw” data inside their fields. This is due to several reasons:</p>
+<p>默认情况下，Java对象访问快，但同时Java对象会比原始数据（仅包含各个字段值）占用的空间多2~5倍。这是由几个原因造成的:</p>
+<ul>
+<li>1.Each distinct Java object has an “object header”, which is about 16 bytes and contains information such as a pointer to its class. For an object with very little data in it (say one Int field), this can be bigger than the data.<br>
+每个不同的Java对象都有一个“对象堆”，大约16字节，包含了Class的指针等信息。如果对象本身包含的数据非常少（比如只有一个int字段属性），对象堆可能会比对象数据本身还要大。</li>
+<li>2.Java Strings have about 40 bytes of overhead over the raw string data (since they store it in an array of Chars and keep extra data such as the length), and store each character as two bytes due to String’s internal usage of UTF-16 encoding. Thus a 10-character string can easily consume 60 bytes.<br>
+Java 字符串（String）比起原始字符串数据 需要多消耗40字节（因为数据以一个Char数组形式存放，要保存长度等额外的数据），并且每个字符占用2个字节，因为String类型使用了UTF-16编码。所以一个10字符的字符串很容易就消耗了60字节。</li>
+<li>3.Common collection classes, such as HashMap and LinkedList, use linked data structures, where there is a “wrapper” object for each entry (e.g. Map.Entry). This object not only has a header, but also pointers (typically 8 bytes each) to the next object in the list.<br>
+普遍的集合类，比如 HashMap 和 LinkedList，使用了链表形式的数据结构，这种数据结构每个成员都有一个“包装器”对象（比如 Map.Entry）。这个对象不仅有一个堆，而且有一个指向下个成员的指针（通常是8字节）。</li>
+<li>4.Collections of primitive types often store them as “boxed” objects such as java.lang.Integer.<br>
+原生(基本)类型的集合通常以“封装”对象的形式存储它们，比如 java.lang.Integer。</li>
+</ul>
+<p>This section will start with an overview of memory management in Spark, then discuss specific strategies the user can take to make more efficient use of memory in his/her application. In particular, we will describe how to determine the memory usage of your objects, and how to improve it – either by changing your data structures, or by storing data in a serialized format. We will then cover tuning Spark’s cache size and the Java garbage collector.</p>
+<p>本章节会由Spark的内存管理概览开始，然后讨论一些特别的策略，用户可以使用这些策略在应用中更有效率地使用内存。特别地，我们会描述怎么样确定对象的内存使用和怎么去优化——通过改变你的数据结构，或者通过将数据以序列化方式存储。接下来我们再讨论Spark缓存优化和Java垃圾回收的优化。</p>
+<h2 id="memory-management-overview">Memory Management Overview</h2>
+<p>内存管理概览</p>
+<p>Memory usage in Spark largely falls under one of two categories: execution and storage. Execution memory refers to that used for computation in shuffles, joins, sorts and aggregations, while storage memory refers to that used for caching and propagating internal data across the cluster. In Spark, execution and storage share a unified region (M). When no execution memory is used, storage can acquire all the available memory and vice versa. Execution may evict storage if necessary, but only until total storage memory usage falls under a certain threshold ®. In other words, R describes a subregion within M where cached blocks are never evicted. Storage may not evict execution due to complexities in implementation.</p>
+<p>Spark中的内存使用主要分为两类：执行内存和存储内存。执行内存用于洗牌(shuffle)，连接(join)，排序(sort)和聚合(aggregation)，而存储内存指用于 缓存和传输 集群内部数据的内存(比如cache操作)。在Spark中，执行和存储共享同一内存区域（M区）。当不需要使用执行内存时，存储可以占据整个区域的内存，反之亦然。需要的时候执行内存可能会驱逐存储内存，直到所有的存储内存使用降到某个阈值以下（R区）。（执行计算可能会抢占数据存储使用的内存，如果必要的话会将存储于内存的数据逐出内存，直到数据存储占用的内存比例降低到一个指定的比例（R））。换句话说，R是M基础上的一个子区域，这个子区域的内存数据永远不会被逐出内存。而存储内存不会驱逐执行内存，因为实现起来太复杂了。</p>
+<p>This design ensures several desirable properties. First, applications that do not use caching can use the entire space for execution, obviating unnecessary disk spills. Second, applications that do use caching can reserve a minimum storage space ® where their data blocks are immune to being evicted. Lastly, this approach provides reasonable out-of-the-box performance for a variety of workloads without requiring user expertise of how memory is divided internally.</p>
+<p>这样设计确保了几个重要的特性。第一，不需要缓存数据的应用程序可以使用整个内存作为执行内存来用于计算，避免了无谓的内存溢出需要把数据吐到磁盘上的操作。第二，需要缓存数据的应用程序可以保留一个最小的存储空间（R区）（这是最低保证），这个区域内的数据块不会被驱逐出内存。最后，这个机制在不同工作负荷下提供了合理的开箱即用性能，不需要用户研究Spark内部怎么划分内存。</p>
+<p>Although there are two relevant configurations, the typical user should not need to adjust them as the default values are applicable to most workloads:</p>
+<p>虽然Spark提供了两个相关配置，但一般用户不应该需要调整它们，因为默认值在大多数情况都可以满足工作负载：</p>
+<ul>
+<li>spark.memory.fraction expresses the size of M as a fraction of the (JVM heap space - 300MB) (default 0.6). The rest of the space (40%) is reserved for user data structures, internal metadata in Spark, and safeguarding against OOM errors in the case of sparse and unusually large records.<font color="#FF0000" size="2.5" face="黑体">spark.memory.fraction</font><br>
+表示M区占据整个JVM堆内存（300MB）的比例，默认为0.6。留下40%的空间给用户数据结构、Spark内部元数据、以及避免OOM错误的安全预留空间（稀疏数据和异常大的数据记录）。</li>
+<li>spark.memory.storageFraction expresses the size of R as a fraction of M (default 0.5). R is the storage space within M where cached blocks immune to being evicted by execution.<font color="#FF0000" size="2.5" face="黑体">spark.memory.storageFraction</font><br>
+表示R区占据M区空间的比例，默认为0.5。R区是M区中的存储区域，该区域中的缓存的数据块永远不会因执行计算任务而被逐出内存。</li>
+</ul>
+<p>The value of spark.memory.fraction should be set in order to fit this amount of heap space comfortably within the JVM’s old or “tenured” generation. See the discussion of advanced GC tuning below for details.</p>
+<p><font color="#FF0000" size="2.5" face="黑体">spark.memory.fraction</font> 的值应该被设置，以便在JVM的老生代或者永生代中，合理地占用堆内存空间。详情参考进阶下文的GC调优讨论。</p>
+<h2 id="determining-memory-consumption">Determining Memory Consumption</h2>
+<p>估算内存消耗</p>
+<p>The best way to size the amount of memory consumption a dataset will require is to create an RDD, put it into cache, and look at the “Storage” page in the web UI. The page will tell you how much memory the RDD is occupying.</p>
+<p>计算一个数据集需要的内存大小的最好的方式是，创建一个RDD并把它放进缓存，查看web UI界面的”Storage”页面。这个页面会告诉你这个RDD占用了多少内存。</p>
+<p>To estimate the memory consumption of a particular object, use SizeEstimator’s estimate method. This is useful for experimenting with different data layouts to trim memory usage, as well as determining the amount of space a broadcast variable will occupy on each executor heap.</p>
+<p>要估算某个特定对象的内存消耗，可以使用 SizeEstimator 的 estimate 方法。这个方法对试验哪种数据结构能够裁剪内存占用量比较有用，同时，也可以计算确定 广播变量在每个执行器堆上占用的内存空间的大小。</p>
+<h2 id="tuning-data-structures">Tuning Data Structures</h2>
+<p>数据结构调优</p>
+<p>The first way to reduce memory consumption is to avoid the Java features that add overhead, such as pointer-based data structures and wrapper objects. There are several ways to do this:</p>
+<p>减少内存消耗的第一个方式就是避免使用增加额外开销的Java特性，避免过多的Java封装（减少对象头和额外辅助字段）,比如基于指针的数据结构和包装类。以下是几个具体的做法:</p>
+<ul>
+<li>1.Design your data structures to prefer arrays of objects, and primitive types, instead of the standard Java or Scala collection classes (e.g. HashMap). The fastutil library provides convenient collection classes for primitive types that are compatible with the Java standard library.<br>
+设计数据结构时优先使用对象数组和基本类型，而不是Java和Scala的标准集合类(比如 HashMap)。<a href="http://fastutil.di.unimi.it/" target="_blank" rel="noopener">fastutil</a> 库为基本类型提供了方便的集合类，并与Java标准库兼容。</li>
+<li>2.Avoid nested structures with a lot of small objects and pointers when possible.<br>
+如果可以的话，尽量避免包含大量小对象和指针的嵌套数据结构。</li>
+<li>3.Consider using numeric IDs or enumeration objects instead of strings for keys.<br>
+考虑使用数值类型的id或者枚举类型的key，避免使用字符串类型作为key</li>
+<li>4.If you have less than 32 GB of RAM, set the JVM flag -XX:+UseCompressedOops to make pointers be four bytes instead of eight. You can add these options in <a href="http://spark-env.sh" target="_blank" rel="noopener">spark-env.sh</a><br>
+如果内存不足32GB，设置JVM选项<font color="#FF0000" size="2.5" face="黑体"> -XX:+UseCompressedOops</font> 将指针由默认8字节改为4字节。你可以将这些选项加到 <a href="http://spark-en.sh" target="_blank" rel="noopener">spark-en.sh</a> 中。</li>
+</ul>
+<h2 id="serialized-rdd-storage">Serialized RDD Storage</h2>
+<p>RDD序列化存储</p>
+<p>When your objects are still too large to efficiently store despite this tuning, a much simpler way to reduce memory usage is to store them in serialized form, using the serialized StorageLevels in the RDD persistence API, such as MEMORY_ONLY_SER. Spark will then store each RDD partition as one large byte array. The only downside of storing data in serialized form is slower access times, due to having to deserialize each object on the fly. We highly recommend using Kryo if you want to cache data in serialized form, as it leads to much smaller sizes than Java serialization (and certainly than raw Java objects).</p>
+<p>当进行上述优化之后，对象仍旧太大而无法有效存储时，减少内存使用的一个更简单的办法是将它们以序列化格式存储，具体办法是使用 RDD persistence API 的序列化存储级别(StorageLevels)，比如 MEMORY_ONLY_SER。之后Spark会将RDD的每个分区存为一个大字节数组。以序列化格式存储的唯一缺点是访问数据会变慢，因为需要在访问时进行反序列化。如果你打算以序列化方式缓存数据，我们强烈推荐使用Kryo，因为它序列化的结果比Java序列化要小很多(当然也比原始Java对象小很多)。</p>
+<h2 id="garbage-collection-tuning">Garbage Collection Tuning</h2>
+<p>垃圾回收(GC)调优</p>
+<p>JVM garbage collection can be a problem when you have large “churn” in terms of the RDDs stored by your program. (It is usually not a problem in programs that just read an RDD once and then run many operations on it.) When Java needs to evict old objects to make room for new ones, it will need to trace through all your Java objects and find the unused ones. The main point to remember here is that the cost of garbage collection is proportional to the number of Java objects, so using data structures with fewer objects (e.g. an array of Ints instead of a LinkedList) greatly lowers this cost. An even better method is to persist objects in serialized form, as described above: now there will be only one object (a byte array) per RDD partition. Before trying other techniques, the first thing to try if GC is a problem is to use serialized caching.</p>
+<p>如果你在程序需要大量新建和销毁RDD操作的时候，JVM垃圾回收可能会成为一个问题。(只是读取一个RDD然后操作多次不会产生这个问题)。Java需要将旧对象驱逐出内存来容纳新的对象，这时它会追踪所有的Java对象，找出其中不再使用的部分。这里的关键是垃圾回收的成本是和Java对象的数量成正比的，所以使用包含少量对象的数据结构(比如整形数组而不是链表结构 LinkedList)会显著减少这项成本。一个更好的办法是以序列化形式存储对象，就像上面描述的一样：这样每个RDD分区只有一个对象(一个字节数组)。如果GC存在问题，在尝试其他方法之前，首先要尝试的是去使用 序列化缓存（serialized caching）。</p>
+<p>GC can also be a problem due to interference between your tasks’ working memory (the amount of space needed to run the task) and the RDDs cached on your nodes. We will discuss how to control the space allocated to the RDD cache to mitigate this.</p>
+<p>GC出现问题的另外一种原因是作业中的各个任务的工作内存(执行任务需要的内存大小)和节点上存储的RDD缓存占用的内存 产生冲突。下面我们将讨论一下如何控制好RDD缓存使用的内存空间，以减少这种冲突。</p>
+<h2 id="measuring-the-impact-of-gc">Measuring the Impact of GC</h2>
+<p>估算GC的影响</p>
+<p>The first step in GC tuning is to collect statistics on how frequently garbage collection occurs and the amount of time spent GC. This can be done by adding -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps to the Java options. (See the configuration guide for info on passing Java options to Spark jobs.) Next time your Spark job is run, you will see messages printed in the worker’s logs each time a garbage collection occurs. Note these logs will be on your cluster’s worker nodes (in the stdout files in their work directories), not on your driver program.</p>
+<p>GC调优的第一步是统计一下，GC多久发生一次以及花在GC上的时间。具体可以通过增加Java参数<font color="#FF0000" size="2.5" face="黑体"> -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps </font>。(参考Spark配置指南configuration guide，查看Spark作业中的Java选项参数。)下次你的Spark任务执行的时候，你会在Spark作业的worker日志中看到每次GC发生的时间。注意这些日志会在集群的worker节点(在各节点的工作目录的stdout文件里)，而不是你的 driver program。</p>
+<h2 id="advanced-gc-tuning">Advanced GC Tuning</h2>
+<p>高级GC调优</p>
+<p>To further tune garbage collection, we first need to understand some basic information about memory management in the JVM:<br>
+为了进一步调优GC，我们首先需要理解一些关于JVM内存管理的基本信息：</p>
+<ul>
+<li>Java Heap space is divided in to two regions Young and Old. The Young generation is meant to hold short-lived objects while the Old generation is intended for objects with longer lifetimes.<br>
+Java堆内存空间分为两个区域：新生代（Young generation）和老生代（Old generation）。新生代用以保存生存周期短的对象，而老生代则是保存生存周期长的对象。</li>
+<li>The Young generation is further divided into three regions [Eden, Survivor1, Survivor2].<br>
+新生代区域被进一步划分为三个子区域：Eden，Survivor1，Survivor2。</li>
+<li>A simplified description of the garbage collection procedure: When Eden is full, a minor GC is run on Eden and objects that are alive from Eden and Survivor1 are copied to Survivor2. The Survivor regions are swapped. If an object is old enough or Survivor2 is full, it is moved to Old. Finally, when Old is close to full, a full GC is invoked.<br>
+简要描述一下垃圾回收的过程：如果Eden区满了，则会在Eden区启动一个 minor GC，生存下来（没有被回收掉）的Eden中的对象和Survivor1区中的对象一并复制到Survivor2中。两个Survivor区域是互相切换使用的（就是说，下次从Eden和Survivor2中复制到Survivor1中）。如果某个对象的年龄（每次GC所有生存下来的对象长一岁）超过某个阈值，或者Survivor2（下次是Survivor1）区域满了，则将对象移到老生代（Old区）。最终如果老生代也快满了，full GC(全局GC)就会启动。</li>
+</ul>
+<p>The goal of GC tuning in Spark is to ensure that only long-lived RDDs are stored in the Old generation and that the Young generation is sufficiently sized to store short-lived objects. This will help avoid full GCs to collect temporary objects created during task execution. Some steps which may be useful are:</p>
+<p>Spark GC调优的目标就是确保老生代（Old generation<br>
+）只保存生命周期长的RDD，而同时新生代（Young generation ）的空间又能足够保存生命周期短的对象。这样就能在任务执行期间，避免启动full GC来收集任务执行期间创建的临时对象。一些可能有帮助的步骤如：</p>
+<ul>
+<li>Check if there are too many garbage collections by collecting GC stats. If a full GC is invoked multiple times for before a task completes, it means that there isn’t enough memory available for executing tasks.<br>
+收集GC统计信息，检查是否有过多的GC。如果在任务完成前full GC发生了多次，这意味着没有足够多的可用内存提供给该正在执行的任务。</li>
+<li>If there are too many minor collections but not many major GCs, allocating more memory for Eden would help. You can set the size of the Eden to be an over-estimate of how much memory each task will need. If the size of Eden is determined to be E, then you can set the size of the Young generation using the option -Xmn=4/3*E. (The scaling up by 4/3 is to account for space used by survivor regions as well.)<br>
+如果有很多minor GC却没有很多major GC，分配更多内存给Eden区可以改善这个问题。你可以将Eden区的大小调为高于每个任务所需内存。如果Eden区的小大为E，你可以通过参数数<font color="#FF0000" size="2.5" face="黑体">  -Xmn=4/3 *E  </font> 设置新生代的大小。(增大为4/3倍是因为Survivor分区也需要空间。)</li>
+<li>In the GC stats that are printed, if the OldGen is close to being full, reduce the amount of memory used for caching by lowering spark.memory.fraction; it is better to cache fewer objects than to slow down task execution. Alternatively, consider decreasing the size of the Young generation. This means lowering -Xmn if you’ve set it as above. If not, try changing the value of the JVM’s NewRatio parameter. Many JVMs default this to 2, meaning that the Old generation occupies 2/3 of the heap. It should be large enough such that this fraction exceeds spark.memory.fraction.<br>
+在打印出来的GC统计信息中，如果老生代接近用满，降低<font color="#FF0000" size="2.5" face="黑体"> spark.memory.fraction </font>  来减少RDD缓存占用的内存。缓存少一点对象总比拖慢任务执行要好。或者考虑减小新生代分区的大小也是可以的。这意味着将 -Xmn 调低，如果你已经按照上文做了的话。如果没有的话，尝试改变JVM的NewRatio参数。许多JVM默认将此参数设为2，意味这老生代占据堆大小的2/3。这个值应该足够大应该要超过<font color="#FF0000" size="2.5" face="黑体"> spark.memory.fraction </font> 。</li>
+<li>Try the G1GC garbage collector with -XX:+UseG1GC. It can improve performance in some situations where garbage collection is a bottleneck. Note that with large executor heap sizes, it may be important to increase the G1 region size with -XX:G1HeapRegionSize<br>
+尝试设置参数<font color="#FF0000" size="2.5" face="黑体">   -XX:+UseG1GC </font>  应用G1GC垃圾收集器。在某些情况下，当垃圾回收成为瓶颈时它可以提高性能。注意在executor的堆空间比较大的情况下，使用<font color="#FF0000" size="2.5" face="黑体">  –XX:G1HeapRegionSize </font>  参数提高G1分区大小是很重要的。</li>
+<li>As an example, if your task is reading data from HDFS, the amount of memory used by the task can be estimated using the size of the data block read from HDFS. Note that the size of a decompressed block is often 2 or 3 times the size of the block. So if we wish to have 3 or 4 tasks’ worth of working space, and the HDFS block size is 128 MB, we can estimate size of Eden to be 43128MB.<br>
+举例，如果你的任务从HDFS读取数据，可以通过读取的数据块大小估算任务使用的内存大小。注意解压后的数据块大小通常是原来大小的2至3倍。所以如果希望给3或4个任务分配工作空间，而且HDFS块大小为128M，我们可以估计Eden区大概需要 4<em>3</em>128MB 的空间。</li>
+<li>Monitor how the frequency and time taken by garbage collection changes with the new settings.<br>
+更新设置后，监控GC发生的频率以及消耗时间的变化。</li>
+</ul>
+<p>Our experience suggests that the effect of GC tuning depends on your application and the amount of memory available. There are many more tuning options described online, but at a high level, managing how frequently full GC takes place can help in reducing the overhead.</p>
+<p>根据经验我们认为GC调优的效果取决于具体应用程序(比如说代码)和可提供内存的大小。网上有更多关于调优参数的描述，不过总体来说，控制full GC发生的频率能有效减少垃GC成本。</p>
+<p>GC tuning flags for executors can be specified by setting spark.executor.extraJavaOptions in a job’s configuration.</p>
+<p>Executor的GC调优可以通过设置任务配置中的<font color="#FF0000" size="2.5" face="黑体"> spark.executor.extraJavaOptions</font>  来指定。</p>
+<h2 id="other-considerations">Other Considerations</h2>
+<p>其他考虑因素</p>
+<h2 id="level-of-parallelism">Level of Parallelism</h2>
+<p>并行度</p>
+<p>Clusters will not be fully utilized unless you set the level of parallelism for each operation high enough. Spark automatically sets the number of “map” tasks to run on each file according to its size (though you can control it through optional parameters to SparkContext.textFile, etc), and for distributed “reduce” operations, such as groupByKey and reduceByKey, it uses the largest parent RDD’s number of partitions. You can pass the level of parallelism as a second argument (see the spark.PairRDDFunctions documentation), or set the config property spark.default.parallelism to change the default. In general, we recommend 2-3 tasks per CPU core in your cluster.</p>
+<p>除非你为每个操作设置足够高的并行度，否则集群资源不会被充分利用。Spark自动根据文件大小决定启动多少个map任务(虽然你可以通过可选参数比如<font color="#FF0000" size="2.5" face="黑体"> SparkContext.textFile</font>  等方法控制并行度)。对于分布式的reduce操作，比如 groupByKey 和 reduceByKey，并行度是最大父RDD的分区数。你可以将并行度作为第二参数传递给Spark(见spark.PairRDDFunctions文档)，或者设置配置属性<font color="#FF0000" size="2.5" face="黑体"> spark.default.parallelism </font>   来改变默认值。一般来说，我们推荐集群内每个CPU(每个core)执行2至3个任务。</p>
+<h2 id="memory-usage-of-reduce-tasks">Memory Usage of Reduce Tasks</h2>
+<p>Reduce任务的内存使用</p>
+<p>Sometimes, you will get an OutOfMemoryError not because your RDDs don’t fit in memory, but because the working set of one of your tasks, such as one of the reduce tasks in groupByKey, was too large. Spark’s shuffle operations (sortByKey, groupByKey, reduceByKey, join, etc) build a hash table within each task to perform the grouping, which can often be large. The simplest fix here is to increase the level of parallelism, so that each task’s input set is smaller. Spark can efficiently support tasks as short as 200 ms, because it reuses one executor JVM across many tasks and it has a low task launching cost, so you can safely increase the level of parallelism to more than the number of cores in your clusters.</p>
+<p>有时发生内存溢出错误并不是因为内存放不下RDD，而是其中一个task处理的数据集太大了，比如在 groupByKey 的reduce任务中就可能出现这种情况。Spark的shuffle操作(sortByKey， groupByKey， reduceByKey， join等等)为了进行分组操作，在每个task中都构建一个哈希表，哈希表可能会非常大。最简单的修复办法是提高并行度，这样每个task的输入都会变小。Spark能够非常有效的支持短时间任务（例如200ms)，因为它可以跨许多task复用一个executor JVM，并且task的启动成本都较低，所以你可以安全地将并行度提高到集群cpu核数以上。</p>
+<h2 id="broadcasting-large-variables">Broadcasting Large Variables</h2>
+<p>广播大变量</p>
+<p>Using the broadcast functionality available in SparkContext can greatly reduce the size of each serialized task, and the cost of launching a job over a cluster. If your tasks use any large object from the driver program inside of them (e.g. a static lookup table), consider turning it into a broadcast variable. Spark prints the serialized size of each task on the master, so you can look at that to decide whether your tasks are too large; in general tasks larger than about 20 KB are probably worth optimizing.</p>
+<p>使用SparkContext中的广播函数可以显著减小每个序列化task的大小，还有在集群上启动作业的成本。如果任务需要从Driver程序获取大对象(比如静态的扫表)，你可以考虑将这个对象转变为广播变量。Spark将每个task序列化后的大小打印在master上，你可以根据这个来判断task是不是太大。通常来说task大于20KB就可能需要优化。</p>
+<h2 id="data-locality">Data Locality</h2>
+<p>数据本地性</p>
+<p>Data locality can have a major impact on the performance of Spark jobs. If data and the code that operates on it are together then computation tends to be fast. But if code and data are separated, one must move to the other. Typically it is faster to ship serialized code from place to place than a chunk of data because code size is much smaller than data. Spark builds its scheduling around this general principle of data locality.</p>
+<p>数据本地性对Spark任务的性能有重要影响。如果数据和处理它的代码在一起，在同一节点，计算会快一些。不过如果数据和代码是分开的，那么其中一个必须移动到另外一个那里。一般来说，移动序列化后的代码比移动一大堆数据要快，因为代码远比数据小。Spark就是围绕数据本地性的这个一般性原则来构建调度策略。</p>
+<p>Data locality is how close data is to the code processing it. There are several levels of locality based on the data’s current location. In order from closest to farthest:</p>
+<p>数据本地性指数据离对应处理它的代码多近。基于数据当前的位置，数据本地性可以划分成以下几个层次（按从近到远排序）：</p>
+<ul>
+<li>PROCESS_LOCAL data is in the same JVM as the running code. This is the best locality possible<br>
+PROCESS_LOCAL(进程本地) 数据就在代码所在的JVM里，这是最好的数据本地性。</li>
+<li>NODE_LOCAL data is on the same node. Examples might be in HDFS on the same node, or in another executor on the same node. This is a little slower than PROCESS_LOCAL because the data has to travel between processes<br>
+NODE_LOCAL(节点本地) 数据在同一个节点上。例如在同一个节点的HDFS上，或者在同一节点的另外一个executor上。这比PROCESS_LOCAL稍慢，因为数据要跨进程传输。</li>
+<li>NO_PREF data is accessed equally quickly from anywhere and has no locality preference<br>
+NO_PREF(无偏好) 数据在所有节点的访问都一样快，没有本地性偏好。</li>
+<li>RACK_LOCAL data is on the same rack of servers. Data is on a different server on the same rack so needs to be sent over the network, typically through a single switch<br>
+RACK_LOCAL(机架本地) 数据在同一个机架的节点上。数据在相同机架的不同节点上所以需要网络传输，一般也就通过一个交换机传输即可。</li>
+<li>ANY data is elsewhere on the network and not in the same rack<br>
+ANY(任何) 数据在网络上其他地方，但数据和代码不在同一机架上。</li>
+</ul>
+<p>Spark prefers to schedule all tasks at the best locality level, but this is not always possible. In situations where there is no unprocessed data on any idle executor, Spark switches to lower locality levels. There are two options: a) wait until a busy CPU frees up to start a task on data on the same server, or b) immediately start a new task in a farther away place that requires moving data there.</p>
+<p>Spark倾向于以最好的数据本地性调度任务，但并不总能做到。在所有空闲的executor上都没有未处理数据的情况下，Spark将本地性要求放低，会牺牲一些数据本地性。有两个方法：a)等待某个在工作的CPU空闲下来，可以在同一节点启动新的任务。b)马上在远端的节点启动新任务，但是需要将数据传输过去。</p>
+<p>What Spark typically does is wait a bit in the hopes that a busy CPU frees up. Once that timeout expires, it starts moving the data from far away to the free CPU. The wait timeout for fallback between each level can be configured individually or all together in one parameter; see the spark.locality parameters on the configuration page for details. You should increase these settings if your tasks are long and see poor locality, but the default usually works well.</p>
+<p>Spark典型的处理是等一会，希望有CPU资源释放。一旦等待超时，它开始将数据移动到远端的空闲CPU。不同级别间的等待时长可以分别设置或者统一设置。详情见配置页面的<font color="#FF0000" size="2.5" face="黑体"> spark.locality </font> 参数。如果任务执行时间长或数据的本地性差，你应该调高这些时长，不过默认值一般都能适用于大多数场景了。</p>
+<h2 id="summary">Summary</h2>
+<p>总结</p>
+<p>This has been a short guide to point out the main concerns you should know about when tuning a Spark application – most importantly, data serialization and memory tuning. For most programs, switching to Kryo serialization and persisting data in serialized form will solve most common performance issues. Feel free to ask on the Spark mailing list about other tuning best practices.</p>
+<p>这是一个简短的教程，指出了调优Spark时你应该知道的主要的关注点----最重要的是，数据序列化和内存调优。对于大多数程序来说，切换到Kryo序列化和将数据序列化存储会解决大部分常见的性能问题。</p>
+<p>参考博客：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">https://www.iteblog.com/archives/2494.html</span><br><span class="line">http://ifeve.com/spark-tuning/</span><br><span class="line">https://www.oschina.net/translate/spark-tuning</span><br><span class="line">https://www.iteblog.com/archives/1659.html</span><br><span class="line">https://cloud.tencent.com/developer/article/1198461</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/84JVM概要/" data-toggle="tooltip" data-placement="top" title="[JVM概要]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/82Spark-Core之共享变量/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之共享变量]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#data-serialization"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Data Serialization</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#memory-tuning"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Memory Tuning</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#memory-management-overview"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Memory Management Overview</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#determining-memory-consumption"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Determining Memory Consumption</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#tuning-data-structures"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Tuning Data Structures</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#serialized-rdd-storage"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">Serialized RDD Storage</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#garbage-collection-tuning"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">Garbage Collection Tuning</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#measuring-the-impact-of-gc"><span class="toc-nav-number">2.6.</span> <span class="toc-nav-text">Measuring the Impact of GC</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#advanced-gc-tuning"><span class="toc-nav-number">2.7.</span> <span class="toc-nav-text">Advanced GC Tuning</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#other-considerations"><span class="toc-nav-number">2.8.</span> <span class="toc-nav-text">Other Considerations</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#level-of-parallelism"><span class="toc-nav-number">2.9.</span> <span class="toc-nav-text">Level of Parallelism</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#memory-usage-of-reduce-tasks"><span class="toc-nav-number">2.10.</span> <span class="toc-nav-text">Memory Usage of Reduce Tasks</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#broadcasting-large-variables"><span class="toc-nav-number">2.11.</span> <span class="toc-nav-text">Broadcasting Large Variables</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#data-locality"><span class="toc-nav-number">2.12.</span> <span class="toc-nav-text">Data Locality</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#summary"><span class="toc-nav-number">2.13.</span> <span class="toc-nav-text">Summary</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

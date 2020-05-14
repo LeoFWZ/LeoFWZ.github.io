@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark Streaming之基本概念]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/93Spark Streaming之基本概念/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark Streaming之基本概念]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-22
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>参考官网：<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#basic-concepts" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/streaming-programming-guide.html#basic-concepts</a></p>
+</blockquote>
+<p>上一节，初识了Spark Streaming，并做了一个示例。这一节来学一下基本概念。</p>
+<p>小知识点：</p>
+<p>Spark Streaming并不是真正的实时处理，Storm、Flink是真正的实时处理。</p>
+<p>Spark：以批处理为主，用微批处理来处理流数据</p>
+<p>Flink：以流处理为主，用流处理来处理批数据。</p>
+<p>Spark Structured Streaming结构化流可能是Spark未来的发展方向，只是现在刚出来，上生产需要一点时间来适应。结构化流的编程方式和DF DS完全一样，可以使用类似SQL的方式去处理，它的底层做过优化，所以性能更好。现在生产上还是Spark Streaming。</p>
+<h1 id="依赖">依赖</h1>
+<p>需要添加Maven依赖，这样能连接到Maven中心仓库，添加后才能去写Spark Streaming程序。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//版本什么的可以看自己情况</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spark-streaming_2.12&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.4.3&lt;/version&gt;</span><br><span class="line">    &lt;scope&gt;provided&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>如果用的数据源不在Spark Streaming core API里面，比如来自于Kafka, Flume, and Kinesis，那么需要另外添加spark-streaming-xyz_2.12这样的依赖，比如：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728230059938.png" alt="image"></p>
+<h1 id="初始化streamingcontext">初始化StreamingContext</h1>
+<p>StreamingContext 是主的入口点，要初始化一个 Spark Streaming应用程序,StreamingContext 需要被创建起来。一个 StreamingContext 对象可以通过一个SparkConf 对象创建。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.spark._</span><br><span class="line">import org.apache.spark.streaming._</span><br><span class="line"></span><br><span class="line">val conf = new SparkConf().setAppName(appName).setMaster(master)</span><br><span class="line">val ssc = new StreamingContext(conf, Seconds(1))</span><br></pre></td></tr></table></figure>
+<p>其中appName 这个参数，是应用程序的名字，用来展示在WebUI上面的。master 是 Spark, Mesos 、 YARN cluster URL，或者local[*]本地模式。实践证明，不要在程序代码里去硬编码master 、appName ，而是要在spark-submit 提交应用程序的时候去设置。对于本地开发测试，可以使用local模式。<br>
+批处理间隔必须根据应用程序的延迟要求和可用的集群资源来设置。</p>
+<p>还可以从现有的SparkContext对象创建StreamingContext对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.spark.streaming._</span><br><span class="line"></span><br><span class="line">val sc = ...                // existing SparkContext</span><br><span class="line">val ssc = new StreamingContext(sc, Seconds(1))</span><br></pre></td></tr></table></figure>
+<h1 id="在创建完context之后你必须做一下这些">在创建完context之后，你必须做一下这些：</h1>
+<ul>
+<li>1.通过创建 input DStreams来定义输入的数据源；</li>
+<li>2.对DStreams做transformation和output（action）操作，来定义streaming流的计算；</li>
+<li>3.使用streamingContext.start() 来开始接收数据并处理它；</li>
+<li>4.使用streamingContext.awaitTermination()来等待处理结束（手动停止或者因报错而停止）；</li>
+<li>5.可以使用streamingContext.stop()来进行手动停止。（一般不会手工关闭）</li>
+</ul>
+<p>总结：input data stream ==&gt; transformation ==&gt; output</p>
+<p><strong>不过需要注意一下几点：</strong></p>
+<ul>
+<li>一旦context开始之后，新的streaming computations就不能再去设置或者添加进去。比如说ssc.start()后面就不要再添加一些计算的代码了。</li>
+<li>一旦context停止之后，context就不能再启动了。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">比如</span><br><span class="line">ssc.start()</span><br><span class="line">ssc.stop()</span><br><span class="line">ssc.start()</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个JVM里面同时只能有一个StreamingContext 。不能存在多个StreamingContext 。<br>
+停掉StreamingContext，也会将SparkContext停掉。想要只停止StreamingContext，设置stop()的叫做stopSparkContext的参数为false</li>
+<li>为了创建多个StreamingContexts，SparkContext 可以被重新使用，前提是在下一个StreamingContext 创建之前，只要之前的StreamingContext已经停掉（不需要停掉SparkContext）。</li>
+</ul>
+<h1 id="discretized-streams-dstreams">Discretized Streams (DStreams)</h1>
+<p>Discretized Stream或者叫DStream是spark streaming提供的最基本的抽象。它表示一个连续的数据流，要么是从source接收来的输入数据流，要么是通过转换input stream输入流而生成的处理后的数据流。在内部，数据流由一系列连续的RDD表示，这是Spark对不可变的分布式的数据集的抽象。DStream中的每个RDD包含来自指定时间间隔的数据，如下图，每个时间间隔内都是一个RDD：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728234703295.png" alt="image"></p>
+<p>对DStream应用的任何操作都将 转换为 对底层的RDD的操作。比如，在之前的示例中，把数据流中的每一行去转换为单词，flatMap操作符被应用在lines DStream中的每个RDD上去生成words DStream的RDDs。如下图所示：</p>
+<p><strong>对DStream做了某个操作，其实就是对底层的RDD都做了某个操作。</strong></p>
+<p>一个DStream = 一系列的 RDD</p>
+<p><img src="https://img-blog.csdnimg.cn/20190728235407531.png" alt="image"></p>
+<p>这些潜在的RDD转换是用Spark的引擎来计算完成的。为了方便，DStream操作隐藏大多数的细节并且向开发者提供更高层次的API。这些操作将在之后的章节中进行讨论。</p>
+<h1 id="input-dstreams-and-receivers">Input DStreams and Receivers</h1>
+<p><strong>Input DStreams是DStreams</strong> ，它代表了从streaming sources端接收而来的输入流数据。在前面的wordcount统计案例中，lines就是一个 input DStream，它代表了从netcat server.端接收的数据流。每个input DStream（除了文件流，在后面讨论）都会与一个接收器（Scala doc, Java doc）对象相关联，该对象从一个源（streaming source）接收数据并将其存储在Spark的内存中进行处理。</p>
+<p><strong>Receiver：Abstract class of a receiver that can be run on worker nodes to receive external data.</strong> A custom receiver can be defined by defining the functions onStart() and onStop(). onStart() should define the setup steps necessary to start receiving data, and onStop() should define the cleanup steps necessary to stop receiving data.</p>
+<p>Spark Streaming里面有两种可能：有Receiver和没有Receiver。如果看到某个方法返回值带有Receiver，那么就有Receiver。</p>
+<p>比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//返回值是ReceiverInputDStream[String]，带有Receiver，那么这个Spark Streaming就有Receiver去接收数据</span><br><span class="line">  def socketTextStream(</span><br><span class="line">      hostname: String,</span><br><span class="line">      port: Int,</span><br><span class="line">      storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK_SER_2</span><br><span class="line">    ): ReceiverInputDStream[String] = withNamedScope(&quot;socket text stream&quot;) &#123;</span><br><span class="line">    socketStream[String](hostname, port, SocketReceiver.bytesToLines, storageLevel)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>Spark Streaming提供两类内置streaming sources。</p>
+<ul>
+<li>Basic sources：这个Sources在StreamingContext API直接可以使用，举例：file - systems, and socket connections</li>
+<li>Advanced sources：像 Kafka、 Flume、 Kinesis、twitter等这样的Sources，要通过额外的工具类才能使用。这需要添加额外的依赖，可以查看上面的依赖一节。</li>
+</ul>
+<p>注意，如果你想要在你的streaming应用程序里以并行的方式去接收多种数据源，你可以创建多个input DStreams（这个会在性能优化这一节进一步讨论）。这将会创建多个receivers ，这些receivers将同时接收多个数据流。但是请注意，一个<strong>Spark worker/executor是一项长期运行的任务，因此它将会占用分配给Spark Streaming应用程序的cores的一部分，就是说你给Spark Streaming程序分配了多少个core，worker/executor因为它会一直运行，所以它会占用一部分core。 因此为了处理接收过来的数据和运行receiver(s)，就需要分配足够的core（如果是local本地，要有足够的线程）给Spark Streaming应用程序。</strong></p>
+<p>需要注意谨记的点：</p>
+<ul>
+<li>当在本地local运行Spark Streaming程序的时候，不要使用 “local” 或者 “local[1]” 作为master URL。如果用这两个意味着 本地local运行任务的时候只会有一个线程可以使用。如果以 sockets、 Kafka、 Flume等作为receiver，你去使用一个input DStream，那么这个单个的线程将会被用于运行receiver，就没有线程去处理接收的数据了。因此，当在本地local运行程序的时候，请记得要使用 “local[n]” 作为 master URL，n大于receivers的数量。</li>
+<li>把这个逻辑扩展到一个cluster集群，分配给Spark Streaming应用程序core的数量必须多于receivers的数量。要不然系统将会只接收数据，而不去处理它。</li>
+</ul>
+<p>可以用前面的wordcount案例测试一下，设置成local[1]，netcat server端输入数据，然后去UI看一下，数据并未处理，receiver一直在运行着。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190729101915716.png" alt="image"></p>
+<p><strong>上面是有receiver的情况，如果没有receiver</strong>，比如数据源为File Streams，比如本地文件系统或者HDFS文件系统等，它就没有receiver。<strong>File streams不需要运行receiver，所以并不需要分配任何的core去接收文件数据。</strong><br>
+为什么HDFS上的数据就不需要receiver？因为数据在HDFS 上，直接用Hadoop的API读取数据即可，而且不需要持久运行，如果作业挂了，直接重新读取一下即可。</p>
+<p>举例：数据源为hdfs文件系统：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line">//读取hdfs系统</span><br><span class="line">object HDFSWCApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">  //这里可以设置成local[1]</span><br><span class="line">    val sparkConf = new SparkConf().setMaster(&quot;local[1]&quot;).setAppName(&quot;HDFSWCApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(sparkConf,Seconds(20))</span><br><span class="line"></span><br><span class="line">    //val lines = ssc.textFileStream(&quot;hdfs://hadoop001:9000/data/streaming&quot;)</span><br><span class="line">    val lines = ssc.textFileStream(&quot;e:/streaming&quot;)</span><br><span class="line">    val result = lines.flatMap(_.split(&quot; &quot;)).map((_,1)).reduceByKey(_+_)</span><br><span class="line">    result.print()</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后去hdfs上，把wordcount.txt move到hdfs的/data/streaming目录下即可。（这里注意是move，不是put，put可能会出问题，在put的过程中，可能已经读取了）<br>
+如何监控目录等详情，请参考官网。</p>
+<p>源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Create an input stream that monitors a Hadoop-compatible filesystem</span><br><span class="line"> * for new files and reads them as text files (using key as LongWritable, value</span><br><span class="line"> * as Text and input format as TextInputFormat). Files must be written to the</span><br><span class="line"> * monitored directory by &quot;moving&quot; them from another location within the same</span><br><span class="line"> * file system. File names starting with . are ignored.</span><br><span class="line"> * @param directory HDFS directory to monitor for new file</span><br><span class="line"> */</span><br><span class="line"> //返回值为DStream[String]，不带receiver，所以不用receiver</span><br><span class="line">def textFileStream(directory: String): DStream[String] = withNamedScope(&quot;text file stream&quot;) &#123;</span><br><span class="line">  fileStream[LongWritable, Text, TextInputFormat](directory).map(_._2.toString)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="transformations-on-dstreams">Transformations on DStreams</h1>
+<p>和RDD很类似，transformations可以让来自input DStream的数据被修改。DStreams 支持很多的RDD中存在的transformations ，比如：</p>
+<p>map、flatMap、filter、repartition、union、count、reduce、countByValue、reduceByKey、join、cogroup、transform、updateStateByKey</p>
+<p>其中transform、updateStateByKey这两个需要重点讲一下，其它的都是和RDD中一样，具体可参考官网。</p>
+<h1 id="updatestatebykey-operation">UpdateStateByKey Operation</h1>
+<p>上面的wordcount案例中，统计的都是本批次的结果，这是无状态的。那么如果现在需求改一下，要统计今天到现在的结果呢？这个是有状态的。</p>
+<p>updateStateByKey(func)：Return a new “state” DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values for the key. This can be used to maintain arbitrary state data for each key.</p>
+<p>它返回的是带有状态的DStream，在这个DStream里面，每个key的状态是可以被更新的，通过一个给定的函数，把之前的key的状态和当前key新的状态联合起来操作一波。这可以被用于维持每个key的任意状态。</p>
+<p>当有新信息时持续的更新状态，updateStateByKey操作允许你维护任意的状态。就是说用新的状态把老的状态给更新掉。做这些，你需要做以下两步：</p>
+<ul>
+<li>1.Define the state - The state can be an arbitrary data type.</li>
+<li>2.Define the state update function - Specify with a function how to update the state using the previous state and the new values from an input stream.</li>
+</ul>
+<p>在每个批次中，Spark将会把state update function应用于所有存在的key，不管他们在一个批次中是否有新的数据。如果update函数返回none，那么key-value键值对将被消除。</p>
+<p>让我们用例子说明。假设你想在文件数据流中保持看到的每个单词的运行数量。这里，运行的数量是状态并且它是一个整型。我们定义更新函数如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def updateFunction(newValues: Seq[Int], runningCount: Option[Int]): Option[Int] = &#123;</span><br><span class="line">    val newCount = ...  // add the new values with the previous running count to get the new count</span><br><span class="line">    Some(newCount)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是在包含单词的DStream中应用（假设，在早期示例中对DStream包含(word,1)对）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val runningCounts = pairs.updateStateByKey[Int](updateFunction _)</span><br></pre></td></tr></table></figure>
+<p>更新函数将会被每个单词调用，newValues具有1的序列（来自（word,1）对），并且runningCount具有前一个计数。</p>
+<p>注意使用updateStateByKey要求配置好checkpoint目录，详情参阅checkpointing节点。</p>
+<h2 id="案例">案例：</h2>
+<p>注意两点：</p>
+<ul>
+<li>①定义了一个函数updateFunction，这个函数会根据新的值和老的值，去返回两个值之和作为新的值。然后调用updateStateByKey，并把函数updateFunction传进去，作用于每个key。</li>
+<li>②另外还需要设置一下checkpoint，为什么要用到checkpoint？因为之前的案例是没有状态的，用完之后就丢掉，不需要了，但是现在要用到之前的那些数据，要把之前的状态保留下来，把以前的处理结果要写的一个地方上去，检查点数据先放到某个地方存起来。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object SocketWCStateApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    //这个master要是2个core</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCStateApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(20))</span><br><span class="line">    //批次的时间是10秒，10秒处理一次</span><br><span class="line"></span><br><span class="line">    //如果用到updateStateByKey，此处要加上ssc.checkpoint(&quot;目录&quot;)这一句，否则会报错：</span><br><span class="line">    // The checkpoint directory has not been set. Please set it by StreamingContext.checkpoint().</span><br><span class="line">    //为什么要用到checkpoint？因为之前的案例是没有状态的，用完之后就丢掉，不需要了，</span><br><span class="line">    // 但是现在要用到之前的那些数据，要把之前的状态保留下来</span><br><span class="line">    //“.”的意思是当前目录</span><br><span class="line">    ssc.checkpoint(&quot;.&quot;)</span><br><span class="line"></span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;,9999)</span><br><span class="line"></span><br><span class="line">    //下面就是之前的wordcount代码</span><br><span class="line">    val words = lines.flatMap(_.split(&quot; &quot;))</span><br><span class="line">    val pairs = words.map(word =&gt; (word, 1))</span><br><span class="line">    val wordCounts = pairs.reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">    //调用updateStateByKey，并把updateFunction这个函数传进去</span><br><span class="line">    val state = wordCounts.updateStateByKey(updateFunction)</span><br><span class="line"></span><br><span class="line">    //把这个DStream产生的每个RDD的前10个元素打印到控制台上</span><br><span class="line">    state.print()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    //开始计算</span><br><span class="line">    ssc.start()</span><br><span class="line">    //等待计算结束</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  //定义一个函数updateFunction</span><br><span class="line">  //(hello,1)  (hello,1) ==&gt;(1,1) 这个是Seq[Int]</span><br><span class="line">  //为什么要用Option？因为有可能某个单词是第一次出现，以前没有出现过</span><br><span class="line">  def updateFunction(newValues: Seq[Int], preValues: Option[Int]): Option[Int] = &#123;</span><br><span class="line">    // add the new values with the previous running count to get the new count</span><br><span class="line">    val newCount = newValues.sum</span><br><span class="line">    val oldCount = preValues.getOrElse(0)</span><br><span class="line">    //返回新的和老的相加</span><br><span class="line">    Some(newCount + oldCount)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//netcat端输入：</span><br><span class="line">[hadoop@hadoop001 sbin]$ nc -lk 9999</span><br><span class="line">word words china china word  love</span><br><span class="line">word words china china word  love</span><br><span class="line">word words china china word  love</span><br><span class="line">word words china china word  love</span><br><span class="line">word words china china word  love</span><br><span class="line">jerry</span><br><span class="line">jerry</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">//可以看到这些都是累加的，所有批次都在一块</span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564380380000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,5)</span><br><span class="line">(,5)</span><br><span class="line">(word,10)</span><br><span class="line">(china,10)</span><br><span class="line">(words,5)</span><br><span class="line">Time: 1564380420000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,5)</span><br><span class="line">(,5)</span><br><span class="line">(word,10)</span><br><span class="line">(jerry,1)</span><br><span class="line">(china,10)</span><br><span class="line">(words,5)</span><br><span class="line">Time: 1564380440000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">(love,5)</span><br><span class="line">(,5)</span><br><span class="line">(word,10)</span><br><span class="line">(jerry,2)</span><br><span class="line">(china,10)</span><br><span class="line">(words,5)</span><br></pre></td></tr></table></figure>
+<p>因为有了ssc.checkpoint(&quot;.&quot;)，会把之前的结果写到当前目录，所以可以到当前目录看一下，有很多的checkpoint小文件：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190729142230264.png" alt="image"></p>
+<p>那么问题来了，如果批次有很多，那么会出现很多很多的checkpoint小文件，该怎么办？</p>
+<p>删掉？删掉的话，之前的数据会丢失，后面累加起来的值就不对了。合并的话也不好合并。</p>
+<p>上面的代码能满足的需求是：统计这个启动之后到现在的wordcount，那么昨天的呢？今天的呢？明天的呢？</p>
+<p>此时可以考虑一下，用upsert这种方式。意思就是说，还是用Spark Streaming，但是不用上面的updateStateByKey更新状态state的方式了。而是按照一个批次一个批次的处理，处理的结果用upsert方式，如果某个表里原来是(hello,3)，现在又来了一个(hello,1)，那么就更新这个记录，变成了(hello,4)。如果是新来的(world,2)，就insert一条新的记录。</p>
+<p>或者说这样：后面加个时间戳ts：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hello	1	ts1</span><br><span class="line">hello	3	ts2</span><br><span class="line">world	2	ts2</span><br><span class="line">world	5	ts3</span><br><span class="line">hello	1	ts3</span><br></pre></td></tr></table></figure>
+<p>这样的话，如果你想统计某个时间范围内的数据，直接用一条SQL语句就查出来了。</p>
+<h2 id="mapwithstate算子">mapWithState算子</h2>
+<p>上面的wordcount案例中，当&lt;key,value&gt;有state状态更新时，使用的是updateStateByKey，这个是Spark老版本的使用。在Spark新版本中，推荐不要使用updateStateByKey，而是推荐使用mapWithState。<br>
+但是这个算子还是Experimental实验性的，是最新出来的算子，暂且不建议投入生产。具体案例用法见下面源码，以及后面的案例。</p>
+<p>看mapWithState源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * :: Experimental ::</span><br><span class="line"> * Return a [[MapWithStateDStream]] by applying a function to every key-value element of</span><br><span class="line"> * `this` stream, while maintaining some state data for each unique key. The mapping function</span><br><span class="line"> * and other specification (e.g. partitioners, timeouts, initial state data, etc.) of this</span><br><span class="line"> * transformation can be specified using `StateSpec` class. The state data is accessible in</span><br><span class="line"> * as a parameter of type `State` in the mapping function.</span><br><span class="line"> *</span><br><span class="line"> * Example of using `mapWithState`:</span><br><span class="line"> * &#123;&#123;&#123;</span><br><span class="line"> *    // A mapping function that maintains an integer state and return a String</span><br><span class="line"> *    def mappingFunction(key: String, value: Option[Int], state: State[Int]): Option[String] = &#123;</span><br><span class="line"> *      // Use state.exists(), state.get(), state.update() and state.remove()</span><br><span class="line"> *      // to manage state, and return the necessary string</span><br><span class="line"> *    &#125;</span><br><span class="line"> *</span><br><span class="line"> *    val spec = StateSpec.function(mappingFunction).numPartitions(10)</span><br><span class="line"> *</span><br><span class="line"> *    val mapWithStateDStream = keyValueDStream.mapWithState[StateType, MappedType](spec)</span><br><span class="line"> * &#125;&#125;&#125;</span><br><span class="line"> *</span><br><span class="line"> * @param spec          Specification of this transformation</span><br><span class="line"> * @tparam StateType    Class type of the state data</span><br><span class="line"> * @tparam MappedType   Class type of the mapped data</span><br><span class="line"> */</span><br><span class="line">@Experimental</span><br><span class="line">def mapWithState[StateType: ClassTag, MappedType: ClassTag](</span><br><span class="line">    spec: StateSpec[K, V, StateType, MappedType]</span><br><span class="line">  ): MapWithStateDStream[K, V, StateType, MappedType] = &#123;</span><br><span class="line">  new MapWithStateDStreamImpl[K, V, StateType, MappedType](</span><br><span class="line">    self,</span><br><span class="line">    spec.asInstanceOf[StateSpecImpl[K, V, StateType, MappedType]]</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个函数它返回的是一个[MapWithStateDStream]，也是一个DStream，它把一个函数作用于这个stream中的每个&lt;key,value&gt;的元素，去维护每个唯一的key的状态。</p>
+<p>如何使用？</p>
+<p>参考上面源码里的example，稍微变通一下，就变成了下面代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, State, StateSpec, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object SocketWCStateApp2 &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCStateApp2&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line">    //就算用mapWithState也是要用checkpoint的，因为还是要保留之前的状态到一个地方去</span><br><span class="line">    ssc.checkpoint(&quot;.&quot;)</span><br><span class="line"></span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;,9999)</span><br><span class="line"></span><br><span class="line">    val wordCounts = lines.flatMap(_.split(&quot; &quot;)).map(word =&gt; (word, 1)).reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">    //参考源码，这个是把一个匿名函数赋值给一个变量</span><br><span class="line">    //传进来word单词和value值，比如(hello,3)，还有一个state状态</span><br><span class="line">    //Option[Int]表示有可能是某个单词是第一次进来，值为0</span><br><span class="line">    val mappingFunc = (word: String, value: Option[Int], state: State[Int]) =&gt;&#123;</span><br><span class="line">      //获取value的值，如果没有就取0；获取之前的状态的值，如果没有就取0；</span><br><span class="line">      // 然后新的值和老的值相加；相加后赋值给变量sum</span><br><span class="line">      val sum = value.getOrElse(0) + state.getOption().getOrElse(0)</span><br><span class="line"></span><br><span class="line">      //用sum更新state的值，把state的值更新到最新</span><br><span class="line">      state.update(sum)</span><br><span class="line"></span><br><span class="line">      //返回一个(key,value)，就是最新的</span><br><span class="line">      (word,sum)</span><br><span class="line">    &#125;</span><br><span class="line">    val state = wordCounts.mapWithState(StateSpec.function(mappingFunc))</span><br><span class="line"></span><br><span class="line">    state.print()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面就是 mapWithState 大致的用法。<br>
+mapWithState 大致可以实现和updateStateByKey一样的功能，输出的时候不太一样，当没有数据流传进来时，mapWithState 之前的结果不会打印出来，updateStateByKey会把之前的结果打印出来。</p>
+<p>考虑一个问题，上面的输出只是输出到控制台上面了，但是生产上肯定不是这样的，生产上是要输出到RDBMS/NoSQL里面去的。<br>
+如何输出？请接着看下面的DStream的输出操作的案例分析。</p>
+<h2 id="以socket模式举例streaming底层执行逻辑">以socket模式举例Streaming底层执行逻辑</h2>
+<p>当创建一个StreamingContext （ssc ），同时底层会创建一个SparkContext （SC）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//这个是driver端，程序的入口</span><br><span class="line">val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCStateApp&quot;)</span><br><span class="line">val ssc = new StreamingContext(conf, Seconds(20))</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//StreamingContext底层：会创建一个SparkContext   （SC）</span><br><span class="line">  def this(conf: SparkConf, batchDuration: Duration) = &#123;</span><br><span class="line">    this(StreamingContext.createNewSparkContext(conf), null, batchDuration)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  private[streaming] def createNewSparkContext(conf: SparkConf): SparkContext = &#123;</span><br><span class="line">    new SparkContext(conf)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>如果是socket/Kafka这种数据源模式，那么会有receiver，receiver的话运行在executor里面的，receiver是用来接收数据的，上面代码是driver端。</p>
+<p>来看一下socketTextStream源码，存储级别为MEMORY_AND_DISK_SER_2，内存磁盘序列化 副本数为2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def socketTextStream(</span><br><span class="line">      hostname: String,</span><br><span class="line">      port: Int,</span><br><span class="line">      storageLevel: StorageLevel = StorageLevel.MEMORY_AND_DISK_SER_2</span><br><span class="line">    ): ReceiverInputDStream[String] = withNamedScope(&quot;socket text stream&quot;) &#123;</span><br><span class="line">    socketStream[String](hostname, port, SocketReceiver.bytesToLines, storageLevel)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190729152245884.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>①你开发一个Spark Streaming 应用程序代码，它属于driver端，在一开始会创建StreamingContext（给它名字ssc），StreamingContext的底层会创建SparkContext（给它名字sc）。</p>
+<p>②因为是socket/Kafka这种数据源模式，那么会有receiver，receiver的话运行在executor里面的，receiver是用来接收数据的。而且存储级别为MEMORY_AND_DISK_SER_2，内存磁盘序列化 副本数为2。</p>
+<p>③receiver从外面socket接收数据过来，根据时间间隔，把数据流拆分成多个批次，先放在内存中，内存不够再放到磁盘上，因为是2副本，所以要复制一份到其它节点上。</p>
+<p>④ssc.start()开始的时候，就开始走业务逻辑代码了。</p>
+<p>⑤当一个批次的时间到了，receiver会给ssc，告诉ssc，要开始处理数据了，receiver接收的数据会放在block块上，所以需要告诉ssc这些block块的信息。</p>
+<p>⑥ssc底层会用sc SparkContext去提交，这个时候会生成job任务，然后会把各个job分配给各个executor去执行。</p>
+<h1 id="transform-operation重点">Transform Operation（重点）</h1>
+<p>前面的都是基于DataStreaming编程的。那现在有个需求，现在有一个DStream，又有一个textFile，这个textFile转成RDD之后，这个DStream和RDD之间如何进行关联？它们之间怎么进行相互的操作？<br>
+这就需要借助于transform这个算子了。</p>
+<p>transform(func)：Return a new DStream by applying a RDD-to-RDD function to every RDD of the source DStream. This can be used to do arbitrary RDD operations on the DStream.</p>
+<p>transform(func)：通过将一个RDD-to-RDD函数作用于来源source DStream的每个RDD来返回一个新的DStream。这可以用来在DStream上执行任意RDD操作</p>
+<p>transform转换操作（连带着它的一些变种，比如TransformWith等）允许任意RDD-to-RDD函数应用于一个DStream。它可以用于 应用任何未在DStream API中公开的RDD操作。例如，在数据流中的每个批次与其他数据集dataset连接join起来的功能不会直接暴露在DStream API中。然而，你可以很容易地使用transform完成此操作。这可能性非常强大。例如，可以通过 将输入数据流与预先计算的垃圾邮件信息（也可以使用Spark生成）进行join关联，这样来进行实时数据清理，然后基于此进行过滤。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val spamInfoRDD = ssc.sparkContext.newAPIHadoopRDD(...) // RDD containing spam information</span><br><span class="line"></span><br><span class="line">val cleanedDStream = wordCounts.transform &#123; rdd =&gt;</span><br><span class="line">  rdd.join(spamInfoRDD).filter(...) // join data stream with spam information to do data cleaning</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Note that the supplied function gets called in every batch interval. This allows you to do time-varying RDD operations, that is, RDD operations, number of partitions, broadcast variables, etc. can be changed between batches.</p>
+<p>注意，提供的函数在每个批处理间隔中被调用。此函数允许你执行随时间变化的RDD操作，就是说 RDD操作、分区数量、广播变量等等可以在批次之间被更改。</p>
+<h2 id="案例分析">案例分析</h2>
+<p>生产上，从正常数据里面过滤掉黑名单。</p>
+<p>假如现在处理一批日志，这个日志会源源不断的进来。现在刚打算处理，先处理前面20%的，提前评估一下。这一部分处理完成之后，如果没有问题，后续再处理这批日志。那么后面如果再处理，如何把前面这部分处理过得日志给过滤掉。</p>
+<p>现在来实现一下，你从netcat上面输入，如果有：telangpu、kelindun、benladeng这三个名字。那么这三个名字会被过滤掉，不会被打印出来。</p>
+<p>代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line"></span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object TransformApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;TransformApp&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line"></span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;, 9999)</span><br><span class="line"></span><br><span class="line">    //黑名单列表</span><br><span class="line">    val blackList = List(&quot;telangpu&quot;,&quot;kelindun&quot;,&quot;benladeng&quot;)</span><br><span class="line">    //列表转换为RDD，最后变为：(telangpu,true),(kelindun,true),(benladeng,true)</span><br><span class="line">    val blackListRDD = ssc.sparkContext.parallelize(blackList).map(x =&gt; (x,true))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">      * 格式：zhangsan,20,0  名字，年龄，性别</span><br><span class="line">      * 变成==&gt; (zhangsan,&lt;zhangsan,20,0&gt;)</span><br><span class="line">      */</span><br><span class="line">      val result = lines.map(x =&gt; (x.split(&quot;,&quot;)(0),x))</span><br><span class="line">      .transform(rdd =&gt;&#123;</span><br><span class="line">        //关联后的格式为：RDD[(K, (V, Option[W]))]</span><br><span class="line">        //没有关联上：(zhangsan,(&lt;zhangsan,20,0&gt;,null))</span><br><span class="line">        //或者关联上：( telangpu, (&lt;telangpu,20,0&gt;,(telangpu,true)) )</span><br><span class="line">        rdd.leftOuterJoin(blackListRDD)</span><br><span class="line">          //取关联后的&lt;k,&lt;k,v&gt;&gt;中的&lt;k,v&gt;中的v，这个v可能是空，拿到就拿，拿不到就为false</span><br><span class="line">          .filter(x =&gt; x._2._2.getOrElse(false) !=true)</span><br><span class="line">          //关联上的，取&lt;k,&lt;k,v&gt;&gt;中的&lt;k,v&gt;中的k，就是&lt;zhangsan,20,0&gt;</span><br><span class="line">          //原样进来的原样回去，因为只是过滤掉黑名单而已</span><br><span class="line">          .map(x =&gt; x._2._1)</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">    result.print()</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# nc -lk 9999</span><br><span class="line">zhangsan,20,1</span><br><span class="line">telangpu,60,1</span><br><span class="line">zhangsan,20,1</span><br><span class="line">telangpu,60,1</span><br><span class="line"></span><br><span class="line">zhangsan,20,1</span><br><span class="line">telangpu,60,1</span><br><span class="line"></span><br><span class="line">zhaoliu,30,1</span><br><span class="line">kelindun,70,0</span><br></pre></td></tr></table></figure>
+<p>输出：<br>
+可以看到带有(“telangpu”,“kelindun”,“benladeng”)都被过滤掉了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564468070000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">zhangsan,20,1</span><br><span class="line">zhangsan,20,1</span><br><span class="line"></span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564468080000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">zhangsan,20,1</span><br><span class="line"></span><br><span class="line">-------------------------------------------</span><br><span class="line">Time: 1564468090000 ms</span><br><span class="line">-------------------------------------------</span><br><span class="line">zhaoliu,30,1</span><br></pre></td></tr></table></figure>
+<p>然后可以去WebUI上面看一下DGA图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730145714706.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>前面两个是skipped是因为在流处理之前，两个已经准备好了，跟流处理没关系。后面可以看出，先做join，再做filter，再做map。</p>
+<p>但这个性能并不好。可以使用更简单的方式来处理。</p>
+<h1 id="window-operations了解">Window Operations（了解）</h1>
+<p>这个了解下。<br>
+Spark Streaming也提供窗口化计算，这允许你在滑动的数据窗口上 使用transformations算子。下图说明该滑动窗口。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190730102330390.png" alt="image"></p>
+<p>上图，假定1秒一个批次，总共5个批次。</p>
+<p>就像上图展示的那样，每次窗口滑过源过一个Source DStream时，落在窗口内的源Source RDDs被组合并操作以产生窗口DStream的RDD。在这个特定情况中，该操作被应用到 在最后3个时间单位（3个批次）的数据上 并滑过2个时间单位。这表明任何窗口操作需要指定两个参数。</p>
+<ul>
+<li>window length - The duration of the window (3 in the figure).<br>
+窗口长度 —— 窗口的持续时间（图表中是3）</li>
+<li>sliding interval - The interval at which the window operation is performed (2 in the figure).<br>
+滑动间隔 —— 窗口操作的执行间隔（图表中是2）</li>
+</ul>
+<p>这个两个参数必须是源source DStream的批处理间隔的倍数（图表中是1）。</p>
+<p>让我们用个例子说明窗口操作。假设你想要通过在最后的30秒数据中每10秒生成一个word counts来扩展前面的示例。为了做到这一点，我们必须在最后的30秒数据内在（word,1）键值对 的 pairs DStream 上使用reduceByKey操作。这是使用reduceByKeyAndWindow操作完成的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val lines = ssc.socketTextStream(&quot;localhost&quot;, 9999)</span><br><span class="line">val words = lines.flatMap(_.split(&quot; &quot;))</span><br><span class="line">val pairs = words.map(word =&gt; (word, 1))</span><br><span class="line"></span><br><span class="line">// Reduce last 30 seconds of data, every 10 seconds</span><br><span class="line">val windowedWordCounts = pairs.reduceByKeyAndWindow((a:Int,b:Int) =&gt; (a + b), Seconds(30), Seconds(10))</span><br></pre></td></tr></table></figure>
+<p>一些普通窗口操作如下。这些操作全部都有上述说的两个参数——windowLength和slideInterval。具体详情参考官网。</p>
+<table>
+<thead>
+<tr>
+<th>Transformation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>window(windowLength, slideInterval)</td>
+<td>基于在源source DStream上的窗口化批处理计算来返回一个新的DStream。</td>
+</tr>
+<tr>
+<td>countByWindow(windowLength, slideInterval)</td>
+<td>返回流中元素的滑动窗口数量。</td>
+</tr>
+<tr>
+<td>reduceByWindow(func, windowLength, slideInterval)</td>
+<td>返回一个新的单元素流，它是通过使用func经过滑动间隔聚合流中的元素来创建的。</td>
+</tr>
+<tr>
+<td>reduceByKeyAndWindow(func, windowLength, slideInterval, [numTasks])</td>
+<td>当在元素类型为(K,V)对的DStream调用时，返回一个新的元素类型为(K,V)对的DStream，其中每个key键的值在滑动窗口中使用给定的reduce函数func来进行批量聚合。</td>
+</tr>
+<tr>
+<td>reduceByKeyAndWindow(func, invFunc, windowLength, slideInterval, [numTasks])</td>
+<td>上述reduceByKeyAndWindow()的一个更高效的版本，其中每个窗口的reduce值是使用前一个窗口的reduce值递增计算的。这是通过减少进入滑动窗口的新数据并“反转减少”离开窗口的旧数据来完成的。示例如当窗口滑动时“增加并减少”key键的数量。然而，它仅适用于“可逆减函数”，即具有相应“反减inverse reduce”函数的函数（作为参数invFunc）。如reduceByKeyAndWindow，reduce任务的数量是通过一个可选参数来设置的。注意使用这个操作checkpointing必须是能启用的。</td>
+</tr>
+</tbody>
+</table>
+<p>countByValueAndWindow(windowLength, slideInterval, [numTasks])| 当在元素类型为(K,V)对的DStream上调用时，返回一个新的元素类型为(K,Long)对的DStream，其中每个key键的值为它在一个滑动窗口出现的频率。如在reduceByKeyAndWindow中，reduce任务的数量是通过一个可选参数设置的。</p>
+<p>案例代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds , StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object SocketWCStateApp4 &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCStateApp4&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;, 9999)</span><br><span class="line"></span><br><span class="line">    val pairs = lines.flatMap(_.split(&quot;,&quot;)).map(word =&gt; (word, 1))</span><br><span class="line">    //val results = pairs.reduceByKey(_ + _)</span><br><span class="line">    val resultsWindow = pairs.reduceByKeyAndWindow((a:Int,b:Int) =&gt; (a + b),Seconds(30),Seconds(10))</span><br><span class="line"></span><br><span class="line">    resultsWindow.print()</span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# nc -lk 9999</span><br><span class="line">word,china,love</span><br><span class="line">word,china,love,word</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<p>可能的需求，比如说，统计某个范围内的数据等。<br>
+不过这个算子也可以用这个算子之外的方法来实现，比如还是每个批次每个批次的处理，然后写到数据库里，然后用SQL来查询。</p>
+<h2 id="join-operations">Join Operations</h2>
+<h1 id="output-operations-on-dstreams">Output Operations on DStreams</h1>
+<p>Output Operations on DStreams允许将数据push到外部系统，如数据库或文件系统上。</p>
+<p>这个相当于action操作。由于output操作实际上允许被转换的数据外部系统消费，所以这些output操作会触发所有DStream transformations的执行（和RDD里的action操作相似）。</p>
+<p>如：print()、saveAsTextFiles(prefix, [suffix])、saveAsObjectFiles(prefix, [suffix])、saveAsHadoopFiles(prefix, [suffix])、foreachRDD(func)等</p>
+<p>中间三个算子基本不用，不建议使用，print()可以用于测试。生产上核心的是：<strong>foreachRDD(func)</strong></p>
+<p>重点： <strong>foreachRDD(func)</strong>：The most generic output operator that applies a function, func, to each RDD generated from the stream. This function should push the data in each RDD to an external system, such as saving the RDD to files, or writing it over the network to a database. Note that <strong>the function func is executed in the driver process</strong> running the streaming application, and will usually have RDD actions in it that will force the computation of the streaming RDDs.<br>
+重点： <strong>foreachRDD(func)</strong>：这是一个最通用的输出的操作，它将一个函数func作用于 由数据流产生的每个RDD 之上。这个函数是将每个RDD里的数据push到一个外部系统上，比如：把RDD保存到文件里，或者通过网络写到数据库里。需要注意的是 这个函数func是在driver进程中被执行的，这个driver进程运行着streaming程序，通常会在这个函数func中有RDD action操作，从而强制执行 streaming RDDs的计算。</p>
+<h2 id="design-patterns-for-using-foreachrdd重点">Design Patterns for using foreachRDD（重点）</h2>
+<p>dstream.foreachRDD是一个功能强大的原语primitive，它允许将数据发送到外部系统。然而，了解如何正确并高效地使用原语primitive是很重要的。如下可以避免一些普通错误。</p>
+<p>（面试会被问到）<br>
+下面是每个版本迭代，每个版本会出现什么问题？连接池pool又为什么会出现？</p>
+<p>通常写数据到外部系统要求创建一个连接对象（例如远程服务器的TCP连接）并使用它发送数据到远程系统。为了达到这个目的，开发者可能会不小心尝试在Spark driver驱动程序中创建连接对象，然后尝试在Spark worker节点中使用它来将记录保存在RDD中。如scala中的示例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">dstream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  val connection = createNewConnection()  // executed at the driver</span><br><span class="line">  rdd.foreach &#123; record =&gt;</span><br><span class="line">    connection.send(record) // executed at the worker</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是不正确的，因为它要求连接对象可以被序列化并从driver端发送到worker端。这种连接对象是不能够跨机器传输的。这个错误可能表现为序列化错误（连接对象不可序列化）、初始化错误（连接对象需要在worker端初始化）等。后面有案例分析。正确的解决方法是在worker端创建连接对象。</p>
+<p>然而，这可能导致另一个普遍的错误 —— 为每条记录都创建一个新的连接。例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">dstream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  rdd.foreach &#123; record =&gt;</span><br><span class="line">    val connection = createNewConnection()</span><br><span class="line">    connection.send(record)</span><br><span class="line">    connection.close()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通常，创建一个连接对象有时间和资源的开销。因此，为每条记录创建和销毁连接对象可能会产生不必要的高开销，并且会显著地降低系统的整体吞吐量。一个更好的解决方案是使用rdd.foreachPartition —— 创建一个单连接对象并在RDD分区使用该连接发送所有的记录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">dstream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  rdd.foreachPartition &#123; partitionOfRecords =&gt;</span><br><span class="line">    val connection = createNewConnection()</span><br><span class="line">    partitionOfRecords.foreach(record =&gt; connection.send(record))</span><br><span class="line">    connection.close()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这会缓解许多记录中的连接创建开销。</p>
+<p>最终，通过在多个RDD/批次重用连接对象，可以进一步优化这个功能。我们可以维护一个静态的可重用的连接对象池，因为多个批处理的RDD被推送到外部系统，从而进一步降低了开销。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">dstream.foreachRDD &#123; rdd =&gt;</span><br><span class="line">  rdd.foreachPartition &#123; partitionOfRecords =&gt;</span><br><span class="line">    // ConnectionPool is a static, lazily initialized pool of connections</span><br><span class="line">    val connection = ConnectionPool.getConnection()</span><br><span class="line">    partitionOfRecords.foreach(record =&gt; connection.send(record))</span><br><span class="line">    ConnectionPool.returnConnection(connection)  // return to the pool for future reuse</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意在连接池中的连接应该按需延迟创建，并且如果有一段时间不使用则超时。这实现了将数据最有效地发送到外部系统。</p>
+<p>其他需要记住的点：</p>
+<ul>
+<li>DStreams通过输出操作延迟执行，就像RDD通过RDD actions延迟执行一样。具体来说，DStream输出操作中的RDD actions会强制处理接收到的数据。因此，如果你的应用程序没有任何输出操作，或者有输出操作但没有任何RDD action在里面，如dstream.foreachRDD()，那么什么都不会执行的。系统将会简单地接收数据并丢弃它。</li>
+<li>默认的，输出操作时一次一个执行的。而且它们按照在应用程序中定义的顺序执行。</li>
+</ul>
+<h2 id="案例分析">案例分析</h2>
+<p>接着上面的mapWithState案例，下面继续案例分析。本次主要针对三个算子：mapWithState、foreachRDD、foreachPartition 。</p>
+<p>上面的wordcount案例中，当&lt;key,value&gt;有state状态更新时，使用的是updateStateByKey，这个是Spark老版本的使用。在Spark新版本中，推荐不要使用updateStateByKey，而是推荐使用mapWithState。但是mapWithState目前还是实验性的，暂时还不建议投入生产，以后很有可能会投入使用。</p>
+<p>考虑一个问题，上面的输出只是输出到控制台上面了（用的是：state.print()），但是生产上肯定不是这样的，生产上是要输出到RDBMS/NoSQL里面去的。<br>
+现在来实现一下，把结果写到MySQL里面去。<br>
+先在MySQL数据库test库下面创建一张表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create table wc(word varchar(20) default null,count int(10));</span><br></pre></td></tr></table></figure>
+<p>可以这样：state.foreachRDD(函数)</p>
+<p>看一下foreachRDD源码：<br>
+foreachRDD(函数)把一个函数作用于DStream中的每个RDD，它是一个输出操作，因此这个DStream将会注册成为一个输出流，然后被物化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Apply a function to each RDD in this DStream. This is an output operator, so</span><br><span class="line"> * &apos;this&apos; DStream will be registered as an output stream and therefore materialized.</span><br><span class="line"> */</span><br><span class="line">def foreachRDD(foreachFunc: (RDD[T], Time) =&gt; Unit): Unit = ssc.withScope &#123;</span><br><span class="line">  // because the DStream is reachable from the outer object here, and because</span><br><span class="line">  // DStreams can&apos;t be serialized with closures, we can&apos;t proactively check</span><br><span class="line">  // it for serializability and so we pass the optional false to SparkContext.clean</span><br><span class="line">  foreachRDD(foreachFunc, displayInnerRDDOps = true)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>state.foreachRDD(函数)<br>
+state是结果，现在考虑如何写这个函数，然后把结果写到MySQL数据库里？<br>
+代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line">import java.sql.DriverManager</span><br><span class="line">import org.apache.spark.SparkConf</span><br><span class="line">import org.apache.spark.internal.Logging</span><br><span class="line">import org.apache.spark.streaming.&#123;Seconds, State, StateSpec, StreamingContext&#125;</span><br><span class="line"></span><br><span class="line">object SocketWCStateApp3 extends Logging&#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val conf = new SparkConf().setMaster(&quot;local[2]&quot;).setAppName(&quot;SocketWCStateApp3&quot;)</span><br><span class="line">    val ssc = new StreamingContext(conf, Seconds(10))</span><br><span class="line">    //就算用mapWithState也是要用checkpoint的，因为还是要保留之前的状态到一个地方去</span><br><span class="line">    ssc.checkpoint(&quot;.&quot;)</span><br><span class="line"></span><br><span class="line">    //这个是把server数据源转换成了DStream</span><br><span class="line">    val lines = ssc.socketTextStream(&quot;hadoop001&quot;,9999)</span><br><span class="line"></span><br><span class="line">    val wordCounts = lines.flatMap(_.split(&quot;,&quot;)).map(word =&gt; (word, 1)).reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">    //参考源码，这个是把一个匿名函数赋值给一个变量</span><br><span class="line">    //传进来word单词和value值，比如(hello,3)，还有一个state状态</span><br><span class="line">    //Option[Int]表示有可能是某个单词是第一次进来，值为0</span><br><span class="line">    val mappingFunc = (word: String, value: Option[Int], state: State[Int]) =&gt;&#123;</span><br><span class="line"></span><br><span class="line">      //获取value的值，如果没有就取0；获取之前的状态的值，如果没有就取0；</span><br><span class="line">      // 然后新的值和老的值相加；相加后赋值给变量sum</span><br><span class="line">      val sum = value.getOrElse(0) + state.getOption().getOrElse(0)</span><br><span class="line"></span><br><span class="line">      //用sum更新state的值，把state的值更新到最新</span><br><span class="line">      state.update(sum)</span><br><span class="line"></span><br><span class="line">      //返回一个(key,value)，就是最新的</span><br><span class="line">      (word,sum)</span><br><span class="line">    &#125;</span><br><span class="line">    val state = wordCounts.mapWithState(StateSpec.function(mappingFunc))</span><br><span class="line"></span><br><span class="line">    //state.print()</span><br><span class="line"></span><br><span class="line">    //把输出结果写到MySQL数据库里</span><br><span class="line">    state.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">      val connection = getConnection()</span><br><span class="line">      rdd.foreach(kv =&gt;&#123;</span><br><span class="line">        val sql =s&quot;insert into wc(word,count) values(&apos;$&#123;kv._1&#125;&apos;,&apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">        connection.createStatement().execute(sql)</span><br><span class="line">      &#125;)</span><br><span class="line">      connection.close()</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    ssc.start()</span><br><span class="line">    ssc.awaitTermination()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  //定义一个获取连接的函数</span><br><span class="line">  def getConnection() = &#123;</span><br><span class="line">    Class.forName(&quot;com.mysql.jdbc.Driver&quot;)</span><br><span class="line">    DriverManager.getConnection(&quot;jdbc:mysql://hadoop001:3306/test&quot;,&quot;root&quot;,&quot;123456&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>nc -lk 9999命令启动起来，运行一下程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">报错：</span><br><span class="line">org.apache.spark.SparkException: Task not serializable</span><br><span class="line">.......省略1000字</span><br><span class="line">Caused by: java.io.NotSerializableException: com.mysql.jdbc.SingleByteCharsetConverter</span><br><span class="line">Serialization stack:</span><br><span class="line">	- object not serializable (class: com.mysql.jdbc.SingleByteCharsetConverter, value: com.mysql.jdbc.SingleByteCharsetConverter@289969df)</span><br><span class="line">	- writeObject data (class: java.util.HashMap)</span><br><span class="line">	- object (class java.util.HashMap, &#123;Cp1252=com.mysql.jdbc.SingleByteCharsetConverter@289969df, UTF-8=java.lang.Object@4a589a56, US-ASCII=com.mysql.jdbc.SingleByteCharsetConverter@3d186411, utf-8=java.lang.Object@4a589a56&#125;)</span><br><span class="line">	- field (class: com.mysql.jdbc.ConnectionImpl, name: charsetConverterMap, type: interface java.util.Map)</span><br><span class="line">	- object (class com.mysql.jdbc.JDBC4Connection, com.mysql.jdbc.JDBC4Connection@5a313f93)</span><br><span class="line">	- field (class: com.ruozedata.spark.com.ruozedata.spark.streaming.SocketWCStateApp3$$anonfun$main$1$$anonfun$apply$1, name: connection$1, type: interface java.sql.Connection)</span><br><span class="line">	- object (class com.ruozedata.spark.com.ruozedata.spark.streaming.SocketWCStateApp3$$anonfun$main$1$$anonfun$apply$1, &lt;function1&gt;)</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>从上面报错可以看出，是因为connection不能被serializable序列化。这个在上面foreachRDD已经讲过。connection对象需要被序列化，而且要从driver端发送到worker端。但是connection对象是不能被跨机器传输的。所以上面写的是不对的。解决方法是在worker端去创建connection对象。<br>
+假如你在外面定义了某个东西，如某个类，那么如果在foreachRDD(rdd =&gt; {…})里面用到了这个东西，那么你必须把它序列化。<br>
+可以看到Spark Streaming和数据库交互，很容易出现坑，容易出错。</p>
+<p>然后修改一下代码：<br>
+把val connection = getConnection()放到foreach里面，就会在worker端进行获取连接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//把输出结果写到MySQL数据库里</span><br><span class="line">state.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">  rdd.foreach(kv =&gt;&#123;</span><br><span class="line">    val connection = getConnection()</span><br><span class="line">    logError(&quot;...............&quot;)</span><br><span class="line">    val sql =s&quot;insert into wc(word,count) values(&apos;$&#123;kv._1&#125;&apos;,&apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">    connection.createStatement().execute(sql)</span><br><span class="line">    connection.close()</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>这样就ok了。<br>
+输入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop001 ~]# nc -lk 9999</span><br><span class="line">love word  word china</span><br><span class="line">love word  word china</span><br></pre></td></tr></table></figure>
+<p>去MySQL看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from wc;</span><br><span class="line">+-------+-------+</span><br><span class="line">| word  | count |</span><br><span class="line">+-------+-------+</span><br><span class="line">| love  |     2 |</span><br><span class="line">| word  |     4 |</span><br><span class="line">| china |     2 |</span><br><span class="line">+-------+-------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt;</span><br></pre></td></tr></table></figure>
+<p>上面虽然看着很OK，但是有一个问题，就是导致另一个普遍的错误 —— 为每条记录都创建一个新的连接。上面也讲过，通常，创建一个连接对象有时间和资源的开销。因此，为每条记录创建和销毁连接对象可能会产生不必要的高开销，并且会显著地降低系统的整体吞吐量。一个更好的解决方案是使用rdd.foreachPartition —— 创建一个单连接对象并在RDD分区使用该连接发送所有的记录。创建一个connection对象，给一个partition使用。</p>
+<p><strong>foreachRDD里面用foreachPartition， foreachPartition里面再用foreach。三层结构。<br>
+这一条线路，是Spark Streaming写数据库唯一的一条正确的线路。 所以务必掌握。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//把输出结果写到MySQL数据库里</span><br><span class="line">state.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">  rdd.foreachPartition(partitionOfRecords =&gt;&#123;</span><br><span class="line">  	//生产上不能这样转成list，数据量很大会出问题</span><br><span class="line">    val list = partitionOfRecords.toList</span><br><span class="line">    if (list.size&gt;0)&#123;</span><br><span class="line">      val connection = getConnection()</span><br><span class="line">      logError(&quot;...............&quot;)</span><br><span class="line">      list.foreach(kv =&gt; &#123;</span><br><span class="line">        val sql =s&quot;insert into wc(word,count) values(&apos;$&#123;kv._1&#125;&apos;,&apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">        connection.createStatement().execute(sql)</span><br><span class="line">      &#125;)</span><br><span class="line">      connection.close()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>进一步的，通过在多个RDD/批次重用连接对象，可以进一步优化这个功能。我们可以维护一个静态的可重用的连接对象池，因为多个批处理的RDD被推送到外部系统，从而进一步降低了开销。</p>
+<p>那么如何去开发一个连接对象池？<br>
+添加依赖：<br>
+（需要用到bonecp这个工具：<a href="https://mvnrepository.com/artifact/com.jolbox/bonecp/0.8.0.RELEASE%EF%BC%89" target="_blank" rel="noopener">https://mvnrepository.com/artifact/com.jolbox/bonecp/0.8.0.RELEASE）</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;mysql&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;5.1.28&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;com.jolbox&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;bonecp&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;0.8.0.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>connection连接池代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.streaming</span><br><span class="line"></span><br><span class="line">import java.sql.&#123;Connection, DriverManager&#125;</span><br><span class="line">import com.jolbox.bonecp.&#123;BoneCP, BoneCPConfig&#125;</span><br><span class="line">import org.slf4j.LoggerFactory</span><br><span class="line"></span><br><span class="line">object ConnectionPool &#123;</span><br><span class="line">  val logger = LoggerFactory.getLogger(this.getClass)</span><br><span class="line"></span><br><span class="line">  val pool = &#123;</span><br><span class="line">    try&#123;</span><br><span class="line">      Class.forName(&quot;com.mysql.jdbc.Driver&quot;)</span><br><span class="line">      val config = new BoneCPConfig()</span><br><span class="line">      config.setJdbcUrl(&quot;jdbc:mysql://hadoop001:3306/test&quot;)</span><br><span class="line">      config.setUsername(&quot;root&quot;)</span><br><span class="line">      config.setPassword(&quot;123456&quot;)</span><br><span class="line">      config.setMinConnectionsPerPartition(2)</span><br><span class="line">      config.setMaxConnectionsPerPartition(5)</span><br><span class="line">      config.setCloseConnectionWatch(true)</span><br><span class="line"></span><br><span class="line">      Some(new BoneCP(config))</span><br><span class="line">    &#125;catch &#123;</span><br><span class="line">      case e:Exception =&gt; &#123;</span><br><span class="line">        e.printStackTrace()</span><br><span class="line">        None</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def getConnection():Option[Connection] = &#123;</span><br><span class="line">    pool match &#123;</span><br><span class="line">      case Some(pool) =&gt; Some(pool.getConnection)</span><br><span class="line">      case None =&gt; None</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  def returnConnection(connection:Connection) = &#123;</span><br><span class="line">    if(null != connection)&#123;</span><br><span class="line">      connection.close()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如何使用上面的连接池？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//把输出结果写到MySQL数据库里</span><br><span class="line">wordCounts.foreachRDD(rdd =&gt; &#123;</span><br><span class="line">  rdd.foreachPartition(partitionOfRecords =&gt;&#123;</span><br><span class="line">    val list = partitionOfRecords.toList</span><br><span class="line">    if (list.size&gt;0)&#123;</span><br><span class="line">      val connection = ConnectionPool.getConnection().get</span><br><span class="line">      logError(&quot;...............&quot;)</span><br><span class="line">      list.foreach(kv =&gt; &#123;</span><br><span class="line">        val sql =s&quot;insert into wc(word,count) values(&apos;$&#123;kv._1&#125;&apos;,&apos;$&#123;kv._2&#125;&apos;)&quot;</span><br><span class="line">        connection.createStatement().execute(sql)</span><br><span class="line">      &#125;)</span><br><span class="line">      ConnectionPool.returnConnection(connection)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>上面的连接池还有很多需要优化的地方，比如pool前面可以加private，return里面最好不要关闭，还有超时就会关闭连接等等。在这里只是大致框架。</p>
+<h2 id="dataframe-and-sql-operations">DataFrame and SQL Operations</h2>
+<p>你可以在streaming流数据上很容易地使用DataFrame和SQL操作。你必须通过使用StreamingContext正在使用的SparkContext创建SparkSession。此外，必须这样做才能在driver驱动程序故障时重新启动。这是通过创建SparkSession的一个延迟的实例化单例实例来完成的。这在下面的实例会展示。它通过使用DataFrames和SQL来修改前面的word count例子来产生word counts单词数量。每个RDD都可转换为一个DataFrame，注册为一个临时表，然后使用SQL进行查询。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">/** DataFrame operations inside your streaming program */</span><br><span class="line"></span><br><span class="line">val words: DStream[String] = ...</span><br><span class="line"></span><br><span class="line">words.foreachRDD &#123; rdd =&gt;</span><br><span class="line"></span><br><span class="line">  // Get the singleton instance of SparkSession</span><br><span class="line">  val spark = SparkSession.builder.config(rdd.sparkContext.getConf).getOrCreate()</span><br><span class="line">  import spark.implicits._</span><br><span class="line"></span><br><span class="line">  // Convert RDD[String] to DataFrame</span><br><span class="line">  val wordsDataFrame = rdd.toDF(&quot;word&quot;)</span><br><span class="line"></span><br><span class="line">  // Create a temporary view</span><br><span class="line">  wordsDataFrame.createOrReplaceTempView(&quot;words&quot;)</span><br><span class="line"></span><br><span class="line">  // Do word count on DataFrame using SQL and print it</span><br><span class="line">  val wordCountsDataFrame = </span><br><span class="line">    spark.sql(&quot;select word, count(*) as total from words group by word&quot;)</span><br><span class="line">  wordCountsDataFrame.show()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">完整的源代码请看：（案例写的非常好，需要好好学习）</span><br><span class="line">https://github.com/apache/spark/blob/v2.4.3/examples/src/main/scala/org/apache/spark/examples/streaming/SqlNetworkWordCount.scala</span><br></pre></td></tr></table></figure>
+<p>你也可以在来自不同线程（即与正在运行的StreamingContext异步）的streaming流数据定义的table表上运行SQL查询。只要确保你将StreamingContext设置为记住足够多的streaming流数据，以便查询可以运行。否则，不知道任何异步SQL查询的StreamingContext将会在查询完成之前删除旧streaming流数据。例如，如果你想要查询最后一个批次，但是查询可能花费5分钟才能运行，请调用streamingContext.remember(Minutes(5))（以Scala或其他语言的等效方式）。</p>
+<h2 id="mllib-operations">MLlib Operations</h2>
+<p>你可以很容易地使用MLlib提供的机器学习算法。首先，streaming流机器学习算法（例如流式线性回归Streaming Linear Regression，Streaming KMeans等等）可以从steaming流数据中学习并在将模型应用在streaming流数据上。除此之外，对于机器学习算法更大的类，你可以离线学习一个学习模型（即使用历史数据），然后将线上模型应用于streaming流数据。详情参阅MLlib指南。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">参考：https://www.cnblogs.com/swordfall/p/8378000.html</span><br><span class="line">参考官方案例（代码写的很好）：https://github.com/apache/spark/tree/master/examples/src/main/scala/org/apache/spark/examples/streaming</span><br><span class="line">或者这个目录下：$SPARK_HOME/examples/src/main/scala/org/apache/spark/examples/streaming</span><br><span class="line">本篇一些代码都是参考这里的写的。</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/94SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口/" data-toggle="tooltip" data-placement="top" title="[SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/92SparkStreaming入门介绍和运行架构/" data-toggle="tooltip" data-placement="top" title="[SparkStreaming入门介绍和运行架构]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#依赖"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x4F9D;&#x8D56;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#初始化streamingcontext"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x521D;&#x59CB;&#x5316;StreamingContext</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#在创建完context之后你必须做一下这些"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x5728;&#x521B;&#x5EFA;&#x5B8C;context&#x4E4B;&#x540E;&#xFF0C;&#x4F60;&#x5FC5;&#x987B;&#x505A;&#x4E00;&#x4E0B;&#x8FD9;&#x4E9B;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#discretized-streams-dstreams"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">Discretized Streams (DStreams)</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#input-dstreams-and-receivers"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">Input DStreams and Receivers</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#transformations-on-dstreams"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">Transformations on DStreams</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#updatestatebykey-operation"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">UpdateStateByKey Operation</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#案例"><span class="toc-nav-number">7.1.</span> <span class="toc-nav-text">&#x6848;&#x4F8B;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#mapwithstate算子"><span class="toc-nav-number">7.2.</span> <span class="toc-nav-text">mapWithState&#x7B97;&#x5B50;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#以socket模式举例streaming底层执行逻辑"><span class="toc-nav-number">7.3.</span> <span class="toc-nav-text">&#x4EE5;socket&#x6A21;&#x5F0F;&#x4E3E;&#x4F8B;Streaming&#x5E95;&#x5C42;&#x6267;&#x884C;&#x903B;&#x8F91;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#transform-operation重点"><span class="toc-nav-number">8.</span> <span class="toc-nav-text">Transform Operation&#xFF08;&#x91CD;&#x70B9;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#案例分析"><span class="toc-nav-number">8.1.</span> <span class="toc-nav-text">&#x6848;&#x4F8B;&#x5206;&#x6790;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#window-operations了解"><span class="toc-nav-number">9.</span> <span class="toc-nav-text">Window Operations&#xFF08;&#x4E86;&#x89E3;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#join-operations"><span class="toc-nav-number">9.1.</span> <span class="toc-nav-text">Join Operations</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#output-operations-on-dstreams"><span class="toc-nav-number">10.</span> <span class="toc-nav-text">Output Operations on DStreams</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#design-patterns-for-using-foreachrdd重点"><span class="toc-nav-number">10.1.</span> <span class="toc-nav-text">Design Patterns for using foreachRDD&#xFF08;&#x91CD;&#x70B9;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#案例分析"><span class="toc-nav-number">10.2.</span> <span class="toc-nav-text">&#x6848;&#x4F8B;&#x5206;&#x6790;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#dataframe-and-sql-operations"><span class="toc-nav-number">10.3.</span> <span class="toc-nav-text">DataFrame and SQL Operations</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#mllib-operations"><span class="toc-nav-number">10.4.</span> <span class="toc-nav-text">MLlib Operations</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [SparkSQL之DataFrame以及ShuffleManager补充]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/87SparkSQL之DataFrame以及ShuffleManager补充/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[SparkSQL之DataFrame以及ShuffleManager补充]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-10-07
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>从上一节我们知道，关于Spark SQL有三种API：有SQL API 、DataFrame API、Dataset API。<br>
+测试的时候可以用spark-shell、spark-sql来测试，在生产上，用的都是IDEA来开发。，开发完成之后，打包上传，然后用spark-submit提交。</p>
+<h1 id="如何构建dataframes">如何构建DataFrames ？</h1>
+<p>A Dataset can be constructed from JVM objects and then manipulated using functional transformations (map, flatMap, filter, etc.).<br>
+Dataset 可以从JVM对象中进行构建，然后用各种算子对它进行操作。</p>
+<p>DataFrames can be constructed from a wide array of sources such as: structured data files, tables in Hive, external databases, or existing RDDs.<br>
+<strong>DataFrames 可以从结构化的文件、Hive表、外部数据库、RDD来进行构建。</strong> 结构化的文件在工作中非常常见，比如hdfs上的数据，转成DataFrames。Hive表 现在工作中用的也非常的多。外部数据，比如从外面接过来的用户行为信息，比如说存在MySQL里的配置信息等。RDD也是需要的。</p>
+<h1 id="dataframes-操作-json文件">DataFrames 操作 JSON文件</h1>
+<p>JSON文件是结构化的文件，是带有schema的。<br>
+JSON可以直接通过加载的方式变成一个DF，不过不是所有的都可以，比如文本就不行。</p>
+<p>Spark SQL can automatically infer the schema of a JSON dataset and load it as a Dataset[Row]. This conversion can be done using SparkSession.read.json() on either a Dataset[String], or a JSON file.</p>
+<p>现在有个 xxx.json 的JSON文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;name&quot;:&quot;zhangsan&quot;,&quot;age&quot;:15&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;lisi&quot;&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;wangwu&quot;,&quot;age&quot;:26&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;zhaoliu&quot;,&quot;age&quot;:38&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Jim&quot;,&quot;sex&quot;:&quot;man&quot;&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Marry&quot;,&quot;age&quot;:23,&quot;sex&quot;:&quot;man&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>如用MapReduce来实现的话，从MapReduce读进来之后，需要用在map方法里面，通过JSON工具把它解析出来。但是每一行的key value的多少都一样，比如第二行就一个key value。用MapReduce处理起来比较麻烦，里面的代码要经常变化。</p>
+<p>如果用DataFrames 来处理的话，就比较方便了。</p>
+<p>举个例子;</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop001 resources]$ ls</span><br><span class="line">employees.json  full_user.avsc  kv1.txt  people.csv  people.json  people.txt  user.avsc  users.avro  users.orc  users.parquet</span><br><span class="line">[hadoop@hadoop001 resources]$ pwd</span><br><span class="line">/home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/examples/src/main/resources</span><br><span class="line">[hadoop@hadoop001 resources]$ cat people.json</span><br><span class="line">&#123;&quot;name&quot;:&quot;Michael&quot;&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Andy&quot;, &quot;age&quot;:30&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Justin&quot;, &quot;age&quot;:19&#125;</span><br><span class="line">[hadoop@hadoop001 resources]$</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">//可以看出来，直接就可以读取，然后显示出来了，没有的地方会显示为null</span><br><span class="line">scala&gt; spark.read.json(&quot;file:///home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/examples/src/main/resources/people.json&quot;).show</span><br><span class="line">+----+-------+</span><br><span class="line">| age|   name|</span><br><span class="line">+----+-------+</span><br><span class="line">|null|Michael|</span><br><span class="line">|  30|   Andy|</span><br><span class="line">|  19| Justin|</span><br><span class="line">+----+-------+</span><br><span class="line"></span><br><span class="line">scala&gt; val df = spark.read.json(&quot;file:///home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/examples/src/main/resources/people.json&quot;)</span><br><span class="line">df: org.apache.spark.sql.DataFrame = [age: bigint, name: string]</span><br><span class="line">//从这里可以看出来：这里加载之后就是DataFrame </span><br><span class="line"></span><br><span class="line">scala&gt; df.show</span><br><span class="line">+----+-------+</span><br><span class="line">| age|   name|</span><br><span class="line">+----+-------+</span><br><span class="line">|null|Michael|</span><br><span class="line">|  30|   Andy|</span><br><span class="line">|  19| Justin|</span><br><span class="line">+----+-------+</span><br><span class="line"></span><br><span class="line">//如果是DataFrame ，可以用printSchema这个把它的schema打印出来，相当于desc</span><br><span class="line">//可以看出来，这些字段的类型，它是可以自动推导出来的</span><br><span class="line">scala&gt; df.printSchema</span><br><span class="line">root</span><br><span class="line"> |-- age: long (nullable = true)</span><br><span class="line"> |-- name: string (nullable = true)</span><br></pre></td></tr></table></figure>
+<p>从以上可以看出来，用DataFrame不用考虑文件里的每一行key value有多少，如果某个字段没有就为null；也不用考虑里面字段的数据类型。</p>
+<p>继续：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">//在上面df基础上创建people视图</span><br><span class="line">scala&gt; df.createOrReplaceTempView(&quot;people&quot;)</span><br><span class="line"></span><br><span class="line">scala&gt; val teenagerNamesDF = spark.sql(&quot;SELECT name FROM people&quot;)</span><br><span class="line">WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException</span><br><span class="line">teenagerNamesDF: org.apache.spark.sql.DataFrame = [name: string]</span><br><span class="line"></span><br><span class="line">scala&gt; val teenagerNamesDF = spark.sql(&quot;SELECT * FROM people&quot;)</span><br><span class="line">teenagerNamesDF: org.apache.spark.sql.DataFrame = [age: bigint, name: string]</span><br><span class="line"></span><br><span class="line">scala&gt; teenagerNamesDF.show</span><br><span class="line">+----+-------+</span><br><span class="line">| age|   name|</span><br><span class="line">+----+-------+</span><br><span class="line">|null|Michael|</span><br><span class="line">|  30|   Andy|</span><br><span class="line">|  19| Justin|</span><br><span class="line">+----+-------+</span><br><span class="line"></span><br><span class="line">//重新创建了people的视图</span><br><span class="line">scala&gt; df.createOrReplaceTempView(&quot;people&quot;)</span><br><span class="line"></span><br><span class="line">//下面直接就可以写sql了</span><br><span class="line">scala&gt; val teenagerNamesDF = spark.sql(&quot;SELECT name FROM people WHERE age BETWEEN 13 AND 19&quot;)</span><br><span class="line">19/07/01 23:14:40 WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException</span><br><span class="line">teenagerNamesDF: org.apache.spark.sql.DataFrame = [name: string]</span><br><span class="line"></span><br><span class="line">scala&gt; teenagerNamesDF.show()</span><br><span class="line">+------+</span><br><span class="line">|  name|</span><br><span class="line">+------+</span><br><span class="line">|Justin|</span><br><span class="line">+------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//从这里看，多了一个people的表</span><br><span class="line">//isTemporary为false表示，为物理表，为真实存在的，不是临时存在的；true为临时表，是临时存在的，当这个session关掉之后，这个临时表就会消失</span><br><span class="line">//database为空，表示它没有数据库</span><br><span class="line">scala&gt; spark.sql(&quot;show tables&quot;).show</span><br><span class="line">+--------+------------+-----------+</span><br><span class="line">|database|   tableName|isTemporary|</span><br><span class="line">+--------+------------+-----------+</span><br><span class="line">| default|        dept|      false|</span><br><span class="line">| default|         emp|      false|</span><br><span class="line">| default|sparksqltest|      false|</span><br><span class="line">|        |      people|       true|</span><br><span class="line">+--------+------------+-----------+</span><br><span class="line"></span><br><span class="line">//可以看到df这个DataFrame有两个列</span><br><span class="line">scala&gt; df.show</span><br><span class="line">+----+-------+</span><br><span class="line">| age|   name|</span><br><span class="line">+----+-------+</span><br><span class="line">|null|Michael|</span><br><span class="line">|  30|   Andy|</span><br><span class="line">|  19| Justin|</span><br><span class="line">+----+-------+</span><br><span class="line"></span><br><span class="line">//如果只选择其中一个列，可以这样，必须要掌握的</span><br><span class="line">//Column  select($&quot;name&quot;)报错是因为少了一个隐式转换，编程时一定要加上import spark.implicits._,在控制台上默认是已经导入的，还有种写法select(df(&quot;name&quot;)) </span><br><span class="line">//（   如果要两个就这样： df.select(&quot;name&quot;,&quot;age&quot;).show  ）</span><br><span class="line">scala&gt; df.select(&quot;name&quot;).show</span><br><span class="line">+-------+</span><br><span class="line">|   name|</span><br><span class="line">+-------+</span><br><span class="line">|Michael|</span><br><span class="line">|   Andy|</span><br><span class="line">| Justin|</span><br><span class="line">+-------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//这个见到知道就可以了</span><br><span class="line">//或者这样：</span><br><span class="line">scala&gt; df.select($&quot;name&quot;).show</span><br><span class="line">+-------+</span><br><span class="line">|   name|</span><br><span class="line">+-------+</span><br><span class="line">|Michael|</span><br><span class="line">|   Andy|</span><br><span class="line">| Justin|</span><br><span class="line">+-------+</span><br><span class="line">//如果在IDEA里，需要添加import spark.implicits._隐式转换</span><br><span class="line">//但是在spark-shell里可以直接这样，不用添加，因为它已经导入过了</span><br><span class="line"></span><br><span class="line">//计算过滤</span><br><span class="line">scala&gt; df.filter(df(&quot;age&quot;)&gt;20).show</span><br><span class="line">+---+----+</span><br><span class="line">|age|name|</span><br><span class="line">+---+----+</span><br><span class="line">| 30|Andy|</span><br><span class="line">+---+----+</span><br></pre></td></tr></table></figure>
+<p>思考：读取一个JSON文件，怎么就直接变成了DF了？它的底层实现原理是什么？<br>
+可参考https://blog.csdn.net/liweihope/article/details/94590371</p>
+<p>但是文本的话直接加载就达不到效果了。<br>
+来看：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">//这是一个文本</span><br><span class="line">[hadoop@hadoop001 resources]$ cat people.txt </span><br><span class="line">Michael, 29</span><br><span class="line">Andy, 30</span><br><span class="line">Justin, 19</span><br><span class="line"></span><br><span class="line">//用spark.read.text这个来读取一个TXT文本文件</span><br><span class="line">//我们知道文本是没有schema的</span><br><span class="line">scala&gt; val people =  spark.read.text(&quot;file:///home/hadoop/app/spark-2.4.2-bin-2.6.0-cdh5.7.0/examples/src/main/resources/people.txt&quot;)</span><br><span class="line">people: org.apache.spark.sql.DataFrame = [value: string]</span><br><span class="line"></span><br><span class="line">//可以看出来它的字段就一个：value，里面有一大坨</span><br><span class="line">scala&gt; people.show</span><br><span class="line">+-----------+</span><br><span class="line">|      value|</span><br><span class="line">+-----------+</span><br><span class="line">|Michael, 29|</span><br><span class="line">|   Andy, 30|</span><br><span class="line">| Justin, 19|</span><br><span class="line">+-----------+</span><br><span class="line"></span><br><span class="line">//里面就一个字段，而且肯定是string类型</span><br><span class="line">scala&gt; people.printSchema</span><br><span class="line">root</span><br><span class="line"> |-- value: string (nullable = true)</span><br></pre></td></tr></table></figure>
+<p><strong>那么考虑一下，如何把读取的文本文件，读取之后，就变成一个带有schema的？</strong><br>
+就需要自定义外部数据源了。这个是很重要的。<br>
+见下一节。</p>
+<h2 id="dataframes-操作-文本文件">DataFrames 操作 文本文件</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">参考官网：http://spark.apache.org/docs/latest/sql-getting-started.html#interoperating-with-rdds</span><br></pre></td></tr></table></figure>
+<p>Interoperating with RDDs</p>
+<p>同RDD之间的转换</p>
+<p>Spark SQL supports two different methods for converting existing RDDs into Datasets. The first method uses reflection to infer the schema of an RDD that contains specific types of objects. This reflection-based approach leads to more concise code and works well when you already know the schema while writing your Spark application.</p>
+<p>第一种方法反射，这种方式代码比较精简</p>
+<p>The Scala interface for Spark SQL supports automatically converting an RDD containing case classes to a DataFrame.</p>
+<p>言下之意我们先要定义一个case class</p>
+<p>现在有一个文本文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">//id，名字，手机号，邮箱，中间由 | 来分割</span><br><span class="line">//注意21,22 没有名字，23名字为空</span><br><span class="line">[hadoop@hadoop001 data]$ cat student.data </span><br><span class="line">1|Burke|1-300-746-8446|ullamcorper.velit.in@ametnullaDonec.co.uk</span><br><span class="line">2|Kamal|1-668-571-5046|pede.Suspendisse@interdumenim.edu</span><br><span class="line">3|Olga|1-956-311-1686|Aenean.eget.metus@dictumcursusNunc.edu</span><br><span class="line">4|Belle|1-246-894-6340|vitae.aliquet.nec@neque.co.uk</span><br><span class="line">5|Trevor|1-300-527-4967|dapibus.id@acturpisegestas.net</span><br><span class="line">6|Laurel|1-691-379-9921|adipiscing@consectetueripsum.edu</span><br><span class="line">7|Sara|1-608-140-1995|Donec.nibh@enimEtiamimperdiet.edu</span><br><span class="line">8|Kaseem|1-881-586-2689|cursus.et.magna@euismod.org</span><br><span class="line">9|Lev|1-916-367-5608|Vivamus.nisi@ipsumdolor.com</span><br><span class="line">10|Maya|1-271-683-2698|accumsan.convallis@ornarelectusjusto.edu</span><br><span class="line">11|Emi|1-467-270-1337|est@nunc.com</span><br><span class="line">12|Caleb|1-683-212-0896|Suspendisse@Quisque.edu</span><br><span class="line">13|Florence|1-603-575-2444|sit.amet.dapibus@lacusAliquamrutrum.ca</span><br><span class="line">14|Anika|1-856-828-7883|euismod@ligulaelit.co.uk</span><br><span class="line">15|Tarik|1-398-171-2268|turpis@felisorci.com</span><br><span class="line">16|Amena|1-878-250-3129|lorem.luctus.ut@scelerisque.com</span><br><span class="line">17|Blossom|1-154-406-9596|Nunc.commodo.auctor@eratSed.co.uk</span><br><span class="line">18|Guy|1-869-521-3230|senectus.et.netus@lectusrutrum.com</span><br><span class="line">19|Malachi|1-608-637-2772|Proin.mi.Aliquam@estarcu.net</span><br><span class="line">20|Edward|1-711-710-6552|lectus@aliquetlibero.co.uk</span><br><span class="line">21||1-711-710-6552|lectus@aliquetlibero.co.uk</span><br><span class="line">22||1-711-710-6552|lectus@aliquetlibero.co.uk</span><br><span class="line">23|NULL|1-711-710-6552|lectus@aliquetlibero.co.uk</span><br></pre></td></tr></table></figure>
+<p>如果和上一节json文件读取一样，spark.read.text(这个文件)，那么它只有一个列 就是value，value里面一大坨，没有任何意义。<br>
+现在考虑一下，如何把读取的文本文件，读取之后，就变成一个带有schema的？<br>
+这涉及到RDD和DataFrame的转换。（务必掌握）</p>
+<p><strong>对于一个已经存在的RDD，Spark SQL有两种方法来把它转换成Datasets。</strong></p>
+<h3 id="第一种方法通过反射的方法">第一种方法，通过反射的方法</h3>
+<p><strong>第一种方法，通过反射的方法，来推导RDD里面的schema。</strong><br>
+当你<strong>已经知道它的schema</strong> ，已经知道它的数据结构时，用这种方法，代码很精简。</p>
+<p>Spark SQL中的Scala接口支持：把一个包含 case class 的RDD 转换成DataFrame。这个case class定义了表的schema。case class 的参数名 通过反射 来被读取 然后成为列的名称。</p>
+<p>现在用第一种方法来操作一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; case class Student(id:String,name:String,phone:String,email:String)</span><br><span class="line">defined class Student</span><br><span class="line"></span><br><span class="line">//注意如果是IDEA，需要添加隐式转换：import spark.implicits._</span><br><span class="line"></span><br><span class="line">//注意map(_.split(&quot;\\|&quot;))  这里需要添加两个‘\’来转义一下，不然有问题</span><br><span class="line">scala&gt; val studentDF = spark.sparkContext.textFile(&quot;file:///home/hadoop/data/student.data&quot;).map(_.split(&quot;\\|&quot;)).map(attribute =&gt; Student(attribute(0),attribute(1),attribute(2),attribute(3))).toDF</span><br><span class="line">studentDF: org.apache.spark.sql.DataFrame = [id: string, name: string ... 2 more fields]</span><br><span class="line">//这样就把文本读取给一个RDD，然后RDD通过case class，通过反射，就转成了一个DataFrame 了</span><br><span class="line"></span><br><span class="line">//然后就可以对这个DataFrame 进行操作了</span><br><span class="line">//可以看到总共23行，就显示了20行；而且每一行如果太长，后面显示不全</span><br><span class="line">scala&gt; studentDF.show</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">|  1|   Burke|1-300-746-8446|ullamcorper.velit...|</span><br><span class="line">|  2|   Kamal|1-668-571-5046|pede.Suspendisse@...|</span><br><span class="line">|  3|    Olga|1-956-311-1686|Aenean.eget.metus...|</span><br><span class="line">|  4|   Belle|1-246-894-6340|vitae.aliquet.nec...|</span><br><span class="line">|  5|  Trevor|1-300-527-4967|dapibus.id@acturp...|</span><br><span class="line">|  6|  Laurel|1-691-379-9921|adipiscing@consec...|</span><br><span class="line">|  7|    Sara|1-608-140-1995|Donec.nibh@enimEt...|</span><br><span class="line">|  8|  Kaseem|1-881-586-2689|cursus.et.magna@e...|</span><br><span class="line">|  9|     Lev|1-916-367-5608|Vivamus.nisi@ipsu...|</span><br><span class="line">| 10|    Maya|1-271-683-2698|accumsan.convalli...|</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">| 14|   Anika|1-856-828-7883|euismod@ligulaeli...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">only showing top 20 rows</span><br><span class="line"></span><br><span class="line">//加两个参数就可以解决上面问题了，false表示显示完全，30表示显示30行，默认最多显示20行</span><br><span class="line">scala&gt; studentDF.show(30,false)</span><br><span class="line">+---+--------+--------------+-----------------------------------------+</span><br><span class="line">|id |name    |phone         |email                                    |</span><br><span class="line">+---+--------+--------------+-----------------------------------------+</span><br><span class="line">|1  |Burke   |1-300-746-8446|ullamcorper.velit.in@ametnullaDonec.co.uk|</span><br><span class="line">|2  |Kamal   |1-668-571-5046|pede.Suspendisse@interdumenim.edu        |</span><br><span class="line">|3  |Olga    |1-956-311-1686|Aenean.eget.metus@dictumcursusNunc.edu   |</span><br><span class="line">|4  |Belle   |1-246-894-6340|vitae.aliquet.nec@neque.co.uk            |</span><br><span class="line">|5  |Trevor  |1-300-527-4967|dapibus.id@acturpisegestas.net           |</span><br><span class="line">|6  |Laurel  |1-691-379-9921|adipiscing@consectetueripsum.edu         |</span><br><span class="line">|7  |Sara    |1-608-140-1995|Donec.nibh@enimEtiamimperdiet.edu        |</span><br><span class="line">|8  |Kaseem  |1-881-586-2689|cursus.et.magna@euismod.org              |</span><br><span class="line">|9  |Lev     |1-916-367-5608|Vivamus.nisi@ipsumdolor.com              |</span><br><span class="line">|10 |Maya    |1-271-683-2698|accumsan.convallis@ornarelectusjusto.edu |</span><br><span class="line">|11 |Emi     |1-467-270-1337|est@nunc.com                             |</span><br><span class="line">|12 |Caleb   |1-683-212-0896|Suspendisse@Quisque.edu                  |</span><br><span class="line">|13 |Florence|1-603-575-2444|sit.amet.dapibus@lacusAliquamrutrum.ca   |</span><br><span class="line">|14 |Anika   |1-856-828-7883|euismod@ligulaelit.co.uk                 |</span><br><span class="line">|15 |Tarik   |1-398-171-2268|turpis@felisorci.com                     |</span><br><span class="line">|16 |Amena   |1-878-250-3129|lorem.luctus.ut@scelerisque.com          |</span><br><span class="line">|17 |Blossom |1-154-406-9596|Nunc.commodo.auctor@eratSed.co.uk        |</span><br><span class="line">|18 |Guy     |1-869-521-3230|senectus.et.netus@lectusrutrum.com       |</span><br><span class="line">|19 |Malachi |1-608-637-2772|Proin.mi.Aliquam@estarcu.net             |</span><br><span class="line">|20 |Edward  |1-711-710-6552|lectus@aliquetlibero.co.uk               |</span><br><span class="line">|21 |        |1-711-710-6552|lectus@aliquetlibero.co.uk               |</span><br><span class="line">|22 |        |1-711-710-6552|lectus@aliquetlibero.co.uk               |</span><br><span class="line">|23 |NULL    |1-711-710-6552|lectus@aliquetlibero.co.uk               |</span><br><span class="line">+---+--------+--------------+-----------------------------------------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; studentDF.printSchema</span><br><span class="line">root</span><br><span class="line"> |-- id: string (nullable = true)</span><br><span class="line"> |-- name: string (nullable = true)</span><br><span class="line"> |-- phone: string (nullable = true)</span><br><span class="line"> |-- email: string (nullable = true)</span><br><span class="line"></span><br><span class="line">//用studentDF这个DataFrame创建一张视图</span><br><span class="line">//然后就可以查询这张视图了</span><br><span class="line">scala&gt; studentDF.createOrReplaceTempView(&quot;student&quot;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; spark.sql(&quot;select * from student where id = 20&quot;).show(false)</span><br><span class="line">+---+------+--------------+--------------------------+</span><br><span class="line">|id |name  |phone         |email                     |</span><br><span class="line">+---+------+--------------+--------------------------+</span><br><span class="line">|20 |Edward|1-711-710-6552|lectus@aliquetlibero.co.uk|</span><br><span class="line">+---+------+--------------+--------------------------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//打印前三条数据</span><br><span class="line">//为什么不直接 studentDF.take(3)，因为take返回的是数组，需要遍历打印一下</span><br><span class="line">//源码;： def take(n: Int): Array[T] = head(n)</span><br><span class="line">scala&gt; studentDF.take(3).foreach(println)</span><br><span class="line">[1,Burke,1-300-746-8446,ullamcorper.velit.in@ametnullaDonec.co.uk]</span><br><span class="line">[2,Kamal,1-668-571-5046,pede.Suspendisse@interdumenim.edu]</span><br><span class="line">[3,Olga,1-956-311-1686,Aenean.eget.metus@dictumcursusNunc.edu]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; studentDF.first()</span><br><span class="line">res12: org.apache.spark.sql.Row = [1,Burke,1-300-746-8446,ullamcorper.velit.in@ametnullaDonec.co.uk]</span><br><span class="line"></span><br><span class="line">scala&gt; studentDF.head()</span><br><span class="line">res13: org.apache.spark.sql.Row = [1,Burke,1-300-746-8446,ullamcorper.velit.in@ametnullaDonec.co.uk]</span><br><span class="line"></span><br><span class="line">//源码：  def first(): T = head()</span><br><span class="line">//def head(): T = head(1).head</span><br><span class="line">//def head(n: Int): Array[T] = withAction(&quot;head&quot;, limit(n).queryExecution)(collectFromPlan)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//现在来筛选出：id大于10的</span><br><span class="line">//方法1：</span><br><span class="line">scala&gt; spark.sql(&quot;select * from student where id &gt;10&quot;).show</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">| 14|   Anika|1-856-828-7883|euismod@ligulaeli...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 21|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 22|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 23|    NULL|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line"></span><br><span class="line">//方法2：</span><br><span class="line">scala&gt; studentDF.filter(&quot;id&gt;10&quot;).show</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">| 14|   Anika|1-856-828-7883|euismod@ligulaeli...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 21|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 22|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 23|    NULL|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line"></span><br><span class="line">//name为空的</span><br><span class="line">scala&gt; studentDF.filter(&quot;name =&apos;&apos; or name=&apos;NULL&apos; or name=&apos;null&apos;&quot;).show</span><br><span class="line">+---+----+--------------+--------------------+</span><br><span class="line">| id|name|         phone|               email|</span><br><span class="line">+---+----+--------------+--------------------+</span><br><span class="line">| 21|    |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 22|    |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 23|NULL|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+----+--------------+--------------------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//排序：按照name进行降序，如果name相同，再按照id的降序排列</span><br><span class="line">//不会可以用IDEA看源码</span><br><span class="line">scala&gt; studentDF.sort($&quot;name&quot;.desc,$&quot;id&quot;.desc).show(30)</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">|  5|  Trevor|1-300-527-4967|dapibus.id@acturp...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">|  7|    Sara|1-608-140-1995|Donec.nibh@enimEt...|</span><br><span class="line">|  3|    Olga|1-956-311-1686|Aenean.eget.metus...|</span><br><span class="line">| 23|    NULL|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 10|    Maya|1-271-683-2698|accumsan.convalli...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">|  9|     Lev|1-916-367-5608|Vivamus.nisi@ipsu...|</span><br><span class="line">|  6|  Laurel|1-691-379-9921|adipiscing@consec...|</span><br><span class="line">|  8|  Kaseem|1-881-586-2689|cursus.et.magna@e...|</span><br><span class="line">|  2|   Kamal|1-668-571-5046|pede.Suspendisse@...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">|  1|   Burke|1-300-746-8446|ullamcorper.velit...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">|  4|   Belle|1-246-894-6340|vitae.aliquet.nec...|</span><br><span class="line">| 14|   Anika|1-856-828-7883|euismod@ligulaeli...|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">| 22|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 21|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//修改别名</span><br><span class="line">scala&gt; studentDF.select($&quot;phone&quot;.as(&quot;mobile&quot;)).show()</span><br><span class="line">+--------------+</span><br><span class="line">|        mobile|</span><br><span class="line">+--------------+</span><br><span class="line">|1-300-746-8446|</span><br><span class="line">|1-668-571-5046|</span><br><span class="line">|1-956-311-1686|</span><br><span class="line">|1-246-894-6340|</span><br><span class="line">|1-300-527-4967|</span><br><span class="line">|1-691-379-9921|</span><br><span class="line">|1-608-140-1995|</span><br><span class="line">|1-881-586-2689|</span><br><span class="line">|1-916-367-5608|</span><br><span class="line">|1-271-683-2698|</span><br><span class="line">|1-467-270-1337|</span><br><span class="line">|1-683-212-0896|</span><br><span class="line">|1-603-575-2444|</span><br><span class="line">|1-856-828-7883|</span><br><span class="line">|1-398-171-2268|</span><br><span class="line">|1-878-250-3129|</span><br><span class="line">|1-154-406-9596|</span><br><span class="line">|1-869-521-3230|</span><br><span class="line">|1-608-637-2772|</span><br><span class="line">|1-711-710-6552|</span><br><span class="line">+--------------+</span><br><span class="line">only showing top 20 rows</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//现在实现一下两个DF进行join</span><br><span class="line">//join源码;def join(right: Dataset[_], joinExprs: Column): DataFrame = join(right, joinExprs, &quot;inner&quot;)</span><br><span class="line">//有很多join，默认为inner</span><br><span class="line">// import org.apache.spark.sql.functions._</span><br><span class="line">//df1.join(df2, $&quot;df1Key&quot; === $&quot;df2Key&quot;, &quot;outer&quot;)</span><br><span class="line"></span><br><span class="line">//定义两个DF：student1 和 student2 </span><br><span class="line">scala&gt; val student1 = spark.sparkContext.textFile(&quot;file:///home/hadoop/data/student.data&quot;).map(_.split(&quot;\\|&quot;)).map(attribute =&gt; Student(attribute(0),attribute(1),attribute(2),attribute(3))).toDF</span><br><span class="line">student1: org.apache.spark.sql.DataFrame = [id: string, name: string ... 2 more fields]</span><br><span class="line"></span><br><span class="line">scala&gt; val student2 = spark.sparkContext.textFile(&quot;file:///home/hadoop/data/student.data&quot;).map(_.split(&quot;\\|&quot;)).map(attribute =&gt; Student(attribute(0),attribute(1),attribute(2),attribute(3))).toDF</span><br><span class="line">student2: org.apache.spark.sql.DataFrame = [id: string, name: string ... 2 more fields]</span><br><span class="line"></span><br><span class="line">//join：（多个join的话，括号里后面继续写）</span><br><span class="line">scala&gt; student1.join(student2,student1(&quot;id&quot;)===student2(&quot;id&quot;)).show()</span><br><span class="line">+---+--------+--------------+--------------------+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+---+--------+--------------+--------------------+</span><br><span class="line">|  7|    Sara|1-608-140-1995|Donec.nibh@enimEt...|  7|    Sara|1-608-140-1995|Donec.nibh@enimEt...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">|  3|    Olga|1-956-311-1686|Aenean.eget.metus...|  3|    Olga|1-956-311-1686|Aenean.eget.metus...|</span><br><span class="line">|  8|  Kaseem|1-881-586-2689|cursus.et.magna@e...|  8|  Kaseem|1-881-586-2689|cursus.et.magna@e...|</span><br><span class="line">| 22|        |1-711-710-6552|lectus@aliquetlib...| 22|        |1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">|  5|  Trevor|1-300-527-4967|dapibus.id@acturp...|  5|  Trevor|1-300-527-4967|dapibus.id@acturp...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">|  6|  Laurel|1-691-379-9921|adipiscing@consec...|  6|  Laurel|1-691-379-9921|adipiscing@consec...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">| 23|    NULL|1-711-710-6552|lectus@aliquetlib...| 23|    NULL|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">|  9|     Lev|1-916-367-5608|Vivamus.nisi@ipsu...|  9|     Lev|1-916-367-5608|Vivamus.nisi@ipsu...|</span><br><span class="line">|  1|   Burke|1-300-746-8446|ullamcorper.velit...|  1|   Burke|1-300-746-8446|ullamcorper.velit...|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">| 10|    Maya|1-271-683-2698|accumsan.convalli...| 10|    Maya|1-271-683-2698|accumsan.convalli...|</span><br><span class="line">|  4|   Belle|1-246-894-6340|vitae.aliquet.nec...|  4|   Belle|1-246-894-6340|vitae.aliquet.nec...|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">+---+--------+--------------+--------------------+---+--------+--------------+--------------------+</span><br><span class="line">only showing top 20 rows</span><br></pre></td></tr></table></figure>
+<h3 id="第二种方法通过一个可编程的接口来创建dataframe">第二种方法，通过一个可编程的接口来创建DataFrame</h3>
+<p>上面第一种方法，是已经知道了文件里的数据结构，在工作当中，源头的数据结构你可能知道，但是中间环节的数据结构你很可能不知道，那如果你不知道文件内容的数据结构呢？？</p>
+<p>The second method for creating Datasets is through a programmatic interface that allows you to construct a schema and then apply it to an existing RDD. While this method is more verbose, it allows you to construct Datasets when the columns and their types are not known until runtime.</p>
+<p>When case classes cannot be defined ahead of time (for example, the structure of records is encoded in a string, or a text dataset will be parsed and fields will be projected differently for different users), a DataFrame can be created programmatically with three steps.</p>
+<ul>
+<li>1.Create an RDD of Rows from the original RDD;</li>
+</ul>
+<p>创建一个带ROW的RDD，也就是一行一行的，上面的方式是通过map转成一个case class</p>
+<ul>
+<li>2.Create the schema represented by a StructType matching the structure of Rows in the RDD created in Step 1.</li>
+</ul>
+<p>StructType的方法来定义schema，StructType也是一个case class</p>
+<p>StructType =  Array[StructField]</p>
+<p>通过源码可以看出StructType里面有非常多的[StructField]</p>
+<p>StructField = name type nullable 同上面printSchema其实是一样的</p>
+<ul>
+<li>3.Apply the schema to the RDD of Rows via createDataFrame method provided by SparkSession.</li>
+</ul>
+<p>第二种方法，通过一个可编程的接口来创建一个Datasets（DataFrame），这个可编程的接口允许你去自己构建一个schema ，然后把这个schema应用于一个已经存在的RDD。就是说自己指定schema，然后把schema作用到RDD上面。<br>
+第二种方法代码更详细，你可以通过这种方法来构造Datasets（DataFrame），不过在运行时才能知道列及其类型。</p>
+<p>当你不能事先定义 case classe 的时候，可以考虑用下面<strong>三步曲来构建DataFrame</strong>：</p>
+<ul>
+<li>1.从原始的RDD来创建一个带有Rows的RDD（就是一行一行的）</li>
+<li>2.定义一个schema，名字叫做StructType ，这个StructType 区匹配第一步创建的RDD的Rows的结构</li>
+<li>3.把你的schema和Rows的RDD通过createDataFrame 这个方法，综合起来操作一波</li>
+</ul>
+<p>关键点源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//StructType源码：</span><br><span class="line">case class StructType(fields: Array[StructField]) extends DataType with Seq[StructField] &#123;</span><br><span class="line">。。。。。。</span><br><span class="line"></span><br><span class="line">//StructField源码：</span><br><span class="line">case class StructField(</span><br><span class="line">    name: String,</span><br><span class="line">    dataType: DataType,</span><br><span class="line">    nullable: Boolean = true,</span><br><span class="line">    metadata: Metadata = Metadata.empty) &#123;</span><br><span class="line"> 。。。。</span><br><span class="line"></span><br><span class="line">//从上面源码可以看到：</span><br><span class="line">StructType =  Array[StructField]) </span><br><span class="line">StructField = name  dataType nullable</span><br></pre></td></tr></table></figure>
+<p>来看一下操作过程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; import org.apache.spark.sql.types.&#123;StringType, StructField, StructType&#125;</span><br><span class="line">import org.apache.spark.sql.types.&#123;StringType, StructField, StructType&#125;</span><br><span class="line"></span><br><span class="line">scala&gt; import org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line">import org.apache.spark.sql.&#123;Row, SparkSession&#125;</span><br><span class="line"></span><br><span class="line"> //1.Create an RDD of Rows from the original RDD;把源生的RDD转成RDD Row</span><br><span class="line">scala&gt; val student = spark.sparkContext.textFile(&quot;file:///home/hadoop/data/student.data&quot;).map(_.split(&quot;\\|&quot;)).map(attribute =&gt; Row(attribute(0),attribute(1),attribute(2),attribute(3)))</span><br><span class="line">student: org.apache.spark.rdd.RDD[org.apache.spark.sql.Row] = MapPartitionsRDD[113] at map at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//2.Create the schema represented by a StructType matching the structure of Rows in the RDD created in Step 1.</span><br><span class="line">//定义一个schema，名字叫做StructType</span><br><span class="line">scala&gt; val structType = StructType(Array(StructField(&quot;id&quot;,StringType,true),StructField(&quot;name&quot;,StringType,true),StructField(&quot;phone&quot;,StringType,true),StructField(&quot;email&quot;,StringType,true)))</span><br><span class="line">structType: org.apache.spark.sql.types.StructType = StructType(StructField(id,StringType,true), StructField(name,StringType,true), StructField(phone,StringType,true), StructField(email,StringType,true))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//3.Apply the schema to the RDD of Rows via createDataFrame method provided by SparkSession.</span><br><span class="line">//你的schema和Rows的RDD通过createDataFrame 这个方法，综合起来操作一波</span><br><span class="line">scala&gt; val stuDF = spark.createDataFrame(student,structType)</span><br><span class="line">stuDF: org.apache.spark.sql.DataFrame = [id: string, name: string ... 2 more fields]</span><br><span class="line"></span><br><span class="line">//这个schema就是自己定义的</span><br><span class="line">scala&gt; stuDF.printSchema</span><br><span class="line">root</span><br><span class="line"> |-- id: string (nullable = true)</span><br><span class="line"> |-- name: string (nullable = true)</span><br><span class="line"> |-- phone: string (nullable = true)</span><br><span class="line"> |-- email: string (nullable = true)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; stuDF.show()</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">| id|    name|         phone|               email|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">|  1|   Burke|1-300-746-8446|ullamcorper.velit...|</span><br><span class="line">|  2|   Kamal|1-668-571-5046|pede.Suspendisse@...|</span><br><span class="line">|  3|    Olga|1-956-311-1686|Aenean.eget.metus...|</span><br><span class="line">|  4|   Belle|1-246-894-6340|vitae.aliquet.nec...|</span><br><span class="line">|  5|  Trevor|1-300-527-4967|dapibus.id@acturp...|</span><br><span class="line">|  6|  Laurel|1-691-379-9921|adipiscing@consec...|</span><br><span class="line">|  7|    Sara|1-608-140-1995|Donec.nibh@enimEt...|</span><br><span class="line">|  8|  Kaseem|1-881-586-2689|cursus.et.magna@e...|</span><br><span class="line">|  9|     Lev|1-916-367-5608|Vivamus.nisi@ipsu...|</span><br><span class="line">| 10|    Maya|1-271-683-2698|accumsan.convalli...|</span><br><span class="line">| 11|     Emi|1-467-270-1337|        est@nunc.com|</span><br><span class="line">| 12|   Caleb|1-683-212-0896|Suspendisse@Quisq...|</span><br><span class="line">| 13|Florence|1-603-575-2444|sit.amet.dapibus@...|</span><br><span class="line">| 14|   Anika|1-856-828-7883|euismod@ligulaeli...|</span><br><span class="line">| 15|   Tarik|1-398-171-2268|turpis@felisorci.com|</span><br><span class="line">| 16|   Amena|1-878-250-3129|lorem.luctus.ut@s...|</span><br><span class="line">| 17| Blossom|1-154-406-9596|Nunc.commodo.auct...|</span><br><span class="line">| 18|     Guy|1-869-521-3230|senectus.et.netus...|</span><br><span class="line">| 19| Malachi|1-608-637-2772|Proin.mi.Aliquam@...|</span><br><span class="line">| 20|  Edward|1-711-710-6552|lectus@aliquetlib...|</span><br><span class="line">+---+--------+--------------+--------------------+</span><br><span class="line">only showing top 20 rows</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">scala&gt; stuDF.map(x =&gt; &quot;name: &quot; + x(1))</span><br><span class="line">res34: org.apache.spark.sql.Dataset[String] = [value: string]</span><br><span class="line"></span><br><span class="line">scala&gt; stuDF.map(x =&gt; &quot;name: &quot; + x(1)).show()</span><br><span class="line">+--------------+</span><br><span class="line">|         value|</span><br><span class="line">+--------------+</span><br><span class="line">|   name: Burke|</span><br><span class="line">|   name: Kamal|</span><br><span class="line">|    name: Olga|</span><br><span class="line">|   name: Belle|</span><br><span class="line">|  name: Trevor|</span><br><span class="line">|  name: Laurel|</span><br><span class="line">|    name: Sara|</span><br><span class="line">|  name: Kaseem|</span><br><span class="line">|     name: Lev|</span><br><span class="line">|    name: Maya|</span><br><span class="line">|     name: Emi|</span><br><span class="line">|   name: Caleb|</span><br><span class="line">|name: Florence|</span><br><span class="line">|   name: Anika|</span><br><span class="line">|   name: Tarik|</span><br><span class="line">|   name: Amena|</span><br><span class="line">| name: Blossom|</span><br><span class="line">|     name: Guy|</span><br><span class="line">| name: Malachi|</span><br><span class="line">|  name: Edward|</span><br><span class="line">+--------------+</span><br><span class="line">only showing top 20 rows</span><br></pre></td></tr></table></figure>
+<p>小知识点：<br>
+RDD进行map之后还是一个RDD；<br>
+DataFrame进行map之后是一个Dataset。</p>
+<h1 id="shuffle补充">shuffle补充</h1>
+<p>这个我们在RDD中也提到过，这里做一些补充</p>
+<p>我们先来做一个worldcount</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sparkContext.textFile(&quot;file:///data/a.txt&quot;).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br></pre></td></tr></table></figure>
+<p>然后我们到UI界面上看下</p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001534541.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>遇到shuffle的算子，就会拆stage，遇到reduceByKey就会拆stage,stage0和stage1中Task的数量都是2，为什么呢？</p>
+<p>由于我们的数据是通过textFile文件系统去读的，看源码</p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001553786.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001607622.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001620593.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>因为我们没有设置，默认取的两个线程</p>
+<p>我们可以调整一下，textFile可以手工写进去</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sparkContext.textFile(&quot;file:///data/a.txt&quot;,1).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20200316001635302.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>我们在通过UI界面就会发现变成了1</p>
+<p>那么从我们整个流程来看，map是输入，reduceByKey一端是输出，map我们能够控制，那么我们还有一个reduceByKey，能不能调整呢？</p>
+<p>reduceByKey源码</p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001647231.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001657279.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>可以传一个数字进来，这个就是并行度的问题了,我们做一下调整</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sparkContext.textFile(&quot;file:///data/a.txt&quot;,1).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_,4).collect</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/2020031600171318.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>这时候再看UI界面就显而易见了,整个作业被我们拆成了两大部分</p>
+<p>最后一个stage有一个学名ResultStage/FinalStage，前面的叫ShuffleMapStage</p>
+<p>通过上面的，我们可以知道，如果你想map读的快，就把map的并行度提高，对于文本文件，默认情况下，对于HDFS，有几个block就有几个Task;reduce端，嫌慢就加并行度</p>
+<p><strong>总结：</strong></p>
+<p>入：对于从HDFS上读数据：partiton=task   split也叫partiton，RDD五大特性在源码中的体现中可以看到</p>
+<p>出：如果没有配置，就以map端最后一个rdd的partiton数作为ResultStage的partition</p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001724266.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>如果有调整 ，reduceByKey(func, X) 那么  X就是ResultStage的partition，这对于生产上调优是非常重要的</p>
+<p>我们再来看一个，加一个coalesce</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sparkContext.textFile(&quot;file:///data/a.txt&quot;).coalesce(1).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20200316001736969.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; spark.sparkContext.textFile(&quot;file:///data/a.txt&quot;).repartition(3).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20200316001747952.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>有三个stage是因为repartition也是shuffle算子,读进来的时候还是两个，经过repartition就变成三个了</p>
+<p>我们把pom文件改成1.6,再来看一个ShuffleManager</p>
+<p>我们先打开一个SparkEnv环境相关的源码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">val shortShuffleMgrNames = Map(</span><br><span class="line">  &quot;hash&quot; -&gt; &quot;org.apache.spark.shuffle.hash.HashShuffleManager&quot;,  //2.0之后被移除，1.6就改用sort了</span><br><span class="line">  &quot;sort&quot; -&gt; &quot;org.apache.spark.shuffle.sort.SortShuffleManager&quot;,</span><br><span class="line">  &quot;tungsten-sort&quot; -&gt; &quot;org.apache.spark.shuffle.sort.SortShuffleManager&quot;)</span><br></pre></td></tr></table></figure>
+<p>会发现hash走的是HashShuffleManager，而sort、tungsten-sort走的都是SortShuffleManager</p>
+<p>面试一样从老版本讲起，要知根知底，知其然知其所以然</p>
+<p>从源码看，根据包名及类名，底层必然走的是反射，Class.forNmae,只是封装了一层，所以以后Spark里面用到了反射，可以直接用Utils类</p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001801545.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20200316001810971.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>假设现在有1个executor，2core，并行度就是2;<br>
+另外maptask有4个，reducetask有2个，由于仅有2core，所以要跑两轮;</p>
+<p>我们shuffle是将相同的key分发到一起，在我们讲的HashShuffleManager中，每一个maptask的都会生成N个reducetask的文件，先跑了两个maptask,每一个maptask就都会生成两个reducetask的文件</p>
+<p>其中Bucket就类似于MR中先写到环形缓冲区中，这里也会先写到桶里，然后写到reducetask的File文件中，最后reducetask会上面固定的File文件去拉数据</p>
+<p>这里会有一个问题，我们先来看下这个Bucket默认大小，直接去官网的配置里找</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">spark.shuffle.file.buffer	32k</span><br></pre></td></tr></table></figure>
+<p>这个桶的大小肯定是小了，减少桶磁盘的交互，这里就是一个优化点</p>
+<p>另外会产生文件个数：M * R （M就是前面，R就是后面）</p>
+<p>同时你还会开了多少个桶：Bucket：Core * R</p>
+<p>假设8core*1000个reduce作业= 8 * 1000 * 32k = 256M</p>
+<p>光Bucket就占了256M</p>
+<p>假设100executor ，每一个executor2Core</p>
+<p>有1000maptask，有1000reducetask</p>
+<p>每个executor跑10个</p>
+<p>==&gt; 会生成很多文件…</p>
+<p>思考一个问题，操作文件需要句柄，线程去操作的，线程数不能有那么多，所以有一个致命的问题就是中间的Bucket占用的大小以及生成的文件很多，内存还好办（现在内存不值钱）</p>
+<p>对于上述的文件就是写磁盘，saprk.local.dir没有配的的话就是直接写到/tmp文件目录下，一般情况下这个配置文件都会多挂几个磁盘，否则扛不住的，一会儿就写挂了，对于Yarn是LOCAL_DIRS</p>
+<p>其实对于map是先写到环形缓冲区，对于reduce也是会先写到一个环形缓冲区，需要做一次聚合才能把结果落地</p>
+<p>这个大小通过官网上查看能看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark.reducer.maxSizeInFlight	48m</span><br></pre></td></tr></table></figure>
+<p>这里参数也要调，至少乘以2，对于上面map端的桶就更要调大，因为这个桶越小，也就意味着写的越频繁，写出的文件也越多，设置大一点能减少同磁盘的交互次数</p>
+<p>上面我们发现了问题：中间输出的map非常非常多，缓冲区需要加大</p>
+<p><img src="https://img-blog.csdnimg.cn/20200318131059399.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>用HashShuffleManger需要把spark.shuffle.consolidateFiles=true开启，也就是做一个合并</p>
+<p>问题是做了合并后，reduce如何去拉数据呢，两个上面都有数据</p>
+<p>在1个core连续执行的多个task，都会生成一个ShuffleFile，是分开的，数据是直接追加，那样reduce去拉的时候就知道要拉哪些，追加的有记录</p>
+<p>这样同之前的方法对比文件数就可以少掉很多，也就是在map输出端做了合并，磁盘IO能少了很多，原来是一个写一个，现在是多个写一个</p>
+<p>从reduce端看，原来我每次去拉，要拉好多个文件，现在要拉的文件数量肯定少了，虽然说数据大小还是一样的，但是你每次去操作一个文件，肯定要拿到那个句柄的，你要开启、读、关闭的，这些都是性能的消耗</p>
+<p>这种方案虽然是好些的，万一Reduce的个数非常多呢？也是一样会有性能问题的</p>
+<p>这些都是在1.6低版本中的，对于我们的新版本2.4里是没有的,前面这两种方式一定要在面试过程中体现出来，1.6官方是移除了，改用sort</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/88SparkSQL之DataSource/" data-toggle="tooltip" data-placement="top" title="[SparkSQL之DataSource]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/86初识SparkSQL/" data-toggle="tooltip" data-placement="top" title="[初识SparkSQL]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#如何构建dataframes"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x5982;&#x4F55;&#x6784;&#x5EFA;DataFrames &#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#dataframes-操作-json文件"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">DataFrames &#x64CD;&#x4F5C; JSON&#x6587;&#x4EF6;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#dataframes-操作-文本文件"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">DataFrames &#x64CD;&#x4F5C; &#x6587;&#x672C;&#x6587;&#x4EF6;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#第一种方法通过反射的方法"><span class="toc-nav-number">2.1.1.</span> <span class="toc-nav-text">&#x7B2C;&#x4E00;&#x79CD;&#x65B9;&#x6CD5;&#xFF0C;&#x901A;&#x8FC7;&#x53CD;&#x5C04;&#x7684;&#x65B9;&#x6CD5;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#第二种方法通过一个可编程的接口来创建dataframe"><span class="toc-nav-number">2.1.2.</span> <span class="toc-nav-text">&#x7B2C;&#x4E8C;&#x79CD;&#x65B9;&#x6CD5;&#xFF0C;&#x901A;&#x8FC7;&#x4E00;&#x4E2A;&#x53EF;&#x7F16;&#x7A0B;&#x7684;&#x63A5;&#x53E3;&#x6765;&#x521B;&#x5EFA;DataFrame</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#shuffle补充"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">shuffle&#x8865;&#x5145;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark-core之Shuffle]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/78Spark-core之Shuffle/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark-core之Shuffle]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-08
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="什么是shuffle">什么是Shuffle？</h1>
+<p>一个action会触发一个job，一个job遇到shuffle会拆分成stage，stage里面有一堆task。</p>
+<p>有些操作会触发spark的“shuffle”操作。“shuffle”是spark里的一种机制，会对数据进行重新分区或者分发。将数据重新分组到不同的分区。这通常涉及到在executor和机器之间复制数据，涉及到磁盘I/O，数据序列化，网络I/O，使得shuffle成为复杂而昂贵的操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">什么叫re-distributing data 重新分发数据呢？</span><br><span class="line"></span><br><span class="line">举个例子：</span><br><span class="line">给你一堆的通话记录call records ==&gt; 让你统计这个月打出去了多少个电话</span><br><span class="line"></span><br><span class="line">其实就是一个WC</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">我们只需要把(天时间+拨打的,1)</span><br><span class="line"></span><br><span class="line">我们需要把相同的天时间+拨打作为一个key ==&gt; 如果不shuffle到同一个reduce上去，你能进行累加操作吗？</span><br><span class="line"></span><br><span class="line">不能，需要汇聚到一个节点上才能进行累加操作</span><br></pre></td></tr></table></figure>
+<p>This typically involves copying data across executors and machines, making the shuffle a complex and costly operation.</p>
+<p>shuffle涉及到数据的copy，会有磁盘IO以及网络IO，所以shuffle是一个复杂而且成本高的操作</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701153717251.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>举个例子，1、2、3、4、5、6是六个分区，一个RDD的数据有很多partition，比如说1、2、3、4。1、2、3、4上面都有&lt;key,value&gt;格式的数据，你现在如果想根据key来进行分组，然后相同的key进行累加，那么肯定要把key相同的数据放到同一个地方才能进行累加操作，比如reduceByKey。所以要把1、2、3、4上面都是key1的映射到5上面，把都是key2的映射到6上面。这样的话相同的key都在一块了，那么现在你就可以把value加载一块了。这个数据重新分发的过程就是shuffle。这个过程会会根据key把1、2、3、4的数据复制到5、6，对性能影响比较大。</p>
+<p>为了组织shuffle的数据，Spark将生成任务集 （就是stage）- map任务组织数据，reduce任务做数据的聚合。一个 map 任务的所有结果数据会保存在内存，直到内存不能全部存储为止。然后，这些数据将基于目标分区进行排序并写入一个单独的文件中。在 reduce 时，任务将读取相关的已排序的数据块。</p>
+<p>面试题：为什么说shuffle是一种复杂而昂贵的操作？生产上工作中是不是应该尽可能的去规避掉shuffle呢？</p>
+<p>shuffle通常涉及到在executor和机器之间复制数据，涉及到磁盘I/O，数据序列化，网络I/O，使得shuffle成为复杂而昂贵的操作。大多数情况下，尽可能的避免使用含有shuffle的算子，而且有shuffle很有可能会出现数据倾斜。当然只是绝大多数情况去避免使用，也有个别情况要手动添加shuffle才能起作用的。</p>
+<p>shuffle是整个大数据的性能杀手，瓶颈所在，所以生产中尽可能的避免使用shuffle。</p>
+<p>为了能更好的理解“shuffle”过程中发生了什么我们可以以reduceByKey为例来分析。reduceByKey操作将具备相同key的元素执行reduce函数聚合到一个tuple中生成一个新的RDD。以上就是把相同的key分到一个reduce上面去。难题是一个key对应的所有值并不一定在同一个分区里，甚至可能不在同一台机器上，但是它们必须被共同计算，最后计算的时候肯定是跨分区进行计算的。</p>
+<h1 id="rdd中-partition-个数怎么定小插曲">RDD中 partition 个数怎么定？（小插曲）</h1>
+<p>参考博客：<a href="https://www.jianshu.com/p/54b3a4e786d9" target="_blank" rel="noopener">https://www.jianshu.com/p/54b3a4e786d9</a></p>
+<p>RDD 由若干个 partition 组成，共有三种生成方式：</p>
+<ul>
+<li>从 Scala 集合中创建，通过调用 SparkContext#makeRDD 或 SparkContext#parallelize</li>
+<li>加载外部数据来创建 RDD，例如从 HDFS 文件、mysql 数据库读取数据等</li>
+<li>由其他 RDD 执行 transform 操作转换而来</li>
+</ul>
+<p>那么，在使用上述方法生成 RDD 的时候，会为 RDD 生成多少个 partition 呢？一般来说，加载 Scala 集合或外部数据来创建 RDD 时，是可以指定 partition 个数的，若指定了具体值，那么 partition 的个数就等于该值，比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">val rdd1 = sc.makeRDD( scalaSeqData, 3 )    //&lt; 指定 partition 数为3</span><br><span class="line">val rdd2 = sc.textFile( hdfsFilePath, 10 )  //&lt; 指定 partition 数为10</span><br></pre></td></tr></table></figure>
+<p>若没有指定具体的 partition 数时的 partition 数为多少呢？</p>
+<ul>
+<li>对于从 Scala 集合中转换而来的 RDD：默认的 partition 数为 defaultParallelism，该值在不同的部署模式下不同：<br>
+①Local 模式：本机 cpu cores 的数量<br>
+②Mesos 模式：8<br>
+③Yarn：max(2, 所有 executors 的 cpu cores 个数总和)</li>
+<li>对于从外部数据加载而来的 RDD：默认的 partition 数为 min(defaultParallelism, 2)</li>
+<li>对于执行转换操作而得到的 RDD：视具体操作而定，如 map 得到的 RDD 的 partition 数与 父 RDD 相同；union 得到的 RDD 的 partition 数为父 RDDs 的 partition 数之和…</li>
+</ul>
+<h1 id="有哪些算子会产生shuffle">有哪些算子会产生shuffle？</h1>
+<ul>
+<li>1） repartition 系列的操作：重新分区，生产中用的最多是合并小文件，减小生成的文件数,比如repartition 和 coalesce</li>
+<li>2）‘ByKey系列的操作：聚合,比如groupByKey 和 reduceByKey</li>
+<li>3）join系列的操作：关联（注意如果两个RDD分区一对一join是不会产生shuffle的）,比如cogroup 和 join</li>
+</ul>
+<h2 id="1repartition-系列的操作">1）repartition 系列的操作</h2>
+<p>用了fileter之后可以用coalesce收敛一下，生产上常用于合并小文件</p>
+<p>repartition用于提高并行度，把数据打散</p>
+<p>①spark-shell代码测试</p>
+<p>先来一波操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">//读取一个文件</span><br><span class="line">scala&gt; val info = sc.textFile(&quot;file:///home/hadoop/data/wordcount.txt&quot;)</span><br><span class="line">info: org.apache.spark.rdd.RDD[String] = file:///home/hadoop/data/wordcount.txt MapPartitionsRDD[1] at textFile at &lt;console&gt;:24</span><br><span class="line"></span><br><span class="line">scala&gt; info.collect</span><br><span class="line">res0: Array[String] = Array(world       world   hello, China    hello, people   person, love)</span><br><span class="line"></span><br><span class="line">//partition的数量为2</span><br><span class="line">scala&gt; info.partitions.length</span><br><span class="line">res3: Int = 2</span><br><span class="line"></span><br><span class="line">//----------------------下面是coalesce操作------------</span><br><span class="line">//通过coalesce把info这个RDD转换后，partition数量变成了1</span><br><span class="line">scala&gt; val info1 = info.coalesce(1)</span><br><span class="line">info1: org.apache.spark.rdd.RDD[String] = CoalescedRDD[4] at coalesce at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; info1.partitions.length</span><br><span class="line">res4: Int = 1</span><br><span class="line">//coalesce默认是一个窄依赖的算子，不会产生shuffle</span><br><span class="line">//但是可以加true参数，变成宽依赖，产生shuffle</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//下面希望通过coalesce把info这个RDD转换后，partition数量变成4，结果还是2，却不是4</span><br><span class="line">scala&gt; val info2 = info.coalesce(4)</span><br><span class="line">info2: org.apache.spark.rdd.RDD[String] = CoalescedRDD[7] at coalesce at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; info2.partitions.length</span><br><span class="line">res6: Int = 2</span><br><span class="line"></span><br><span class="line">//如果想变成4，变得比info的partition数量更大，需要加个true参数，如果变小则不用加</span><br><span class="line">//变大，加true参数，会进行shuffle操作，变小则没有shuffle操作</span><br><span class="line">scala&gt; val info2 = info.coalesce(4,true)</span><br><span class="line">info2: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[11] at coalesce at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; info2.partitions.length</span><br><span class="line">res7: Int = 4</span><br><span class="line"></span><br><span class="line">//----------------------下面是repartition操作------------</span><br><span class="line">//通过repartition(1)可以把原来info的2个partition转换为1个partition，而且不用加上true，partition数量由多变少</span><br><span class="line">//用repartition虽然可以把partition有多变少，但是要避免，推荐使用coalesce，因为尽量避免使用shuffle</span><br><span class="line">scala&gt; val info3 = info.repartition(1)</span><br><span class="line">info3: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[23] at repartition at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; info3.partitions.length</span><br><span class="line">res10: Int = 1</span><br><span class="line"></span><br><span class="line">//通过repartition(5)可以把原来info的2个partition转换为5个partition，而且不用加上true，partition数量由少变多</span><br><span class="line">//增加了并行度（一个partition一个task，一个task一个并行度）</span><br><span class="line">scala&gt; val info3 = info.repartition(5)</span><br><span class="line">info3: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[19] at repartition at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; info3.partitions.length</span><br><span class="line">res9: Int = 5</span><br><span class="line">//原因:repartition底层调用的是coalesce(numPartitions:Int，shuffle:Boolean=true)</span><br><span class="line">//repartition一直存在shuffle的，数据需要重新分发</span><br></pre></td></tr></table></figure>
+<p>②DAG图分析</p>
+<p>先执行：val info2 = info.coalesce(4,true)，再执行info2.collect，</p>
+<p>看DAG图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154142849.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>分析：coalesce是transformation操作，不会触发job，遇到collect触发job，coalesce中的参数为true，会产生shuffle，所以遇到coalesce的时候生成了stage1和stage2。</p>
+<p>再执行 val info1 = info.coalesce(1)，然后执行info1.collect，</p>
+<p>看DAG图：</p>
+<p><img src="https://img-blog.csdnimg.cn/2019070115423254." alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154302954." alt="image"></p>
+<p>分析：coalesce是transformation操作，不会触发job，遇到collect触发job，coalesce中的参数没有true，默认是false，不会产生shuffle，所以中间没有拆分成新的stage。并且可以看到stage3里面只有1个task。</p>
+<p>再执行val info3 = info.repartition(1)，然后执行info3.collect，</p>
+<p>看DAG图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154346871.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>分析：repartition是transformation操作，不会触发job，遇到collect触发job，repartition底层调用的是coalesce(1,true)，会产生shuffle，所以遇到coalesce的时候生成了stage4和stage5。</p>
+<p>再执行 val info4 = info.repartition(5)，然后info4.collect，</p>
+<p>看DAG图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154420571.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154443124." alt="iamge"></p>
+<p>分析：repartition是transformation操作，不会触发job，遇到collect触发job，repartition底层调用的是coalesce(5,true)，会产生shuffle，所以遇到coalesce的时候生成了stage6和stage7。并且可以看出stage6里面有2个task，stage7里面有5个task。</p>
+<p>③IDEA代码测试</p>
+<p>mapPartitionsWithIndex((index,partition)这个算子，是分分区，然后给它加个Partition编号（从0开始）。可以通过这个算子拿到分区的id</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.core</span><br><span class="line">import org.apache.spark.&#123;SparkConf, SparkContext&#125;</span><br><span class="line">import scala.collection.mutable.ListBuffer</span><br><span class="line"></span><br><span class="line">object RepartitionApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf().setAppName(&quot;LogApp&quot;).setMaster(&quot;local[2]&quot;)</span><br><span class="line">    val sc = new SparkContext(sparkConf)</span><br><span class="line"></span><br><span class="line">    //parallelize是可以设置并行度的，不设置的话有默认值，这里不设置的话是2</span><br><span class="line">    val students = sc.parallelize(List(&quot;zhangsan&quot;,&quot;lisi&quot;,&quot;wangwu&quot;,&quot;xiaoming&quot;,&quot;lilei&quot;,&quot;zhaoliu&quot;,&quot;zhengqi&quot;),3)</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">       val stus = new ListBuffer[]</span><br><span class="line">       创建一个空的可变列表stus</span><br><span class="line">       向stus中追加元素，可以这样：stus +=&quot;zhangsan&quot; 或者这样：stus.append(&quot;zhnagsan&quot;)。注意：没有生成新的集合</span><br><span class="line">     */</span><br><span class="line">    //此代码的意思是进来7个人，然后分组</span><br><span class="line">    //这里是分成三组</span><br><span class="line">     students.mapPartitionsWithIndex((index,partition) =&gt; &#123;</span><br><span class="line">      val stus = new ListBuffer[String]</span><br><span class="line">      while(partition.hasNext)&#123;</span><br><span class="line">        stus +=(&quot;----&quot; + partition.next() + &quot;，哪个组： &quot; + (index+1))//index是从0开始的</span><br><span class="line">      &#125;</span><br><span class="line">      stus.iterator</span><br><span class="line">    &#125;).foreach(println)</span><br><span class="line">    </span><br><span class="line">    sc.stop()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">----wangwu，哪个组： 2</span><br><span class="line">----xiaoming，哪个组： 2</span><br><span class="line">----zhangsan，哪个组： 1</span><br><span class="line">----lisi，哪个组： 1</span><br><span class="line">----lilei，哪个组： 3</span><br><span class="line">----zhaoliu，哪个组： 3</span><br><span class="line">----zhengqi，哪个组： 3</span><br></pre></td></tr></table></figure>
+<p>上面是分成了三个组，那么如果现在想分成2个组，怎么办？<br>
+在students后面加个coalesce(2)就可以了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">students.coalesce(2).mapPartitionsWithIndex((index,partition) =&gt; &#123;</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">----zhangsan，哪个组： 1</span><br><span class="line">----wangwu，哪个组： 2</span><br><span class="line">----lisi，哪个组： 1</span><br><span class="line">----xiaoming，哪个组： 2</span><br><span class="line">----lilei，哪个组： 2</span><br><span class="line">----zhaoliu，哪个组： 2</span><br><span class="line">----zhengqi，哪个组： 2</span><br></pre></td></tr></table></figure>
+<p>上面的partition数量由3变为2，由多变少。那么由少变多呢？</p>
+<p>比如如果现在想分成4个组，怎么办？</p>
+<p>在students后面加个repartition(4)就可以了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">students.repartition(4).mapPartitionsWithIndex((index,partition) =&gt; &#123;</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">----lisi，哪个组： 1</span><br><span class="line">----wangwu，哪个组： 2</span><br><span class="line">----lilei，哪个组： 1</span><br><span class="line">----zhaoliu，哪个组： 2</span><br><span class="line">----xiaoming，哪个组： 3</span><br><span class="line">----zhengqi，哪个组： 3</span><br><span class="line">----zhangsan，哪个组： 4</span><br></pre></td></tr></table></figure>
+<p>小知识点：mapPartitions效率比map高的多，开发应首先mapPartitions，但是当partition数据很大时有OOM的风险，要注意。</p>
+<p>④repartition 和 coalesce在生产中的应用？？（重要）</p>
+<p>①举个经典的例子，现在有一个RDD，有500个partition分区，每个分区有50万条数据，每个分区里面只有一个id=1的记录，现在对这个RDD进行filter过滤，过滤条件为id=1。那么过滤之后每个分区就只有一条记录了，filter是窄依赖，过滤之后还是有500个分区，每个分区只有一条记录，分区数决定了最终文件的个数。那么显然最终由很多很多小文件。（小文件的危害？？？）所以这个时候要借助coalesce来收敛一下了。</p>
+<p>当spark程序中，存在过多的小任务的时候，可以通过 RDD.coalesce方法，收缩合并分区，减少分区的个数，减小任务调度成本，避免Shuffle导致，比RDD.repartition效率提高不少。</p>
+<p>②另外也可以借助coalesce来合并小文件。</p>
+<p>③如果分区数过少，而分区的数据量很大，（生产上每条记录最终出来的结果有多大是知道的，每个业务线最终出来的结果有多大肯定是知道的），可以用reparation把数据打散，比如原来10个partition，现在重新分发数据变成20个partition，来提高并行度。N个分区有数据分布不均匀的状况，重新分发数据，可以减少数据倾斜的程度。</p>
+<h2 id="2bykey系列的操作">2）‘ByKey系列的操作</h2>
+<p>①reduceByKey(func, [numPartitions])</p>
+<p>现在来执行wordcount案例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.textFile(&quot;file:///home/hadoop/data/wordcount.txt&quot;).flatMap(_.split(&quot;\t&quot;)).map((_,1)).reduceByKey(_+_).collect</span><br><span class="line">res19: Array[(String, Int)] = Array((love,1), (hello,2), (world,2), (people,1), (China,1), (person,1))</span><br></pre></td></tr></table></figure>
+<p>看DAG图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154854823.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190701154925677." alt="iamge"></p>
+<p>从上图可以看出，先读取一个文件，进行flatMap，然后进行map，每个key赋上一个1，然后遇到reduceByKey，含有shuffle，拆分成两个stage，每个stage的task数量是2。shuffle的时候map后会写（shuffle write，大小为223.0 B），后面reduce会读（shuffle read，大小为223.0 B）。</p>
+<p>reduceByKey(+)这个算子执行后RDD数据结构是什么？</p>
+<p>org.apache.spark.rdd.RDD[(String, Int)]</p>
+<p>（tuple，是个元组，单词和单词出现的数量）</p>
+<p>②groupByKey([numPartitions])</p>
+<p>看一下groupByKey的数据结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.textFile(&quot;file:///home/hadoop/data/wordcount.txt&quot;).flatMap(_.split(&quot;\t&quot;)).map((_,1)).groupByKey()</span><br><span class="line">res21: org.apache.spark.rdd.RDD[(String, Iterable[Int])] = ShuffledRDD[59] at groupByKey at &lt;console&gt;:25</span><br><span class="line"></span><br><span class="line">scala&gt; sc.textFile(&quot;file:///home/hadoop/data/wordcount.txt&quot;).flatMap(_.split(&quot;\t&quot;)).map((_,1)).groupByKey().foreach(println)</span><br><span class="line">(people,CompactBuffer(1))</span><br><span class="line">(China,CompactBuffer(1))</span><br><span class="line">(person,CompactBuffer(1))</span><br><span class="line">(love,CompactBuffer(1))</span><br><span class="line">(hello,CompactBuffer(1, 1))</span><br><span class="line">(world,CompactBuffer(1, 1))</span><br></pre></td></tr></table></figure>
+<p>RDD[(String, Iterable[Int])] 第一个是String类型，第二个是可迭代的，里面是Int类型</p>
+<p>如果用groupByKey实现wordcount案例呢？？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; sc.textFile(&quot;file:///home/hadoop/data/wordcount.txt&quot;).flatMap(_.split(&quot;\t&quot;)).map((_,1)).groupByKey().map(x =&gt; (x._1,x._2.sum)).collect</span><br><span class="line">res31: Array[(String, Int)] = Array((love,1), (hello,2), (world,2), (people,1), (China,1), (person,1))</span><br></pre></td></tr></table></figure>
+<p>看UI：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701155129426.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/2019070115515574." alt="image"></p>
+<p>从上图可以看出，先读取一个文件，进行flatMap，然后进行map，每个key赋上一个1，然后遇到groupByKey，含有shuffle，拆分成两个stage，每个stage的task数量是2。shuffle的时候map后会写（shuffle write，大小235.0 B），后面reduce会读（shuffle read，大小为235.0 B）。</p>
+<p>③比较reduceByKey和groupByKey</p>
+<p>来看groupByKey和reduceByKey的两张图：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701155239570.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>groupbykey是全局聚合算子，将所有map task中的数据都拉取到shuffle中将key相同的数据进行聚合，它存在很多弊端，例如：将大量的数据进行网络传输，浪费大量的资源，最重要的是如果数据量太大还会出现GC和OutOfMemoryError的错误，如果数据某个key的数据量远大于其他key的数据，在进行全局聚合的时候还会出现数据倾斜的问题。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701155307822.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="iamge"></p>
+<p>reducebykey是在map阶段进行本地聚合以后才会到shuffle中进行全局聚合，相当于是进入shuffle之前已经做了一部分聚合，那么它的网络传输速度会比groupbykey快很多而且占用资源也会减少很多，但是算子本身就如它的名字一样，主要是进行计算的将相同key的数据进行计算，返回计算结果。</p>
+<p>比较reduceByKey和groupByKey得知，两个shuffle的时候map后写（shuffle write），后面reduce读（shuffle read）的大小是不一样的，groupByKey的shuffle write、shuffle read要比reduceByKey的shuffle write、shuffle read的大。</p>
+<p>就是说reduceByKey的shuffle数据要比groupByKey的shuffle数据少。</p>
+<p>原因是groupByKey是对所有数据进行shuffle，这些数据并不进行计算。底层调的是combineByKeyWithClassTag方法，传参 mapSideCombine: Boolean = false，不进行局部聚合。</p>
+<p>而reduceByKey进行了局部的combine，本地的聚合，减少shuffle的数据量，然后再把本地聚合后的结果数据进行shuffle，而且还有计算。底层调的是combineByKeyWithClassTag方法，默认传参 mapSideCombine: Boolean = true，进行局部聚合。<br>
+所以<strong>在生产上工作中优先使用reduceByKey</strong>，要谨慎使用groupbykey。</p>
+<p>小知识点：看一下collect源码：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701155621684." alt="iamge"></p>
+<p>①只要看到一个操作里面有runJob，就可以判断这个算子是一个action类型的，会触发一个job。②collect会返回一个RDD的所有元素。现在你在spark-shell的控制台上对一个RDD执行collect，如果这个RDD数据量非常大，几亿条数据，那么会发生什么？肯定会发生OOM的。这个算子只适用于数据量比较小的，因为它会把所有数据加载到driver内存里去。③concat(results: _*)，是把results转变为一个可变参数</p>
+<p>④aggregateByKey</p>
+<p>实际的项目中在进行聚合之后我们不一定只是要计算，还会找聚合后某个字段的最大值，最小值等等操作，groupbykey聚合后返回的是(K,Iterable[V]),我们可以把iterable[V]这个集合的数据进行二次处理来实现我们实际的项目需求，但是上面已经提到了groupbykey的诸多问题，reducebykey也是只有在单纯的对数据进行计算的时候才能和groupbykey有等价效果。既想像reducebykey那样进行本地聚合，又想像groupbykey那样返回一个集合便于我们操作。</p>
+<p>aggregatebykey和reducebykey一样首先在本地聚合，然后再在全局聚合。它的返回值也是由我们自己设定的。</p>
+<p>aggregateByKey(zeroValue)(seqOp, combOp, [numPartitions])<br>
+当调用（K，V）对的数据集时，返回（K，U）对的数据集，其中使用给定的combine函数和zeroValue聚合每个键的值。允许与输入值类型不同的聚合值类型，同时避免不必要的分配。与groupByKey类似，reduce任务的数量可通过第二个参数进行配置。</p>
+<p>aggregatebykey使用需要提供三个参数:</p>
+<p>zeroValue: U 这个参数就会决定最后的返回类型</p>
+<p>seqOp: (U, V) =&gt; U 将V（数据）放入U中进行本地聚合</p>
+<p>combOp: (U, U) =&gt; U 将不同的U进行全局聚合</p>
+<p>举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这个例子原创来自：Spark学习之路（四）—— RDD常用算子详解：https://www.e-learn.cn/content/qita/2346057</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">val list = List((&quot;hadoop&quot;, 3), (&quot;hadoop&quot;, 2), (&quot;spark&quot;, 4), (&quot;spark&quot;, 3), (&quot;storm&quot;, 6), (&quot;storm&quot;, 8))</span><br><span class="line">sc.parallelize(list,numSlices = 2).aggregateByKey(zeroValue = 0,numPartitions = 3)(</span><br><span class="line">      seqOp = math.max(_, _),</span><br><span class="line">      combOp = _ + _</span><br><span class="line">    ).collect.foreach(println)</span><br><span class="line">//输出结果：</span><br><span class="line">(hadoop,3)</span><br><span class="line">(storm,8)</span><br><span class="line">(spark,7)</span><br></pre></td></tr></table></figure>
+<p>这里使用了numSlices = 2指定aggregateByKey父操作parallelize的分区数量为2，<br>
+这个时候要特别注意，zeroValue = 0，其实是个初始值，给了个初始值<br>
+其执行流程如下：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190701155842414.?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>基于同样的执行流程，如果numSlices = 1，则意味着只有输入一个分区，则其最后一步combOp相当于是无效的，执行结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(hadoop,3)</span><br><span class="line">(storm,8)</span><br><span class="line">(spark,4)</span><br></pre></td></tr></table></figure>
+<p>同样的，如果每个单词对一个分区，即numSlices = 6，此时相当于求和操作，执行结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(hadoop,5)</span><br><span class="line">(storm,14)</span><br><span class="line">(spark,7)</span><br></pre></td></tr></table></figure>
+<p>aggregateByKey(zeroValue = 0,numPartitions = 3)的第二个参数numPartitions决定的是输出RDD的分区数量，想要验证这个问题，可以对上面代码进行改写，使用getNumPartitions方法获取分区数量：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sc.parallelize(list,numSlices = 6).aggregateByKey(zeroValue = 0,numPartitions = 3)(</span><br><span class="line">  seqOp = math.max(_, _),</span><br><span class="line">  combOp = _ + _</span><br><span class="line">).getNumPartitions</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190701160018982." alt="iamge"></p>
+<h2 id="3join系列的操作">3）join系列的操作</h2>
+<p>①cogroup</p>
+<p>cogroup(otherDataset, [numPartitions])<br>
+When called on datasets of type (K, V) and (K, W), returns a dataset of (K, (Iterable, Iterable)) tuples. This operation is also called groupWith.</p>
+<p>在一个 (K, V) 对的 dataset 上调用时，返回一个 (K, (Iterable, Iterable)) tuples 的 dataset。</p>
+<p>举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这个例子原创来自：Spark学习之路（四）—— RDD常用算子详解：https://www.e-learn.cn/content/qita/2346057</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; val list01 = List((1, &quot;a&quot;),(1, &quot;a&quot;), (2, &quot;b&quot;), (3, &quot;e&quot;))</span><br><span class="line">list01: List[(Int, String)] = List((1,a), (1,a), (2,b), (3,e))</span><br><span class="line"></span><br><span class="line">scala&gt; val list02 = List((1, &quot;A&quot;), (2, &quot;B&quot;), (3, &quot;E&quot;))</span><br><span class="line">list02: List[(Int, String)] = List((1,A), (2,B), (3,E))</span><br><span class="line"></span><br><span class="line">scala&gt; val list03 = List((1, &quot;[ab]&quot;), (2, &quot;[bB]&quot;), (3, &quot;eE&quot;),(3, &quot;eE&quot;))</span><br><span class="line">list03: List[(Int, String)] = List((1,[ab]), (2,[bB]), (3,eE), (3,eE))</span><br><span class="line"></span><br><span class="line">scala&gt; sc.parallelize(list01).cogroup(sc.parallelize(list02),sc.parallelize(list03))</span><br><span class="line">res37: org.apache.spark.rdd.RDD[(Int, (Iterable[String], Iterable[String], Iterable[String]))] = MapPartitionsRDD[118] at cogroup at &lt;console&gt;:31</span><br><span class="line"></span><br><span class="line">// 输出： 同一个RDD中的元素先按照key进行分组，然后再对不同RDD中的元素按照key进行分组</span><br><span class="line">scala&gt; sc.parallelize(list01).cogroup(sc.parallelize(list02),sc.parallelize(list03)).foreach(println)</span><br><span class="line">(1,(CompactBuffer(a, a),CompactBuffer(A),CompactBuffer([ab])))</span><br><span class="line">(3,(CompactBuffer(e),CompactBuffer(E),CompactBuffer(eE, eE)))</span><br><span class="line">(2,(CompactBuffer(b),CompactBuffer(B),CompactBuffer([bB])))</span><br></pre></td></tr></table></figure>
+<p>②join</p>
+<p>join(otherDataset, [numPartitions])<br>
+When called on datasets of type (K, V) and (K, W), returns a dataset of (K, (V, W)) pairs with all pairs of elements for each key. Outer joins are supported through leftOuterJoin, rightOuterJoin, and fullOuterJoin.</p>
+<p>在一个 (K, V) 和 (K, W) 类型的 dataset 上调用时，返回一个 (K, (V, W)) pairs 的 dataset，等价于内连接操作。如果想要执行外连接，可以使用leftOuterJoin, rightOuterJoin 和 fullOuterJoin 等算子。</p>
+<p>注意如果两个RDD分区一对一join是不会产生shuffle的。</p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; a.collect</span><br><span class="line">res10: Array[(String, String)] = Array((a,a1), (b,b1), (c,c1), (d,d1), (f,f1), (f,f2))</span><br><span class="line"></span><br><span class="line">scala&gt; b.collect</span><br><span class="line">res11: Array[(String, String)] = Array((a,a2), (c,c2), (c,c3), (e,e1))</span><br><span class="line"></span><br><span class="line">//inner join</span><br><span class="line">scala&gt; a.join(b).collect</span><br><span class="line">res14: Array[(String, (String, String))] = Array((a,(a1,a2)), (c,(c1,c2)), (c,(c1,c3)))</span><br><span class="line"></span><br><span class="line">//left join</span><br><span class="line">scala&gt; a.leftOuterJoin(b).collect</span><br><span class="line">res15: Array[(String, (String, Option[String]))] = Array((d,(d1,None)), (b,(b1,None)), (f,(f1,None)), (f,(f2,None)), (a,(a1,Some(a2))), (c,(c1,Some(c2))), (c,(c1,Some(c3))))</span><br><span class="line"></span><br><span class="line">//right join</span><br><span class="line">scala&gt; a.rightOuterJoin(b).collect</span><br><span class="line">res16: Array[(String, (Option[String], String))] = Array((e,(None,e1)), (a,(Some(a1),a2)), (c,(Some(c1),c2)), (c,(Some(c1),c3)))</span><br><span class="line"></span><br><span class="line">//full join</span><br><span class="line">scala&gt; a.fullOuterJoin(b).collect</span><br><span class="line">res17: Array[(String, (Option[String], Option[String]))] = Array((d,(Some(d1),None)), (b,(Some(b1),None)), (f,(Some(f1),None)), (f,(Some(f2),None)), (e,(None,Some(e1))), (a,(Some(a1),Some(a2))), (c,(Some(c1),Some(c2))), (c,(Some(c1),Some(c3))))</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">参考博客：</span><br><span class="line">https://www.jianshu.com/p/54b3a4e786d9</span><br><span class="line">https://blog.csdn.net/qq_24674131/article/details/85114760</span><br><span class="line">https://www.e-learn.cn/content/qita/2346057</span><br><span class="line">https://blog.csdn.net/jiaotongqu6470/article/details/78457966</span><br></pre></td></tr></table></figure>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/79Spark Shuffle operations-官网翻译/" data-toggle="tooltip" data-placement="top" title="[Spark Shuffle operations-官网翻译]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/77Spark-Core之map与mapPartitions/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之map与mapPartitions]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#什么是shuffle"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x4EC0;&#x4E48;&#x662F;Shuffle&#xFF1F;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#rdd中-partition-个数怎么定小插曲"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">RDD&#x4E2D; partition &#x4E2A;&#x6570;&#x600E;&#x4E48;&#x5B9A;&#xFF1F;&#xFF08;&#x5C0F;&#x63D2;&#x66F2;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#有哪些算子会产生shuffle"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x6709;&#x54EA;&#x4E9B;&#x7B97;&#x5B50;&#x4F1A;&#x4EA7;&#x751F;shuffle&#xFF1F;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#1repartition-系列的操作"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">1&#xFF09;repartition &#x7CFB;&#x5217;&#x7684;&#x64CD;&#x4F5C;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#2bykey系列的操作"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">2&#xFF09;&#x2018;ByKey&#x7CFB;&#x5217;&#x7684;&#x64CD;&#x4F5C;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#3join系列的操作"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">3&#xFF09;join&#x7CFB;&#x5217;&#x7684;&#x64CD;&#x4F5C;</span></a></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

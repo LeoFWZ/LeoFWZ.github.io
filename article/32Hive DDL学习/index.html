@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Hive DDL学习]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/32Hive DDL学习/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                            
+                        </div>
+                        <h1>[Hive DDL学习]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-02-05
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>hive 小知识点：</p>
+<p>①数据：存放在HDFS 之上</p>
+<p>元数据：存放在mysql里（相关配置在hive-site.xml里面）</p>
+<p>②启动hive之前需要的前提：hdfs和yarn先启起来。（yarn不起来可能还不会影响，但是hdfs一定要启起来，hive跑的时候，yarn一定要启起来。）</p>
+<p>③官方提供的配置文件template为结尾，这个都是模板，需要的时候，cp一份，然后把  .template后缀去掉，再修改。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304223821324.png" alt="image"></p>
+<p>hive的日志配置在：hive-log4j.properties.template  在这里面配置。这个文件里有下面两行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hive.log.dir=$&#123;java.io.tmpdir&#125;/$&#123;user.name&#125;</span><br><span class="line">hive.log.file=hive.log</span><br></pre></td></tr></table></figure>
+<p>第一个代表日志存放的路径：在/tmp/（根目录下tmp文件夹下面）hive所属用户的名称（这里是hadoop用户下，所以是hadoop）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304225710317.png" alt="image"></p>
+<p>④一个非常经典的异常信息：</p>
+<p>An exception was thrown while adding/validating class(es) : Specified key was too long; max key length is 767 bytes</p>
+<p>⑤hive  SQL学习路径：<a href="http://hive.apache.org/" target="_blank" rel="noopener">http://hive.apache.org/</a></p>
+<p>这上面是最权威的，百度查的什么的不一定是对的，所以有问题在这上面去找。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304230210169.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190304230304685.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190304230813316.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>⑥在Hive里面：DB/TABLE/PARTITION（数据库、表、分区）  都是目录或者文件夹</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304231209435.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>在hive里面的组织方式要么是文件夹要么是文件。</p>
+<p>⑦DDL学习：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Create Database</span><br><span class="line"></span><br><span class="line">CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span><br><span class="line"></span><br><span class="line">  [COMMENT database_comment]               （对数据库做一个描述）</span><br><span class="line"></span><br><span class="line">  [LOCATION hdfs_path]                   （指定一个存放数据库的路径（因为数据库组织方式是文件夹））</span><br><span class="line"></span><br><span class="line">  [WITH DBPROPERTIES (property_name=property_value, ...)];   （加上DB的一些属性）</span><br><span class="line"></span><br><span class="line">必选 （二选一）【可选】必选</span><br><span class="line"></span><br><span class="line">     【可选】</span><br><span class="line"></span><br><span class="line">     【可选】</span><br><span class="line"></span><br><span class="line">     【可选】</span><br><span class="line"></span><br><span class="line">比如：CREATE DATABASE hive;</span><br><span class="line"></span><br><span class="line">备注：[LOCATION hdfs_path] 如果不指定路径，那么就会使用默认的路径。</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190304232601156.png" alt="image"></p>
+<p>（默认会有一个default数据库）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304232820846.png" alt="image"></p>
+<p>（创建一个test数据库）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304232840624.png" alt="image"></p>
+<p>（show一下，test数据库已经存在，但是test数据库存在哪里？）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">desc database test;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190304233125738.png" alt="image"></p>
+<p>用 desc database 数据库名称      就可以查看相关信息了。</p>
+<p>这里的信息是：hdfs://10-9-140-90:9000/user/hive/warehouse/test.db</p>
+<p>①hdfs://10-9-140-90:9000  ：这个是 HDFS目录，可以在core-site.xml文件里查到（有些hadoop是8020端口）：</p>
+<p>/home/hadoop/app/hadoop-2.6.0-cdh5.7.0/etc/hadoop/core-site.xml</p>
+<p><img src="https://img-blog.csdnimg.cn/20190304233551239.png" alt="image"></p>
+<p>②/user/hive/warehouse/：默认的hive存储在HDFS上的目录</p>
+<p>从hive官网的<a href="https://cwiki.apache.org/confluence/display/Hive" target="_blank" rel="noopener">Hive wiki</a>.里面进入，然后找到下图的<a href="https://cwiki.apache.org/confluence/display/Hive/Configuration+Properties" target="_blank" rel="noopener">Hive Configuration Properties</a>：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305213810764.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>（hive的所有的配置信息在这里面都可以找到）</p>
+<p>打开后搜一下找到下面这个:</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305214003958.png" alt="image"></p>
+<p>从这个可以看到hive数据仓库的元数据信息的默认路径是：/user/hive/warehouse</p>
+<p>下面讲一下在hive中，修改hive参数的两种形式：</p>
+<p>1） set hive.metastore.warehouse.dir;<br>
+set key 取值<br>
+set key=value   设置值<br>
+这种设置是局部的，支持当前窗口有效，是单session的。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305215339762.png" alt="image"></p>
+<p>2）配置hive-site.xml</p>
+<p>在这里面配置出你要修改的参数，这里的修改是全局的。</p>
+<p>上面两个各有优缺点，你设置了第二种方式，可能会影响到他人的使用。用第一种也最好在你用完之后，把参数再设置回去。</p>
+<p>3)hdfs://10-9-140-90:9000/user/hive/warehouse/test.db中test.db是数据的名称，固定的格式  数据库.db 后面都要加个db。</p>
+<p>创建database时指定路径，创建在哪里。比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CREATE DATABASE test2</span><br><span class="line">location &apos;/d6_hive/directory&apos;;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190305220908954.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>hive 元数据：</p>
+<p>hive元数据是存放在mysql里面的。在hive-site.xml里面配置。</p>
+<p>登上mysql数据库查看：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305223154648.png" alt="image"></p>
+<p>select * from dbs \G;  查看一下dbs这张表：（ \G表示格式化一下）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305223311273.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>这里面就是元数据信息。</p>
+<p>row format/ file format：行分隔符和文件分隔符<br>
+两大分隔符：行与行 字段与字段之间的分隔符<br>
+列分隔符（默认是）：\001       行与行之间的分隔符默认是 换行符<br>
+file格式：行式  列式</p>
+<p>数据类型：常用的基本用这些就够了</p>
+<p>数值类型： int bigint float double DECIMAL<br>
+字符串：string  （包括date类型也用string来表示，这样会方便一些）</p>
+<p>小知识点补充;</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305231406835.png" alt="image"></p>
+<p>你用数据库的时候，不知道用的是哪个数据库，看不到相关信息，可以这样设置：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305231552228.png" alt="image"></p>
+<p>把hive.cli.print.current.db这个参数修改成true就可以了。</p>
+<p>这个是在当前窗口生效，如果想在全局生效，需要修改hive-site.xml文件：</p>
+<p>加入这几行：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305231855324.png" alt="image"></p>
+<p>（这里只是被注释掉了而已）</p>
+<p>hive表的创建（一定要掌握的）：</p>
+<p>下面创建一张这个txt存放的这张表：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305230400143.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>（可以参照官网，不过掌握下面这个常用的基本差不多了）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">create table emp(</span><br><span class="line">empno int,</span><br><span class="line">ename string,</span><br><span class="line">job string,</span><br><span class="line">mgr int,</span><br><span class="line">hiredate string,</span><br><span class="line">sal double,</span><br><span class="line">comm double,</span><br><span class="line">deptno int</span><br><span class="line">) ROW FORMAT DELIMITED FIELDS TERMINATED BY &apos;\t&apos;;</span><br></pre></td></tr></table></figure>
+<p>最后一句是列与列之间的分隔符是’\t’，行与行的分隔符默认是回车，这里不用写了。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305232231536.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>如果出现下图这种常见的错误：（这个可能跟字符集有关，比如utf-8 lating gbk32什么的）</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305232449887.png" alt="image"></p>
+<p>需要保证hive的字符集与mysql的元数据数据库的字符集保持一致。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">alter database ruoze_d6 character set latin1;</span><br><span class="line">use ruoze_d6;</span><br><span class="line">alter table PARTITIONS convert to character set latin1;</span><br><span class="line">alter table PARTITION_KEYS convert to character set latin1;</span><br><span class="line"></span><br><span class="line">）</span><br></pre></td></tr></table></figure>
+<p>DML语句：</p>
+<p>LOAD加载数据：官网有详细解释</p>
+<p><img src="https://img-blog.csdnimg.cn/20190305233158317.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">LOAD DATA [LOCAL] INPATH &apos;filepath&apos; [OVERWRITE] INTO TABLE tablename ;</span><br><span class="line">LOCAL: 从本地(linux)加载数据  ，如果没有写，就是从hdfs上加载。</span><br><span class="line"></span><br><span class="line">LOAD DATA LOCAL INPATH &apos;/home/hadoop/data/emp.txt&apos; OVERWRITE INTO TABLE emp ;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190305233801852.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190305233917738.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>如何设置列名：</p>
+<p>在hive-site.xml里面设置下面两个参数即可。看需要去设置。也可以不设置，直接在当前session 进行set。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307223633496.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190307223849588.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>创建表结构，不含数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE emp2  LIKE emp;</span><br></pre></td></tr></table></figure>
+<p>创建emp一样的表，并copy数据到新表里面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create table emp3 as select * from emp;</span><br></pre></td></tr></table></figure>
+<p>重命名表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE emp3 RENAME TO new_emp3;</span><br></pre></td></tr></table></figure>
+<p>查看表的字段信息：     desc emp;</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307225052359.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>查看详细信息：      desc extended emp;</p>
+<p><img src="https://img-blog.csdnimg.cn/2019030722525037.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>推荐查看方式：  desc formatted emp;</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307225655140.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>==内部表/外部表：（面试经常遇到）==</p>
+<p>从上图可以看出，有个Table Type：MANAGED_TABLE</p>
+<p>MANAGED_TABLE：内部表        （hive里面默认是内部表）</p>
+<p>比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create table emp_managed as select * from emp; （这种创建的都是默认的内部表）</span><br></pre></td></tr></table></figure>
+<p>去mysql里面查一下tbls这张元数据表，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from tbls \G;</span><br></pre></td></tr></table></figure>
+<p>可以看到有条记录：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307231205202.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>再看hdfs上，它存放的数据：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307231500224.png" alt="image"></p>
+<p>然后删除这张表：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307231540699.png" alt="image"></p>
+<p>然后再去mysql查一下，select * from tbls \G;   ，emp_managed这张表就没有元数据信息了。</p>
+<p>再去hdfs上看一下，发现也没有emp_managed数据了：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307231852468.png" alt="image"></p>
+<p>外部表：</p>
+<p>现在创建一张外部表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">create EXTERNAL table emp_external(</span><br><span class="line">empno int,</span><br><span class="line">ename string,</span><br><span class="line">job string,</span><br><span class="line">mgr int,</span><br><span class="line">hiredate string,</span><br><span class="line">sal double,</span><br><span class="line">comm double,</span><br><span class="line">deptno int</span><br><span class="line">) ROW FORMAT DELIMITED FIELDS TERMINATED BY &apos;\t&apos;</span><br><span class="line">location &apos;/d6_hive/external&apos;;</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190307232151159.png" alt="image"></p>
+<p><img src="https://img-blog.csdnimg.cn/20190307232959195.png" alt="image"></p>
+<p>mysql里面tbls表中是可以查到emp_external这个表的。</p>
+<p>但是刚创建的表是没有数据的，现在用以下命令把本地的数据上传上去。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307232559277.png" alt="image"></p>
+<p>然后再用hive查一下就有数据了：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307232732931.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xpd2VpaG9wZQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<p>然后把表给删掉：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307232926536.png" alt="image"></p>
+<p>然后再去mysql里面查： select * from tbls \G;  就没有emp_external这张表了。</p>
+<p>然后再去hdfs上查看，发现数据没有删除：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190307233158121.png" alt="image"></p>
+<p>所以：</p>
+<p>删除内部表：数据+元数据 删除</p>
+<p>删除外部表：数据不删，元数据删</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/33Hive DML学习/" data-toggle="tooltip" data-placement="top" title="[Hive DDL学习]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/31Hive快速入门以及Hive部署安装/" data-toggle="tooltip" data-placement="top" title="[Hive快速入门以及Hive部署安装]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="nav">none</ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

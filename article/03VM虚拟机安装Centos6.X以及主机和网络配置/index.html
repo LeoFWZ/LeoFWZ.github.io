@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [VM虚拟机安装Centos6.X以及主机和网络配置]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/03VM虚拟机安装Centos6.X以及主机和网络配置/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                            
+                        </div>
+                        <h1>[VM虚拟机安装Centos6.X以及主机和网络配置]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2017-11-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="基础环境准备">基础环境准备：</h1>
+<table>
+<thead>
+<tr>
+<th>组件名称</th>
+<th>组件版本</th>
+<th>链接地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VMware</td>
+<td>Vm10</td>
+<td>链接：<a href="https://pan.baidu.com/s/1OkHThto0ZR8wx_2lqWYvXg" target="_blank" rel="noopener">https://pan.baidu.com/s/1OkHThto0ZR8wx_2lqWYvXg</a> 提取码：usfv</td>
+</tr>
+<tr>
+<td>CentOs 64位</td>
+<td>6.6</td>
+<td>链接：<a href="https://pan.baidu.com/s/1txfTOjfLAHWlv1FfiqtaLg" target="_blank" rel="noopener">https://pan.baidu.com/s/1txfTOjfLAHWlv1FfiqtaLg</a>  提取码：1dt3</td>
+</tr>
+<tr>
+<td>Xshell</td>
+<td>6</td>
+<td>链接：<a href="https://pan.baidu.com/s/1pGQjnB7gxHzFN-UzqfNXcg" target="_blank" rel="noopener">https://pan.baidu.com/s/1pGQjnB7gxHzFN-UzqfNXcg</a> 提取码：crvc</td>
+</tr>
+</tbody>
+</table>
+<h1 id="创建新的虚拟机命名centos66">创建新的虚拟机，命名CentOS6.6。</h1>
+<p>Vmware安装比较简单，直接单击下一步即可，在这里省略了。图1是安装成功软件主界面。</p>
+<blockquote>
+<p><a href="https://download.virtualbox.org/virtualbox/6.1.4/VirtualBox-6.1.4-136177-Win.exe%E8%AF%A5%E9%93%BE%E6%8E%A5%E7%9A%84%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85%E5%8C%85%E4%B8%8D%E9%9C%80%E7%A0%B4%E8%A7%A3" target="_blank" rel="noopener">https://download.virtualbox.org/virtualbox/6.1.4/VirtualBox-6.1.4-136177-Win.exe该链接的虚拟机安装包不需破解</a></p>
+</blockquote>
+<p><img src="https://img-blog.csdnimg.cn/20190607110133153.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="在vmware-workstation-10-主页中选择create-a-new-virtual-machine创建新的虚拟机">在VMware Workstation 10 主页中选择“Create a New Virtual Machine”，创建新的虚拟机。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607110410546.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择customadvanced自定义高级配置">选择“Custom（advanced）“，自定义（高级）配置。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607110756762.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默认下一步">默认，下一步</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607110911798.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择i-will-install-the-operating-system-laterquot稍后安装操作系统">选择“I will install the operating system later.&quot;，稍后安装操作系统。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607111036934.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择centos下一步">选择“CentOS”，下一步</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607111157429.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置自定义虚拟机名称这里设置为centos设置虚拟机存放位置这里设置为dfwzhadoop-可根据个人喜好设置">设置自定义虚拟机名称，这里设置为“CentOS”，设置虚拟机存放位置，这里设置为“D:\FWZ\hadoop”。可根据个人喜好设置；</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607111536635.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默认下一步">默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607111648276.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置虚拟机内存可根据个人计算机内存设置这里设置4096mb">设置虚拟机内存，可根据个人计算机内存设置，这里设置4096MB。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607111909513.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置网络连接方式设置使用nat方式">设置网络连接方式，设置使用NAT方式。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112023153.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默认下一步">默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112158767.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默认下一步">默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112313988.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择create-a-new-virtual-diskquot创建新虚拟磁盘">选择“Create a new virtual disk&quot;，创建新虚拟磁盘。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112345718.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="指定磁盘容量这里为40gb勾选split-virtual-disk-into-multiple-files将虚拟磁盘拆分成多个文件">指定磁盘容量，这里为40GB；勾选“Split virtual disk into multiple files”，将虚拟磁盘拆分成多个文件。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112516101.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默认下一步">默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112555170.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="此处列出虚拟机的具体信息点击finish完成">此处列出虚拟机的具体信息，点击“Finish”，完成。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607112644497.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="设置虚拟机镜像文件目录">设置虚拟机镜像文件目录。</h1>
+<h2 id="打开新建虚拟机centos的设置窗口">打开新建虚拟机CentOS的设置窗口。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607121745770.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置虚拟机中操作系统镜像文件iso的位置">设置虚拟机中操作系统镜像文件.iso的位置。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607121917825.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="启动虚拟机安装centos65">启动虚拟机安装CentOS6.5</h1>
+<h2 id="启动虚拟机">启动虚拟机</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607122046397.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择install-or-upgrade-an-existing-systemquot安装或升级已存在的系统">选择“Install or upgrade an existing system&quot;，安装或升级已存在的系统。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607143658870.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="是否对cd媒体进行测试选择skip跳过">是否对CD媒体进行测试，选择“Skip”跳过。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607143738274.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="下一步">下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607143819413.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择语言这里选择englishenglish英语">选择语言，这里选择“English（English）”，英语。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607143851529.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择键盘默认下一步">选择键盘，默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607143926591.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择安装设备选择basic-storage-devices基本存储设备">选择安装设备，选择“Basic Storage Devices”，基本存储设备。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144011865.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择yesdiscard-any-data是忽略所有数据下一步">选择“Yes,Discard any data”，“是，忽略所有数据”，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144045669.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置主机名这里默认下一步">设置主机名，这里默认，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144115829.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择时区选择etcgmt8北京时区">选择时区，选择“Etc/GMT+8”，北京时区。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144147123.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="设置管理员root密码">设置管理员root密码。</h2>
+<p><img src="https://img-blog.csdnimg.cn/2019060714421398.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="这里提示密码过于简单选择use-anyway忽略">这里提示密码过于简单，选择“Use Anyway”，忽略。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144239693.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择安装类型选择create-custom-layout创建自定义布局">选择安装类型，选择“Create Custom Layout”，创建自定义布局。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144312684.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="这里显示目前空闲控件为20473mb点击create创建分区">这里显示目前空闲控件为20473MB，点击”Create“创建分区。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144350718.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择standard-partition标准分区">选择“Standard Partition”，标准分区。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144435164.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="创建第一个挂载点boot大小128mb文件系统类型ext3">创建第一个挂载点：/boot，大小：128MB，文件系统类型：ext3。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144546608.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="继续创建分区点击create">继续创建分区，点击“Create”。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144611240.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="同样选择standard-partition标准分区">同样选择“Standard Partition”，标准分区。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144645234.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="创建swap分区大小2000mb用于内存不够用时充当内存使用的">创建swap分区，大小：2000MB（用于内存不够用时充当内存使用的）</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144714274.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="继续创建分区点击create">继续创建/分区，点击“Create”。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144744662.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="同样选择standard-partition标准分区">同样选择“Standard Partition”，标准分区。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144806843.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="创建根目录-大小选中全部可用空间-文件类型ext3">创建根目录“/”、大小：选中全部可用空间、文件类型：ext3。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144829782.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="分区后空间分布情况下图所示下一步">分区后空间分布情况下图所示，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144903267.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择quotformatquot格式化">选择&quot;Format&quot;，格式化。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144929522.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择write-changes-to-disk将更改写入到磁盘中">选择“Write changes to disk”,将更改写入到磁盘中。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607144954171.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="下一步">下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145038862.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="默然为minimal这里选择desktop桌面选中customize-now现在自定义">默然为“Minimal”，这里选择“Desktop”桌面，选中“Customize Now”，现在自定义。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145118168.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="选择需要的安装程序下一步">选择需要的安装程序，下一步。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145215404.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="正在安装">正在安装。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145255646.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="点击reboot重启系统">点击“Reboot”，重启系统。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145342774.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="正在重启centos系统">正在重启CentOS系统。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145421330.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="启动后输入用户名和密码登陆系统">启动后输入用户名和密码登陆系统。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145500887.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="虚拟机网络配置">虚拟机网络配置</h1>
+<h2 id="宿主机的虚拟网关vmnet8的ip设置为自动获取-具体步骤为右击点属性然后选择ipv4那行点击属性quot更改成自动获取">宿主机的虚拟网关VMnet8的IP设置为自动获取。具体步骤为：右击点“属性”，然后选择IPV4那行，点击“属性&quot;，更改成自动获取。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145606934.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="同理修改本地连接也为自动获取">同理，修改“本地连接”也为自动获取。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145657728.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="虚拟机-设置网络适配器选为nat">“虚拟机”-“设置”，网络适配器选为NAT。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607145833458.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="编辑-虚拟网络编辑器选中vmnet8点选nat与虚拟机共享主机ip地址把dhcp勾上那两个框都勾上">“编辑”-“虚拟网络编辑器”选中VMnet8，点选NAT（与虚拟机共享主机IP地址），把DHCP勾上（那两个框都勾上）。</h2>
+<p>点击“应用”。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190607150007445.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"><br>
+<img src="https://img-blog.csdnimg.cn/20190607150149494.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="开启宿主机windows7中的vmware-dhcp-service-和vmware-nat-service服务">开启宿主机（windows7）中的VMware DHCP Service 和VMware NAT Service服务。</h2>
+<p>net start &quot;VMware DHCP Service&quot;<br>
+net start “VMware NAT Service”</p>
+<p>写个脚本省事儿：</p>
+<p>新建文件：开启VMware服务.bat</p>
+<p>编辑内容保存：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net start &quot;VMware DHCP Service&quot;  </span><br><span class="line">net start &quot;VMware NAT Service&quot;  </span><br><span class="line">pause</span><br></pre></td></tr></table></figure>
+<p>当双击”开启VMware服务.bat“时，可方便的打开VMware服务器。</p>
+<p>开启效果：</p>
+<p><img src="https://img-blog.csdnimg.cn/20190607150446366.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h2 id="测试在centos中ping">测试，在CentOS中ping。</h2>
+<p><img src="https://img-blog.csdnimg.cn/20190607150519367.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="image"></p>
+<h1 id="修改主机名称">修改主机名称</h1>
+<h2 id="编辑-etcsysconfignetwork">编辑 /etc/sysconfig/network</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi  /etc/sysconfig/network  //进行对network主机名称进行修改编辑</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190607150903609.png" alt="image"></p>
+<h2 id="hostname直接命名">hostname直接命名：</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostname hadoop001</span><br></pre></td></tr></table></figure>
+<h2 id="编辑hosts文件设置ip与主机名相对应">编辑hosts文件，设置IP与主机名相对应</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/hosts</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdnimg.cn/20190607151103773.png" alt="image"></p>
+<h1 id="修改linux的启动方式">修改Linux的启动方式</h1>
+<p>当前是带图形化桌面的方式启动Linux，会占用不少的内存。</p>
+<p>编辑 vi /etc/inittab 将id:5:initdefault:中的5改为3。</p>
+<p>然后重启 reboot 电脑。</p>
+<p>若在Shell 控制台想启动图形桌面，只要执行如下命令即可startx。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/04Linux命令基础/" data-toggle="tooltip" data-placement="top" title="[Linux命令基础]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/02CentOS6.6配置静态IP和可访问外网/" data-toggle="tooltip" data-placement="top" title="[CentOS6.6配置静态IP和可访问外网]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#基础环境准备"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x57FA;&#x7840;&#x73AF;&#x5883;&#x51C6;&#x5907;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#创建新的虚拟机命名centos66"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;&#x65B0;&#x7684;&#x865A;&#x62DF;&#x673A;&#xFF0C;&#x547D;&#x540D;CentOS6.6&#x3002;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#在vmware-workstation-10-主页中选择create-a-new-virtual-machine创建新的虚拟机"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">&#x5728;VMware Workstation 10 &#x4E3B;&#x9875;&#x4E2D;&#x9009;&#x62E9;&#x201C;Create a New Virtual Machine&#x201D;&#xFF0C;&#x521B;&#x5EFA;&#x65B0;&#x7684;&#x865A;&#x62DF;&#x673A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择customadvanced自定义高级配置"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Custom&#xFF08;advanced&#xFF09;&#x201C;&#xFF0C;&#x81EA;&#x5B9A;&#x4E49;&#xFF08;&#x9AD8;&#x7EA7;&#xFF09;&#x914D;&#x7F6E;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默认下一步"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择i-will-install-the-operating-system-laterquot稍后安装操作系统"><span class="toc-nav-number">2.4.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;I will install the operating system later.&quot;&#xFF0C;&#x7A0D;&#x540E;&#x5B89;&#x88C5;&#x64CD;&#x4F5C;&#x7CFB;&#x7EDF;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择centos下一步"><span class="toc-nav-number">2.5.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;CentOS&#x201D;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置自定义虚拟机名称这里设置为centos设置虚拟机存放位置这里设置为dfwzhadoop-可根据个人喜好设置"><span class="toc-nav-number">2.6.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x81EA;&#x5B9A;&#x4E49;&#x865A;&#x62DF;&#x673A;&#x540D;&#x79F0;&#xFF0C;&#x8FD9;&#x91CC;&#x8BBE;&#x7F6E;&#x4E3A;&#x201C;CentOS&#x201D;&#xFF0C;&#x8BBE;&#x7F6E;&#x865A;&#x62DF;&#x673A;&#x5B58;&#x653E;&#x4F4D;&#x7F6E;&#xFF0C;&#x8FD9;&#x91CC;&#x8BBE;&#x7F6E;&#x4E3A;&#x201C;D:\FWZ\hadoop&#x201D;&#x3002;&#x53EF;&#x6839;&#x636E;&#x4E2A;&#x4EBA;&#x559C;&#x597D;&#x8BBE;&#x7F6E;&#xFF1B;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默认下一步"><span class="toc-nav-number">2.7.</span> <span class="toc-nav-text">&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置虚拟机内存可根据个人计算机内存设置这里设置4096mb"><span class="toc-nav-number">2.8.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x865A;&#x62DF;&#x673A;&#x5185;&#x5B58;&#xFF0C;&#x53EF;&#x6839;&#x636E;&#x4E2A;&#x4EBA;&#x8BA1;&#x7B97;&#x673A;&#x5185;&#x5B58;&#x8BBE;&#x7F6E;&#xFF0C;&#x8FD9;&#x91CC;&#x8BBE;&#x7F6E;4096MB&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置网络连接方式设置使用nat方式"><span class="toc-nav-number">2.9.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x7F51;&#x7EDC;&#x8FDE;&#x63A5;&#x65B9;&#x5F0F;&#xFF0C;&#x8BBE;&#x7F6E;&#x4F7F;&#x7528;NAT&#x65B9;&#x5F0F;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默认下一步"><span class="toc-nav-number">2.10.</span> <span class="toc-nav-text">&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默认下一步"><span class="toc-nav-number">2.11.</span> <span class="toc-nav-text">&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择create-a-new-virtual-diskquot创建新虚拟磁盘"><span class="toc-nav-number">2.12.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Create a new virtual disk&quot;&#xFF0C;&#x521B;&#x5EFA;&#x65B0;&#x865A;&#x62DF;&#x78C1;&#x76D8;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#指定磁盘容量这里为40gb勾选split-virtual-disk-into-multiple-files将虚拟磁盘拆分成多个文件"><span class="toc-nav-number">2.13.</span> <span class="toc-nav-text">&#x6307;&#x5B9A;&#x78C1;&#x76D8;&#x5BB9;&#x91CF;&#xFF0C;&#x8FD9;&#x91CC;&#x4E3A;40GB&#xFF1B;&#x52FE;&#x9009;&#x201C;Split virtual disk into multiple files&#x201D;&#xFF0C;&#x5C06;&#x865A;&#x62DF;&#x78C1;&#x76D8;&#x62C6;&#x5206;&#x6210;&#x591A;&#x4E2A;&#x6587;&#x4EF6;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默认下一步"><span class="toc-nav-number">2.14.</span> <span class="toc-nav-text">&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#此处列出虚拟机的具体信息点击finish完成"><span class="toc-nav-number">2.15.</span> <span class="toc-nav-text">&#x6B64;&#x5904;&#x5217;&#x51FA;&#x865A;&#x62DF;&#x673A;&#x7684;&#x5177;&#x4F53;&#x4FE1;&#x606F;&#xFF0C;&#x70B9;&#x51FB;&#x201C;Finish&#x201D;&#xFF0C;&#x5B8C;&#x6210;&#x3002;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#设置虚拟机镜像文件目录"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x865A;&#x62DF;&#x673A;&#x955C;&#x50CF;&#x6587;&#x4EF6;&#x76EE;&#x5F55;&#x3002;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#打开新建虚拟机centos的设置窗口"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">&#x6253;&#x5F00;&#x65B0;&#x5EFA;&#x865A;&#x62DF;&#x673A;CentOS&#x7684;&#x8BBE;&#x7F6E;&#x7A97;&#x53E3;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置虚拟机中操作系统镜像文件iso的位置"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x865A;&#x62DF;&#x673A;&#x4E2D;&#x64CD;&#x4F5C;&#x7CFB;&#x7EDF;&#x955C;&#x50CF;&#x6587;&#x4EF6;.iso&#x7684;&#x4F4D;&#x7F6E;&#x3002;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#启动虚拟机安装centos65"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">&#x542F;&#x52A8;&#x865A;&#x62DF;&#x673A;&#x5B89;&#x88C5;CentOS6.5</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#启动虚拟机"><span class="toc-nav-number">4.1.</span> <span class="toc-nav-text">&#x542F;&#x52A8;&#x865A;&#x62DF;&#x673A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择install-or-upgrade-an-existing-systemquot安装或升级已存在的系统"><span class="toc-nav-number">4.2.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Install or upgrade an existing system&quot;&#xFF0C;&#x5B89;&#x88C5;&#x6216;&#x5347;&#x7EA7;&#x5DF2;&#x5B58;&#x5728;&#x7684;&#x7CFB;&#x7EDF;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#是否对cd媒体进行测试选择skip跳过"><span class="toc-nav-number">4.3.</span> <span class="toc-nav-text">&#x662F;&#x5426;&#x5BF9;CD&#x5A92;&#x4F53;&#x8FDB;&#x884C;&#x6D4B;&#x8BD5;&#xFF0C;&#x9009;&#x62E9;&#x201C;Skip&#x201D;&#x8DF3;&#x8FC7;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#下一步"><span class="toc-nav-number">4.4.</span> <span class="toc-nav-text">&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择语言这里选择englishenglish英语"><span class="toc-nav-number">4.5.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x8BED;&#x8A00;&#xFF0C;&#x8FD9;&#x91CC;&#x9009;&#x62E9;&#x201C;English&#xFF08;English&#xFF09;&#x201D;&#xFF0C;&#x82F1;&#x8BED;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择键盘默认下一步"><span class="toc-nav-number">4.6.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x952E;&#x76D8;&#xFF0C;&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择安装设备选择basic-storage-devices基本存储设备"><span class="toc-nav-number">4.7.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x5B89;&#x88C5;&#x8BBE;&#x5907;&#xFF0C;&#x9009;&#x62E9;&#x201C;Basic Storage Devices&#x201D;&#xFF0C;&#x57FA;&#x672C;&#x5B58;&#x50A8;&#x8BBE;&#x5907;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择yesdiscard-any-data是忽略所有数据下一步"><span class="toc-nav-number">4.8.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Yes,Discard any data&#x201D;&#xFF0C;&#x201C;&#x662F;&#xFF0C;&#x5FFD;&#x7565;&#x6240;&#x6709;&#x6570;&#x636E;&#x201D;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置主机名这里默认下一步"><span class="toc-nav-number">4.9.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x4E3B;&#x673A;&#x540D;&#xFF0C;&#x8FD9;&#x91CC;&#x9ED8;&#x8BA4;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择时区选择etcgmt8北京时区"><span class="toc-nav-number">4.10.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x65F6;&#x533A;&#xFF0C;&#x9009;&#x62E9;&#x201C;Etc/GMT+8&#x201D;&#xFF0C;&#x5317;&#x4EAC;&#x65F6;&#x533A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#设置管理员root密码"><span class="toc-nav-number">4.11.</span> <span class="toc-nav-text">&#x8BBE;&#x7F6E;&#x7BA1;&#x7406;&#x5458;root&#x5BC6;&#x7801;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#这里提示密码过于简单选择use-anyway忽略"><span class="toc-nav-number">4.12.</span> <span class="toc-nav-text">&#x8FD9;&#x91CC;&#x63D0;&#x793A;&#x5BC6;&#x7801;&#x8FC7;&#x4E8E;&#x7B80;&#x5355;&#xFF0C;&#x9009;&#x62E9;&#x201C;Use Anyway&#x201D;&#xFF0C;&#x5FFD;&#x7565;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择安装类型选择create-custom-layout创建自定义布局"><span class="toc-nav-number">4.13.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x5B89;&#x88C5;&#x7C7B;&#x578B;&#xFF0C;&#x9009;&#x62E9;&#x201C;Create Custom Layout&#x201D;&#xFF0C;&#x521B;&#x5EFA;&#x81EA;&#x5B9A;&#x4E49;&#x5E03;&#x5C40;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#这里显示目前空闲控件为20473mb点击create创建分区"><span class="toc-nav-number">4.14.</span> <span class="toc-nav-text">&#x8FD9;&#x91CC;&#x663E;&#x793A;&#x76EE;&#x524D;&#x7A7A;&#x95F2;&#x63A7;&#x4EF6;&#x4E3A;20473MB&#xFF0C;&#x70B9;&#x51FB;&#x201D;Create&#x201C;&#x521B;&#x5EFA;&#x5206;&#x533A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择standard-partition标准分区"><span class="toc-nav-number">4.15.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Standard Partition&#x201D;&#xFF0C;&#x6807;&#x51C6;&#x5206;&#x533A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建第一个挂载点boot大小128mb文件系统类型ext3"><span class="toc-nav-number">4.16.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;&#x7B2C;&#x4E00;&#x4E2A;&#x6302;&#x8F7D;&#x70B9;&#xFF1A;/boot&#xFF0C;&#x5927;&#x5C0F;&#xFF1A;128MB&#xFF0C;&#x6587;&#x4EF6;&#x7CFB;&#x7EDF;&#x7C7B;&#x578B;&#xFF1A;ext3&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#继续创建分区点击create"><span class="toc-nav-number">4.17.</span> <span class="toc-nav-text">&#x7EE7;&#x7EED;&#x521B;&#x5EFA;&#x5206;&#x533A;&#xFF0C;&#x70B9;&#x51FB;&#x201C;Create&#x201D;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#同样选择standard-partition标准分区"><span class="toc-nav-number">4.18.</span> <span class="toc-nav-text">&#x540C;&#x6837;&#x9009;&#x62E9;&#x201C;Standard Partition&#x201D;&#xFF0C;&#x6807;&#x51C6;&#x5206;&#x533A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建swap分区大小2000mb用于内存不够用时充当内存使用的"><span class="toc-nav-number">4.19.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;swap&#x5206;&#x533A;&#xFF0C;&#x5927;&#x5C0F;&#xFF1A;2000MB&#xFF08;&#x7528;&#x4E8E;&#x5185;&#x5B58;&#x4E0D;&#x591F;&#x7528;&#x65F6;&#x5145;&#x5F53;&#x5185;&#x5B58;&#x4F7F;&#x7528;&#x7684;&#xFF09;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#继续创建分区点击create"><span class="toc-nav-number">4.20.</span> <span class="toc-nav-text">&#x7EE7;&#x7EED;&#x521B;&#x5EFA;/&#x5206;&#x533A;&#xFF0C;&#x70B9;&#x51FB;&#x201C;Create&#x201D;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#同样选择standard-partition标准分区"><span class="toc-nav-number">4.21.</span> <span class="toc-nav-text">&#x540C;&#x6837;&#x9009;&#x62E9;&#x201C;Standard Partition&#x201D;&#xFF0C;&#x6807;&#x51C6;&#x5206;&#x533A;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#创建根目录-大小选中全部可用空间-文件类型ext3"><span class="toc-nav-number">4.22.</span> <span class="toc-nav-text">&#x521B;&#x5EFA;&#x6839;&#x76EE;&#x5F55;&#x201C;/&#x201D;&#x3001;&#x5927;&#x5C0F;&#xFF1A;&#x9009;&#x4E2D;&#x5168;&#x90E8;&#x53EF;&#x7528;&#x7A7A;&#x95F4;&#x3001;&#x6587;&#x4EF6;&#x7C7B;&#x578B;&#xFF1A;ext3&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#分区后空间分布情况下图所示下一步"><span class="toc-nav-number">4.23.</span> <span class="toc-nav-text">&#x5206;&#x533A;&#x540E;&#x7A7A;&#x95F4;&#x5206;&#x5E03;&#x60C5;&#x51B5;&#x4E0B;&#x56FE;&#x6240;&#x793A;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择quotformatquot格式化"><span class="toc-nav-number">4.24.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&quot;Format&quot;&#xFF0C;&#x683C;&#x5F0F;&#x5316;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择write-changes-to-disk将更改写入到磁盘中"><span class="toc-nav-number">4.25.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x201C;Write changes to disk&#x201D;,&#x5C06;&#x66F4;&#x6539;&#x5199;&#x5165;&#x5230;&#x78C1;&#x76D8;&#x4E2D;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#下一步"><span class="toc-nav-number">4.26.</span> <span class="toc-nav-text">&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#默然为minimal这里选择desktop桌面选中customize-now现在自定义"><span class="toc-nav-number">4.27.</span> <span class="toc-nav-text">&#x9ED8;&#x7136;&#x4E3A;&#x201C;Minimal&#x201D;&#xFF0C;&#x8FD9;&#x91CC;&#x9009;&#x62E9;&#x201C;Desktop&#x201D;&#x684C;&#x9762;&#xFF0C;&#x9009;&#x4E2D;&#x201C;Customize Now&#x201D;&#xFF0C;&#x73B0;&#x5728;&#x81EA;&#x5B9A;&#x4E49;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#选择需要的安装程序下一步"><span class="toc-nav-number">4.28.</span> <span class="toc-nav-text">&#x9009;&#x62E9;&#x9700;&#x8981;&#x7684;&#x5B89;&#x88C5;&#x7A0B;&#x5E8F;&#xFF0C;&#x4E0B;&#x4E00;&#x6B65;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#正在安装"><span class="toc-nav-number">4.29.</span> <span class="toc-nav-text">&#x6B63;&#x5728;&#x5B89;&#x88C5;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#点击reboot重启系统"><span class="toc-nav-number">4.30.</span> <span class="toc-nav-text">&#x70B9;&#x51FB;&#x201C;Reboot&#x201D;&#xFF0C;&#x91CD;&#x542F;&#x7CFB;&#x7EDF;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#正在重启centos系统"><span class="toc-nav-number">4.31.</span> <span class="toc-nav-text">&#x6B63;&#x5728;&#x91CD;&#x542F;CentOS&#x7CFB;&#x7EDF;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#启动后输入用户名和密码登陆系统"><span class="toc-nav-number">4.32.</span> <span class="toc-nav-text">&#x542F;&#x52A8;&#x540E;&#x8F93;&#x5165;&#x7528;&#x6237;&#x540D;&#x548C;&#x5BC6;&#x7801;&#x767B;&#x9646;&#x7CFB;&#x7EDF;&#x3002;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#虚拟机网络配置"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">&#x865A;&#x62DF;&#x673A;&#x7F51;&#x7EDC;&#x914D;&#x7F6E;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#宿主机的虚拟网关vmnet8的ip设置为自动获取-具体步骤为右击点属性然后选择ipv4那行点击属性quot更改成自动获取"><span class="toc-nav-number">5.1.</span> <span class="toc-nav-text">&#x5BBF;&#x4E3B;&#x673A;&#x7684;&#x865A;&#x62DF;&#x7F51;&#x5173;VMnet8&#x7684;IP&#x8BBE;&#x7F6E;&#x4E3A;&#x81EA;&#x52A8;&#x83B7;&#x53D6;&#x3002;&#x5177;&#x4F53;&#x6B65;&#x9AA4;&#x4E3A;&#xFF1A;&#x53F3;&#x51FB;&#x70B9;&#x201C;&#x5C5E;&#x6027;&#x201D;&#xFF0C;&#x7136;&#x540E;&#x9009;&#x62E9;IPV4&#x90A3;&#x884C;&#xFF0C;&#x70B9;&#x51FB;&#x201C;&#x5C5E;&#x6027;&quot;&#xFF0C;&#x66F4;&#x6539;&#x6210;&#x81EA;&#x52A8;&#x83B7;&#x53D6;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#同理修改本地连接也为自动获取"><span class="toc-nav-number">5.2.</span> <span class="toc-nav-text">&#x540C;&#x7406;&#xFF0C;&#x4FEE;&#x6539;&#x201C;&#x672C;&#x5730;&#x8FDE;&#x63A5;&#x201D;&#x4E5F;&#x4E3A;&#x81EA;&#x52A8;&#x83B7;&#x53D6;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#虚拟机-设置网络适配器选为nat"><span class="toc-nav-number">5.3.</span> <span class="toc-nav-text">&#x201C;&#x865A;&#x62DF;&#x673A;&#x201D;-&#x201C;&#x8BBE;&#x7F6E;&#x201D;&#xFF0C;&#x7F51;&#x7EDC;&#x9002;&#x914D;&#x5668;&#x9009;&#x4E3A;NAT&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#编辑-虚拟网络编辑器选中vmnet8点选nat与虚拟机共享主机ip地址把dhcp勾上那两个框都勾上"><span class="toc-nav-number">5.4.</span> <span class="toc-nav-text">&#x201C;&#x7F16;&#x8F91;&#x201D;-&#x201C;&#x865A;&#x62DF;&#x7F51;&#x7EDC;&#x7F16;&#x8F91;&#x5668;&#x201D;&#x9009;&#x4E2D;VMnet8&#xFF0C;&#x70B9;&#x9009;NAT&#xFF08;&#x4E0E;&#x865A;&#x62DF;&#x673A;&#x5171;&#x4EAB;&#x4E3B;&#x673A;IP&#x5730;&#x5740;&#xFF09;&#xFF0C;&#x628A;DHCP&#x52FE;&#x4E0A;&#xFF08;&#x90A3;&#x4E24;&#x4E2A;&#x6846;&#x90FD;&#x52FE;&#x4E0A;&#xFF09;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#开启宿主机windows7中的vmware-dhcp-service-和vmware-nat-service服务"><span class="toc-nav-number">5.5.</span> <span class="toc-nav-text">&#x5F00;&#x542F;&#x5BBF;&#x4E3B;&#x673A;&#xFF08;windows7&#xFF09;&#x4E2D;&#x7684;VMware DHCP Service &#x548C;VMware NAT Service&#x670D;&#x52A1;&#x3002;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#测试在centos中ping"><span class="toc-nav-number">5.6.</span> <span class="toc-nav-text">&#x6D4B;&#x8BD5;&#xFF0C;&#x5728;CentOS&#x4E2D;ping&#x3002;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#修改主机名称"><span class="toc-nav-number">6.</span> <span class="toc-nav-text">&#x4FEE;&#x6539;&#x4E3B;&#x673A;&#x540D;&#x79F0;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#编辑-etcsysconfignetwork"><span class="toc-nav-number">6.1.</span> <span class="toc-nav-text">&#x7F16;&#x8F91; /etc/sysconfig/network</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#hostname直接命名"><span class="toc-nav-number">6.2.</span> <span class="toc-nav-text">hostname&#x76F4;&#x63A5;&#x547D;&#x540D;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#编辑hosts文件设置ip与主机名相对应"><span class="toc-nav-number">6.3.</span> <span class="toc-nav-text">&#x7F16;&#x8F91;hosts&#x6587;&#x4EF6;&#xFF0C;&#x8BBE;&#x7F6E;IP&#x4E0E;&#x4E3B;&#x673A;&#x540D;&#x76F8;&#x5BF9;&#x5E94;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#修改linux的启动方式"><span class="toc-nav-number">7.</span> <span class="toc-nav-text">&#x4FEE;&#x6539;Linux&#x7684;&#x542F;&#x52A8;&#x65B9;&#x5F0F;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Linux" title="Linux">Linux</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

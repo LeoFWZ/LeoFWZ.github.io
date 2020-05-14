@@ -141,14 +141,14 @@
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
@@ -211,38 +211,346 @@
 
 <div class="post-preview">
 
-    <a href="/article/hexo-theme-jepson/">
+    <a href="/article/101ElesticSearch6.6.2入门和安装部署/">
         <h2 class="post-title">
-            
-                <i class="fa fa-thumb-tack" style="color:#F4711F" ></i>
-                <!-- <i class="fa fa-thumb-tack" style="color:#F89E8C" ></i> -->
-                <!-- <i class="fa fa-thumb-tack" style="color:#1CB7ED" ></i> -->
-                <font color=#F4711F>置顶</font>
-                <!-- <font color=#F89E8C>置顶</font>  -->
-                <!-- <font color=#1CB7ED>置顶</font>  -->
                                  
-            [Hexo]  
+            [ElesticSearch6.6.2入门和安装部署]  
         </h2>
         <h3 class="post-subtitle">
-            This is hexo theme Demo.
+            
         </h3>
         <div class="post-content-preview">
             
-This Demo created by Leo modified from the original Porter YuHsuan
+官网下载地址：https://www.elastic.co/cn/downloads/
 
-Install Hexo
-Install Node.js  and Git
-12345678#For windowNode.js https://nodejs.org/dist/v12.13.0/node-v12.13.0-x64.msiGit https......
+1、ElesticSearch背景及介绍
+ELK是三个组件的头字母简称：
+Elasticsearch(ES)：对数据进行搜索、分析和存储；也是个NoSQL，类似于Redis/HBase/…
+Logstash：收集日志文件，动态数据收集管道，还有Filebeat也可以收集（比Flume轻量级）
+Kiba......
         </div>
     </a>
     
         <p class="post-meta" style="margin: 10px 0;">
             Posted by FWZ on
-            2015-07-10
+            2019-03-07
         </p>
         <div class="tags">
             
-              <a href="/tags/#Hexo" title="Hexo">Hexo</a>
+              <a href="/tags/#ELK" title="ELK">ELK</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/100Azkaban3.57.0安装以及简单使用/">
+        <h2 class="post-title">
+                                 
+            [Azkaban3.57.0安装以及简单使用]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            1.为啥什么要使用WorkFlow？
+生产中ETL、以及HIve sql等作业都是通过shell命令触发运行的，我们知道Linux有自带的Crontab调度器，通过它可以进行简单作业的调度，但是对于一些依赖的作业，比如作业B依赖于作业A完成后才能开始，这是Crontab很难去配置了，因为配置Crontab人根本不知道作业具体是何时完成的，全凭经验感觉，这是不可取的。此时我们需要Work Fl......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2019-02-07
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Azkaban" title="Azkaban">Azkaban</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/99ZooKeeper介绍及基本操作/">
+        <h2 class="post-title">
+                                 
+            [ZooKeeper介绍及基本操作]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            简介
+本文会从两个角度介绍：
+
+shell
+API   支持JAVA、Scala
+
+
+http://zookeeper.apache.org/官网
+
+管理者ZooKeeper，我们Hadoop生态圈的有很多节点，光靠一个ZooKeeper肯定管理不过来，所以可以单节点也可以分布式
+ZK： distributed coordination  分布式协调服务
+通过前面我们Hadoop   HA高......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-11-07
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#ZooKeeper" title="ZooKeeper">ZooKeeper</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/98Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)/">
+        <h2 class="post-title">
+                                 
+            [Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            1.多Agent使用概述
+上一篇文章我们详细介绍了单Agent的生产演进过程，但是生产上是需要从多台机器上采集数据的，故更多的是多Agent的串联和并联组合使用。如下图串联的Agent
+
+
+串联的Agent一定是采用Avro Sink和 Avro Source方式进行数据传输
+
+2.两个串联Agent实现数据采集到控制台
+Agent的结构：source -&gt; channel -&gt;......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-11-05
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Flume" title="Flume">Flume</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/97Flume之生产正确的使用方式一(Singel Agent)/">
+        <h2 class="post-title">
+                                 
+            [Flume之生产正确的使用方式一(Singel Agent)]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            
+CDH版本文档地址：http://archive.cloudera.com/cdh5/cdh/5/flume-ng-1.6.0-cdh5.7.0/
+
+背景
+WebServer
+log  本地     ==&gt;  HDFS
+可以通过hadoop fs -put … …
+只要有gateway，crontab封装一下，定时去发
+Sqoop是导关系型数据库的
+问题：
+1.多久put一次，是一小......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-11-02
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Flume" title="Flume">Flume</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/96Spark Streaming整合Kafaka/">
+        <h2 class="post-title">
+                                 
+            [Spark Streaming整合Kafaka]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            Kafka版本选择
+Kafka属于Spark Streaming中的高级Sources。
+Kafka：Spark Streaming 2.4.3与Kafka broker版本0.8.2.1或更高版本兼容，跟0.8.2.1之前的版本是不兼容的。详情请看Kafka Integration Guide。
+Apache Kafka is publish-subscribe messaging ret......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-10-30
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Kafka" title="Kafka">Kafka</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/95Kafka入门介绍、安装部署/">
+        <h2 class="post-title">
+                                 
+            [Kafka入门介绍、安装部署]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            1、前言
+本章节使用的是Apache Kafka，版本：kafka_2.11-2.1.0.tgz；但是实际工作中要考虑CDH环境，使用的是CDH官网的Kafka，所以这里先简单介绍下，如何集成到CDH中，需要自定义包裹文件安装，请参考博客：
+https://blog.csdn.net/greenplum_xiaofan/article/details/97677328
+版本选择：使用的是CD......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-10-27
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Kafka" title="Kafka">Kafka</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/94SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口/">
+        <h2 class="post-title">
+                                 
+            [SparkStreaming之foreachRDD写数据到MySQL、连接池、Window窗口]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            回顾：
+概述
+Spark Streaming是core的扩展，来达到实时处理（并不是真的实时处理）
+接入数据要考虑是否有Receiver
+Spark ： 以批处理为主，用微批处理来处理流数据  可以涉及成1s      流是批的特例
+Flink ： 以流处理为主，用流处理来处理批数据   批是流的特例
+Strutured  Streaming  结构化流是后续发展的趋势，编程方式是DF/DS......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-10-25
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Spark" title="Spark">Spark</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/93Spark Streaming之基本概念/">
+        <h2 class="post-title">
+                                 
+            [Spark Streaming之基本概念]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            
+参考官网：http://spark.apache.org/docs/latest/streaming-programming-guide.html#basic-concepts
+
+上一节，初识了Spark Streaming，并做了一个示例。这一节来学一下基本概念。
+小知识点：
+Spark Streaming并不是真正的实时处理，Storm、Flink是真正的实时处理。
+Spark：以批处......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-10-22
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Spark" title="Spark">Spark</a>
+            
+        </div>
+    
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/article/92SparkStreaming入门介绍和运行架构/">
+        <h2 class="post-title">
+                                 
+            [SparkStreaming入门介绍和运行架构]  
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            
+官网：http://spark.apache.org/docs/latest/streaming-programming-guide.html
+
+回顾
+RDD编程虽然代码可读性不好，不过是基本功的体现（面试的时候还是会问到RDD，这是基础，算子以及broadcast join…)
+Spark SQL 中DF、DS编程、RDD和DF转换，外部数据源（不但要会用用，底层本质原理也要掌握，也就是......
+        </div>
+    </a>
+    
+        <p class="post-meta" style="margin: 10px 0;">
+            Posted by FWZ on
+            2018-10-20
+        </p>
+        <div class="tags">
+            
+              <a href="/tags/#Spark" title="Spark">Spark</a>
             
         </div>
     
@@ -256,6 +564,10 @@ Install Node.js  and Git
 
 <ul class="pager">
     
+    
+        <li class="next">
+            <a href="/page/2/">Older Posts &rarr;</a>
+        </li>
     
 </ul>
 
@@ -285,6 +597,54 @@ Install Node.js  and Git
     <!-- no hr -->
     <h5><a href="/tags/">FEATURED TAGS</a></h5>
     <div class="tags">
+        
+            
+            <a href="/tags/#Linux" title="Linux" rel="10">Linux</a>
+            
+        
+            
+            <a href="/tags/#MySQL" title="MySQL" rel="3">MySQL</a>
+            
+        
+            
+            <a href="/tags/#ELK" title="ELK" rel="1">ELK</a>
+            
+        
+            
+            <a href="/tags/#Azkaban" title="Azkaban" rel="1">Azkaban</a>
+            
+        
+            
+            <a href="/tags/#Hadoop" title="Hadoop" rel="33">Hadoop</a>
+            
+        
+            
+            <a href="/tags/#Hive" title="Hive" rel="9">Hive</a>
+            
+        
+            
+            <a href="/tags/#Scala" title="Scala" rel="6">Scala</a>
+            
+        
+            
+            <a href="/tags/#Spark" title="Spark" rel="30">Spark</a>
+            
+        
+            
+            <a href="/tags/#JVM" title="JVM" rel="2">JVM</a>
+            
+        
+            
+            <a href="/tags/#Kafka" title="Kafka" rel="2">Kafka</a>
+            
+        
+            
+            <a href="/tags/#Flume" title="Flume" rel="2">Flume</a>
+            
+        
+            
+            <a href="/tags/#ZooKeeper" title="ZooKeeper" rel="1">ZooKeeper</a>
+            
         
             
             <a href="/tags/#Hexo" title="Hexo" rel="1">Hexo</a>
@@ -343,7 +703,23 @@ Install Node.js  and Git
     <ul>
       
         <li>
-          <a href="/article/hexo-theme-jepson/">[Hexo]  </a>
+          <a href="/article/101ElesticSearch6.6.2入门和安装部署/">[ElesticSearch6.6.2入门和安装部署]  </a>
+        </li>
+      
+        <li>
+          <a href="/article/100Azkaban3.57.0安装以及简单使用/">[Azkaban3.57.0安装以及简单使用]  </a>
+        </li>
+      
+        <li>
+          <a href="/article/99ZooKeeper介绍及基本操作/">[ZooKeeper介绍及基本操作]  </a>
+        </li>
+      
+        <li>
+          <a href="/article/98Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)/">[Flume之生产正确的使用方式二(Multiple Agent+ Multiple Channel+Custom)]  </a>
+        </li>
+      
+        <li>
+          <a href="/article/97Flume之生产正确的使用方式一(Singel Agent)/">[Flume之生产正确的使用方式一(Singel Agent)]  </a>
         </li>
       
     </ul>
@@ -366,7 +742,7 @@ Install Node.js  and Git
         
     <h5>ARCHIVES</h5>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/07/">July 2015</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/07/">July 2015</a><span class="archive-list-count">1</span></li></ul>
     </div>
 
         <hr>

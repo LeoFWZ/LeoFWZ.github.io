@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [RDD深入讲解]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/70RDD深入讲解/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[RDD深入讲解]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-08-05
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <p>RDD源码： <a href="https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/rdd/RDD.scala" target="_blank" rel="noopener">https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/rdd/RDD.scala</a></p>
+<p>让开发者大大降低开发分布式应用程序的门槛以及提高执行效率</p>
+<p>分布式开发：数据拆分、通讯机制、万一挂了怎么办、数据到哪个节点上执行…</p>
+<p>弹性分布式数据集：弹性体现在计算上面,可以容错</p>
+<h1 id="1什么是rdd">1.什么是RDD：</h1>
+<p>RDD（Resilient Distributed Dataset）弹性分布式数据集</p>
+<ul>
+<li>弹性：在分布式计算的时候可以容错，比如某个节点挂了，或者某个部分的数据丢失了，可以通过RDD的机制进行修复</li>
+<li>分布式：数据归属在大的集群上，可以拆成多份存储在各个节点上运行，这样才能体现分布式计算框架的价值所在，因为他们之间并没有依赖关系</li>
+<li>数据集：可以通过读取一个文件或者通过编程的方式来创建一个数据集，也可以通过一个数据的转换来得到一个新的数据集（后面会详细讲RDD的三种创建方式），这个数据集可以被拆分成多个分区来进行计算；类似HDFS上以block为单位，拆分成多个block进行存储。</li>
+</ul>
+<p>RDD是Spark中最基本的数据抽象单元，可以大大降低开发者开发分布式应用程序的门槛并提高执行效率；spark core是基于RDD进行编程的；spark streaming 是基于DStream进行编程的；spark SQL是借助于HiveContext来编程的；<br>
+RDD代表着一种不可变的集合，集合里的所有元素可以被分区，这些被拆分成的每一部分可以通过并行的方式进行操作。</p>
+<p>例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">RDDA:(1,2,3,4,5,6,7,8,9)</span><br><span class="line">hadoop000:Partition1:(1,2,3)</span><br><span class="line">hadoop001:Partition2:(4,5,6)</span><br><span class="line">hadoop002:Partition3:(7,8,9)</span><br><span class="line">RDDA被拆分成了三个分区，RDD是由多个Partition所构成的，对RDD中的每个元素进行操作实际上就是对hadoop000、hadoop001、hadoop002三台机器上的Partition1、Partition2、Partition3进行操作</span><br><span class="line"></span><br><span class="line">RDDA:(1,2,3,4,5,6,7,8,9)   operated +1</span><br><span class="line"></span><br><span class="line">hadoop000  Partition1:  (1,2,3)     +1</span><br><span class="line">hadoop001    Partition2: (4,5,6)     +1</span><br><span class="line">hadoop002   Partition3:    (7,8,9)  +1</span><br></pre></td></tr></table></figure>
+<h1 id="2rdd的定义">2.RDD的定义：</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">abstract class RDD[T: ClassTag](</span><br><span class="line">    @transient private var _sc: SparkContext,</span><br><span class="line">    @transient private var deps: Seq[Dependency[_]]</span><br><span class="line">  ) extends Serializable with Logging &#123;</span><br></pre></td></tr></table></figure>
+<p>解释：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1)抽象类(说明不能直接使用)，我们直接使用其子类即可</span><br><span class="line">2）可序列化Serializable ，可存储各类数据,网络传输肯定是要序列化的</span><br><span class="line">3）Logging  记录日志,Spark1.6是直接可以用的，2.0版本之后是移走的</span><br><span class="line">4)T 泛型，支持各种数据类型（Spark程序的编译以及运行是区分了Driver和Executor的，只有在运行的时候才知道完整的信息）</span><br><span class="line">5)SparkContext   </span><br><span class="line">6)@transient</span><br></pre></td></tr></table></figure>
+<h1 id="3rdd的五大特性">3.RDD的五大特性：</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1） A list of partitions </span><br><span class="line">RDD是由分区组成的,有一系列Partition构成</span><br><span class="line">2） A function for computing each split</span><br><span class="line">对于计算，一个函数是作用于每个分片上的，并行计算</span><br><span class="line">3） A list of dependencies on other RDDs</span><br><span class="line">依赖关系   (加载)RDDA==&gt;RDDB==&gt;RDDC==&gt;RDDD，RDDD是会依赖于前面的，从RDDA加载进来，然后转换变成了RDDB，那么RDDA里的每个Partition就变成了RDDB里的Partition，他们之间会有依赖关系，如果RDDA里的某个与元素或者分区挂了，那重新加载一下就可以了；当然这里还会提到一，就是如果是窄依赖的话，如果RDDB里的某个元素或者分区挂了，那也可以用RDDA重新转换一下，同样的RDD中任一分区数据丢失了，Spark可以通过这个依赖关系重新计算分区里的数据，而不需要计算所有分区，这也体现了一个弹性，后面会对宽依赖以及窄依赖会详细介绍</span><br><span class="line">4） Optionally, a Partitioner for key-value RDDs (e.g. to say that the RDD is hash-partitioned)</span><br><span class="line">（a list of preferred locations：数据最好在哪台机器上运行），可对key-value的RDDS做分区，默认是hash分区，当然也可以指定一个Partition及逆行分区，常用的有hash，range</span><br><span class="line">5）Optionally, a list of preferred locations to compute each split on (e.g. block locations for an HDFS file)</span><br><span class="line">可选，在对每个分区进行计算的时候，可以选择在哪台机器上执行、计算最好；数据本地性，这样可以提升性能，因为没有移动的数据</span><br></pre></td></tr></table></figure>
+<p>spark中的所有调度和执行都是基于这些方法完成的，允许每个RDD实现自己的计算方式，实际上，用户可以通过重写这些函数来实现自定义的RDD。</p>
+<h1 id="4五大特征在源码中的体现">4.五大特征在源码中的体现：</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1）def compute(split: Partition, context: TaskContext): Iterator[T]</span><br><span class="line">对RDD做计算就是对分区做计算（体现第二点）</span><br><span class="line">2）protected def getPartitions: Array[Partition]</span><br><span class="line">一个数组、一个集合类型是Partition（体现的是第一点）</span><br><span class="line">3）  protected def getDependencies: Seq[Dependency[_]] = deps（）</span><br><span class="line">RDD之间有对应关系，有转换，有依赖（体现第三点）</span><br><span class="line">4）protected def getPreferredLocations(split: Partition): Seq[String] = Nil</span><br><span class="line">传进来split，返回的是一个数组，返回最合适的路径（体现第五大特点）</span><br><span class="line">5）@transient val partitioner: Option[Partitioner] = None</span><br><span class="line">对应KV，指定如何分区（体现第四大特点）</span><br></pre></td></tr></table></figure>
+<h1 id="5图解rdd">5.图解RDD：</h1>
+<p><img src="https://img-blog.csdnimg.cn/20190511210355756.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>
+解释：<br>
+假定现在有个RDD，它有五个partition，分布在三个节点之上。<br>
+RDD是可以做cache操作的，它有可能存在磁盘上，也有可能存在内存里，也有可能两个都有，也有可能存在多个副本。<br>
+现在有五个partition，如果取做某个计算时，就必然有五个task。如果core够用的话，就必然是五个task并行的去计算，如果不够的话，就先跑一轮，跑完再继续。<br>
+对于partition1来说，你去执行一个计算，肯定优先在NODE1节点上执行性能更好，如果在NODE2节点上执行，需要先把partition1的数据传输到NODE2上，再进行执行计算。<br>
+<strong>在Spark中，计算时，有多少partition就对应多少个task来执行</strong></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/71IDEA开发Spark应用程序/" data-toggle="tooltip" data-placement="top" title="[IDEA开发Spark应用程序]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/69RDD操作续/" data-toggle="tooltip" data-placement="top" title="[RDD操作续]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#1什么是rdd"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">1.&#x4EC0;&#x4E48;&#x662F;RDD&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#2rdd的定义"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">2.RDD&#x7684;&#x5B9A;&#x4E49;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#3rdd的五大特性"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">3.RDD&#x7684;&#x4E94;&#x5927;&#x7279;&#x6027;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#4五大特征在源码中的体现"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">4.&#x4E94;&#x5927;&#x7279;&#x5F81;&#x5728;&#x6E90;&#x7801;&#x4E2D;&#x7684;&#x4F53;&#x73B0;&#xFF1A;</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#5图解rdd"><span class="toc-nav-number">5.</span> <span class="toc-nav-text">5.&#x56FE;&#x89E3;RDD&#xFF1A;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

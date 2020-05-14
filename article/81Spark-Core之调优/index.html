@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Spark-Core之调优]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/81Spark-Core之调优/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                            
+                        </div>
+                        <h1>[Spark-Core之调优]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-09-15
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <blockquote>
+<p>官网：<a href="http://spark.apache.org/docs/latest/tuning.html" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/tuning.html</a></p>
+</blockquote>
+<p>SparkCore有哪些地方可以调优呢？</p>
+<p>集群的任何资源都有可能成为Spark程序的瓶颈：CPU，网络带宽，或者内存。</p>
+<p>本文主要是数据序列化和内存调优</p>
+<h1 id="数据序列化重要">数据序列化（重要）</h1>
+<p>优化Spark应用程序的第一件事情就是考虑一下数据序列化。</p>
+<p>有两种序列化，Java serialization和Kryo serialization。</p>
+<p>默认是Java序列化，Java序列化灵活但是通常很慢，而且一般序列化结果比较大。<br>
+比起Java的序列化来说，Kryo不但速度更快，而且产生的结果更为小，但是前提是需要在程序中提前注册。不注册也能使用，但是会很慢，结果会更大。</p>
+<h2 id="如何序列化及注册">如何序列化及注册</h2>
+<p>1.首先通过用SparkConf初始化任务并调用<font color="#FF0000" size="2.5" face="黑体">conf.set(“spark.serializer”, “org.apache.spark.serializer.KryoSerializer”)</font> ，你可以切换到Kryo序列化。</p>
+<p>当然也可以这样使用：<font color="#FF0000" size="2.5" face="黑体">spark-submit --conf spark.serializer=org.apache.spark.serializer.KryoSerializer</font></p>
+<p>建议直接配置到spark-defaults.conf文件里：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark.serializer      org.apache.spark.serializer.KryoSerializer</span><br></pre></td></tr></table></figure>
+<p>2.注册</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#MyClass1、MyClass2这两个类是你要要去注册的类</span><br><span class="line"></span><br><span class="line">val conf = new SparkConf().setMaster(...).setAppName(...)</span><br><span class="line">conf.registerKryoClasses(Array(classOf[MyClass1], classOf[MyClass2]))</span><br><span class="line">val sc = new SparkContext(conf)</span><br></pre></td></tr></table></figure>
+<p>下面举例说明一下MEMORY_ONLY、MEMORY_ONLY_SER（默认Java序列化）、用MEMORY_ONLY_SER且Kryo序列化不注册、用MEMORY_ONLY_SER且Kryo序列化且注册，对比一下使用效果。</p>
+<p>代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">package com.ruozedata.spark.com.ruozedata.spark.core</span><br><span class="line"></span><br><span class="line">import org.apache.spark.rdd.RDD</span><br><span class="line">import org.apache.spark.storage.StorageLevel</span><br><span class="line">import org.apache.spark.&#123;SparkConf, SparkContext&#125;</span><br><span class="line"></span><br><span class="line">//定义一个case class类，方便后面用它来创建一个新的RDD</span><br><span class="line">case class InfoLog(cdn:String,region:String,level:String,date:String,ip:String, domain:String, url:String, traffic:String)</span><br><span class="line"></span><br><span class="line">object SerializerApp &#123;</span><br><span class="line">  def main(args: Array[String]): Unit = &#123;</span><br><span class="line">    val sparkConf = new SparkConf().setAppName(&quot;SerializerApp&quot;).setMaster(&quot;local[2]&quot;)</span><br><span class="line">    //sparkConf.set(&quot;spark.serializer&quot;,&quot;org.apache.spark.serializer.KryoSerializer&quot;)</span><br><span class="line">    //sparkConf.registerKryoClasses(Array(classOf[InfoLog]))</span><br><span class="line">    //sparkConf.set(&quot;spark.rdd.compress&quot;,&quot;true&quot;)</span><br><span class="line">    val sc = new SparkContext(sparkConf)</span><br><span class="line"></span><br><span class="line">    //test.log日志文件含有8个字段，每一行以\t键分割字段</span><br><span class="line">    val file =sc.textFile(&quot;E://test.log&quot;)</span><br><span class="line">    </span><br><span class="line">    //调用函数，并用count触发job运行</span><br><span class="line">    fileCache(file).count()</span><br><span class="line">    Thread.sleep(20000)</span><br><span class="line">    sc.stop()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">    //定义一个函数，传进去一个RDD，RDD元素类型为String，进行一波操作，缓存到内存中，最后返回一个RDD，RDD类型为InfoLog类</span><br><span class="line">   def fileCache(file:RDD[String]): RDD[InfoLog] =&#123;</span><br><span class="line">     file.map(x =&gt; &#123;</span><br><span class="line">       val fields = x.split(&quot;\t&quot;)</span><br><span class="line">       InfoLog(fields(0),fields(1),fields(2),fields(3),fields(4),fields(5),fields(6),fields(7))</span><br><span class="line">       &#125;).persist(StorageLevel.MEMORY_ONLY)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">源文件大小为：221.5 MB</span><br><span class="line">    </span><br><span class="line">1)用persist中，StorageLevel用MEMORY_ONLY，不进行序列化，仅仅缓存到内存中，结果大小为：511.1 MB</span><br><span class="line">2)用persist中，StorageLevel用MEMORY_ONLY_SER，序列化并缓存到内存中，进行序列化，（默认序列化为Java序列化），结果大小为：265.9 MB</span><br><span class="line">3)用persist中，StorageLevel用MEMORY_ONLY_SER，而且把sparkConf.set(&quot;spark.serializer&quot;,&quot;org.apache.spark.serializer.KryoSerializer&quot;)开启，就是说用Kryo序列化，但是不进行注册，结果大小为：327.4 MB</span><br><span class="line">4)用persist中，StorageLevel用MEMORY_ONLY_SER，而且把sparkConf.set(&quot;spark.serializer&quot;,&quot;org.apache.spark.serializer.KryoSerializer&quot;)开启，而且把sparkConf.registerKryoClasses(Array(classOf[InfoLog]))开启，就是说用Kryo序列化，而且把用到的自定义的类进行注册，结果大小为：227.7 MB</span><br><span class="line">5)在4基础上，再把压缩开启的话，结果大小为：59.0 MB。这个貌似用的不多，会消耗CPU。</span><br></pre></td></tr></table></figure>
+<p>总结为：</p>
+<table>
+<thead>
+<tr>
+<th>存储方式</th>
+<th>大小</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原始大小</td>
+<td>221.5 MB</td>
+</tr>
+<tr>
+<td>MEMORY_ONLY</td>
+<td>511.1 MB</td>
+</tr>
+<tr>
+<td>MEMORY_ONLY_SER(Java序列化)</td>
+<td>265.9 MB</td>
+</tr>
+<tr>
+<td>MEMORY_ONLY_SER kyro序列化 未注册</td>
+<td>327.4 MB</td>
+</tr>
+<tr>
+<td>MEMORY_ONLY_SER kyro序列化 且注册</td>
+<td>227.7 MB</td>
+</tr>
+<tr>
+<td>MEMORY_ONLY_SER 注册kryo序列化并开启RDD压缩</td>
+<td>59.0 MB</td>
+</tr>
+</tbody>
+</table>
+<p>可以看到，除去压缩之外，用MEMORY_ONLY_SER 而且用kyro序列化 并且注册，这个效果最好，结果是最小的，比较接近文件的原始大小，如果不注册结果会更大。<br>
+如果CPU不够的话，还是老老实实不要用序列化，更不要用压缩，如果CPU够用的话就取用序列化，这个要具体情况具体分析。</p>
+<h1 id="内存调优重要">内存调优（重要）</h1>
+<p>需要知道Sark1.x和2.x两种不同的内存管理方式，两个管理方式的区别，从源码来分析，如何分析，面试如何去应答。</p>
+<p>内存调优主要有三个方面的考虑，比如你现在想把一个数据放到内存中，你要考虑：<strong>对象使用的内存大小</strong>(你可能想要整个数据集都加载到内存)，<strong>访问这些对象的成本</strong>（涉及到JVM），还有<strong>垃圾回收的消耗</strong>(如果你需要大批量地创建和销毁对象)。</p>
+<p>默认情况下，Java对象可以很快的被访问，但同时Java对象会比原始数据占用的空间多2~5倍（从上面的例子就可以看到当你cache数据，把数据丟到内存里的时候，结果比原始数据要大好几倍的）。</p>
+<p>大的原因不再述说。</p>
+<p><strong>Spark中的内存使用主要分为两类：执行内存和存储内存</strong></p>
+<ul>
+<li>执行内存用于洗牌(shuffle)，连接(join)，排序(sort)和聚合(aggregation)</li>
+<li>存储内存指用于 缓存和传输 集群内部数据的内存(比如cache操作)</li>
+</ul>
+<h2 id="统一内存管理">统一内存管理</h2>
+<p>spark的内存管理有两种，分别对应的类是UnifiedMemoryManager和StaticMemoryManager。spark1.5之后默认使用的是UnifiedMemoryManager统一内存管理，1.6之前用的是StaticMemoryManager。</p>
+<p>在Spark中，执行和存储共享统一的内存区域（M区）。当不需要使用执行内存时，存储可以占据整个区域的内存，反之亦然。需要的时候执行内存可能会驱逐存储内存，直到所有的存储内存使用降到某个阈值以下（R区）。（执行计算可能会抢占数据存储使用的内存，如果必要的话会将存储于内存的数据逐出内存，直到数据存储占用的内存比例降低到一个指定的比例（R））。换句话说，R是M基础上的一个子区域，这个子区域的内存数据永远不会被逐出内存。而存储内存不会驱逐执行内存，因为实现起来太复杂了（比如执行shuffle有中间数据，把中间数据驱除，那么作业就走不下去了）。</p>
+<p>源码分析（这个面试可以看你是否看过源码）：</p>
+<p>在SparkEnv.scala的源代码中，可以找到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">val useLegacyMemoryManager = conf.getBoolean(&quot;spark.memory.useLegacyMode&quot;, false)</span><br><span class="line">val memoryManager: MemoryManager =</span><br><span class="line">  if (useLegacyMemoryManager) &#123;</span><br><span class="line">  //老的内存管理方式，Spark1.6版本之前</span><br><span class="line">    new StaticMemoryManager(conf, numUsableCores)</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">  //新的内存管理方式，Spark1.6版本才开始有</span><br><span class="line">    UnifiedMemoryManager(conf, numUsableCores)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>再通过MemoryManager 这个找到它的源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//An abstract memory manager that enforces how memory is shared between execution and storage.</span><br><span class="line">//There exists one MemoryManager per JVM.</span><br><span class="line">//它是一个抽象类，要被子类继承后去实现，它决定执行和存储端需要分配的内存分别是多少</span><br><span class="line">//下面的UnifiedMemoryManager和StaticMemoryManager都要继承它</span><br><span class="line">private[spark] abstract class MemoryManager(</span><br><span class="line">    conf: SparkConf,</span><br><span class="line">    numCores: Int,</span><br><span class="line">    onHeapStorageMemory: Long,</span><br><span class="line">    onHeapExecutionMemory: Long) extends Logging &#123;</span><br><span class="line">    ......省略</span><br></pre></td></tr></table></figure>
+<p><strong>看一下老的内存管理方式（这个要知道怎么回事）：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (useLegacyMemoryManager) &#123;</span><br><span class="line">  new StaticMemoryManager(conf, numUsableCores)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过StaticMemoryManager找到下面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def this(conf: SparkConf, numCores: Int) &#123;//附属构造器，传进来两个参数</span><br><span class="line">  this(//里面又调用这个附属构造器，拿到最大的执行和存储内存</span><br><span class="line">    conf,</span><br><span class="line">    StaticMemoryManager.getMaxExecutionMemory(conf),</span><br><span class="line">    StaticMemoryManager.getMaxStorageMemory(conf),</span><br><span class="line">    numCores)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private def getMaxExecutionMemory(conf: SparkConf): Long = &#123;</span><br><span class="line">  val systemMaxMemory = conf.getLong(&quot;spark.testing.memory&quot;, Runtime.getRuntime.maxMemory)</span><br><span class="line">........省略</span><br><span class="line">  val memoryFraction = conf.getDouble(&quot;spark.shuffle.memoryFraction&quot;, 0.2)</span><br><span class="line">  val safetyFraction = conf.getDouble(&quot;spark.shuffle.safetyFraction&quot;, 0.8)</span><br><span class="line">  (systemMaxMemory * memoryFraction * safetyFraction).toLong</span><br><span class="line">  //比如：10G*0.2*0.8 = 1.6G</span><br><span class="line">  //就是说虽然系统最大内存有10个G，但是你只能使用1.6个G</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private def getMaxStorageMemory(conf: SparkConf): Long = &#123;</span><br><span class="line">  val systemMaxMemory = conf.getLong(&quot;spark.testing.memory&quot;, Runtime.getRuntime.maxMemory)</span><br><span class="line">  val memoryFraction = conf.getDouble(&quot;spark.storage.memoryFraction&quot;, 0.6)</span><br><span class="line">  val safetyFraction = conf.getDouble(&quot;spark.storage.safetyFraction&quot;, 0.9)</span><br><span class="line">  (systemMaxMemory * memoryFraction * safetyFraction).toLong</span><br><span class="line">  //比如：10G*0.6*0.9 = 5.4G</span><br><span class="line">  //就是说虽然系统最大内存有10个G，但是你只能使用5.4个G</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面来分析一下新的内存管理方式，就是统一内存管理：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//并没有new，底层调用的是apply方法</span><br><span class="line"> UnifiedMemoryManager(conf, numUsableCores)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">private val RESERVED_SYSTEM_MEMORY_BYTES = 300 * 1024 * 1024</span><br><span class="line"></span><br><span class="line">def apply(conf: SparkConf, numCores: Int): UnifiedMemoryManager = &#123;</span><br><span class="line">  val maxMemory = getMaxMemory(conf)</span><br><span class="line">  new UnifiedMemoryManager(</span><br><span class="line">    conf,</span><br><span class="line">    maxHeapMemory = maxMemory,</span><br><span class="line">    onHeapStorageRegionSize =</span><br><span class="line">      (maxMemory * conf.getDouble(&quot;spark.memory.storageFraction&quot;, 0.5)).toLong,</span><br><span class="line">    numCores = numCores)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过下面的getMaxMemory这个拿到最大内存：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">//Return the total amount of memory shared between execution and storage, in bytes.</span><br><span class="line">  private def getMaxMemory(conf: SparkConf): Long = &#123;</span><br><span class="line">    val systemMemory = conf.getLong(&quot;spark.testing.memory&quot;, Runtime.getRuntime.maxMemory)</span><br><span class="line">    val reservedMemory = conf.getLong(&quot;spark.testing.reservedMemory&quot;,</span><br><span class="line">      if (conf.contains(&quot;spark.testing&quot;)) 0 else RESERVED_SYSTEM_MEMORY_BYTES)</span><br><span class="line">    val minSystemMemory = (reservedMemory * 1.5).ceil.toLong</span><br><span class="line">..............省略</span><br><span class="line"></span><br><span class="line">	//比如：10G-300M</span><br><span class="line">    val usableMemory = systemMemory - reservedMemory</span><br><span class="line">    val memoryFraction = conf.getDouble(&quot;spark.memory.fraction&quot;, 0.6)</span><br><span class="line">    //比如（10G-300M）*0.6   这是可以使用的最大内存</span><br><span class="line">    (usableMemory * memoryFraction).toLong</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>拿到最大内存，再来看一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">def apply(conf: SparkConf, numCores: Int): UnifiedMemoryManager = &#123;</span><br><span class="line">  //和上面一致比如（10G-300M）*0.6</span><br><span class="line">  val maxMemory = getMaxMemory(conf)</span><br><span class="line">  new UnifiedMemoryManager(</span><br><span class="line">    conf,</span><br><span class="line">    maxHeapMemory = maxMemory,</span><br><span class="line">    </span><br><span class="line">    //最终给存储端用的内存为：（10G-300M）*0.6 *0.5</span><br><span class="line">    //那么剩下的内存就是给executor执行端使用的</span><br><span class="line">    onHeapStorageRegionSize =</span><br><span class="line">      (maxMemory * conf.getDouble(&quot;spark.memory.storageFraction&quot;, 0.5)).toLong,</span><br><span class="line">    numCores = numCores)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由以上可以看出,假如现在系统给分配的JVM堆内存空间大小为10G，那么：</p>
+<p>老的内存管理方式：执行端分配内存为：1.6G，存储端分配内存为5.4G，而且两个是独立的，不够的时候不能相互借用。静态管理。</p>
+<p>新的内存管理方式：执行端和存储端共用内存（10G-300M）*0.6 G，一开始各分配50%，但是如果不够，还可以相互借用。动态管理。</p>
+<p>下面是常用的属性值，详情看官网，比如spark.memory.fraction值配置的越低，那么数据spill到磁盘的可能性越高，缓存的数据被驱逐的可能性也越高：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>值</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spark.memory.fraction</td>
+<td>0.6</td>
+<td>(heap space - 300MB) *0.6 就是存储和执行共用的内存，heap space是堆空间，300M是系统预留</td>
+</tr>
+<tr>
+<td>spark.memory.fraction</td>
+<td>0.5</td>
+<td>分配给存储端用的空间，剩下的给执行端，就是各占一半，spark.memory.fraction*0.5</td>
+</tr>
+<tr>
+<td>spark.memory.fraction</td>
+<td>false</td>
+<td>默认不开启对 堆外内存的使用</td>
+</tr>
+<tr>
+<td>spark.memory.fraction</td>
+<td>false</td>
+<td>用哪种内存管理模式，默认不使用老的内存管理方式，就是说是用新的方式（1.6版本开始）</td>
+</tr>
+<tr>
+<td>spark.memory.fraction</td>
+<td>0.2</td>
+<td>(deprecated) 已弃用，已过时，因为这是老的管理方式中的，其它属性类似</td>
+</tr>
+</tbody>
+</table>
+<p><font color="#FF0000" size="2.5" face="黑体">spark.memory.fraction</font>表示M区占据整个JVM堆内存（JVM堆空间-300MB）的比例，默认为0.6。留下40%的空间给用户数据结构、Spark内部元数据、以及避免OOM错误的安全预留空间（稀疏数据和异常大的数据记录）。</p>
+<p><font color="#FF0000" size="2.5" face="黑体">spark.memory.storageFraction</font>表示R区占据M区空间的比例，默认为0.5。R区是M区中的存储区域，该区域中的缓存的数据块永远不会因执行计算任务而被逐出内存。</p>
+<p>虽然Spark提供了两个相关配置，但一般用户不应该需要调整它们，因为默认值在大多数情况都可以满足工作负载。</p>
+<h1 id="垃圾回收gc调优重要">垃圾回收(GC)调优（重要）</h1>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Yong                </span><br><span class="line">  </span><br><span class="line">Eden（刚创建的对象，基本都在这个区)  so  s1</span><br><span class="line"></span><br><span class="line">当Eden满了这时候就有major  GCs,一个小的垃圾回收</span><br><span class="line"></span><br><span class="line">Survivor  s1和s0是可以交换的</span><br><span class="line"></span><br><span class="line">比如：</span><br><span class="line"></span><br><span class="line">第一钟</span><br><span class="line">eden +s0 ==&gt; 写到 s1 ：eden&amp;s0 空的</span><br><span class="line"></span><br><span class="line">eden + s1 ==&gt; s0 :eden&amp;s1 空的</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Old</span><br><span class="line"></span><br><span class="line">full GC 这个是比较耗性能的</span><br></pre></td></tr></table></figure>
+<p>如果你在程序需要大量新建和销毁RDD操作的时候，JVM垃圾回收可能会成为一个问题。(只是读取一个RDD然后操作多次不会产生这个问题)。Java需要将旧对象驱逐出内存来容纳新的对象，这时它会追踪所有的Java对象，找出其中不再使用的部分。这里的关键是垃圾回收的成本是和Java对象的数量成正比的，所以使用包含少量对象的数据结构(比如整形数组而不是链表结构 LinkedList)会显著减少这项成本。一个更好的办法是以序列化形式存储对象，就像上面描述的一样：这样每个RDD分区只有一个对象(一个字节数组)。如果GC存在问题，在尝试其他方法之前，首先要尝试的是去使用 序列化缓存（serialized caching）。</p>
+<p>GC出现问题的另外一种原因是作业中的各个任务的工作内存(执行任务需要的内存大小)和节点上存储的RDD缓存占用的内存 产生冲突。下面我们将讨论一下如何控制好RDD缓存使用的内存空间，以减少这种冲突。</p>
+<h2 id="估算gc的影响">估算GC的影响</h2>
+<p>GC调优的第一步是统计一下，GC多久发生一次以及花在GC上的时间。具体可以通过增加Java参数<font color="#FF0000" size="2.5" face="黑体"> -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps</font> 。下次你的Spark任务执行的时候，你会在Spark作业的worker日志中看到每次GC发生的时间。注意这些日志会在集群的worker节点(在各节点的工作目录的stdout文件里)，而不是你的 driver program。</p>
+<h2 id="高级gc调优">高级GC调优</h2>
+<p>为了进一步调优GC，我们首先需要理解一些关于JVM内存管理的基本信息：</p>
+<p>java堆内存空间分为两个区域：新生代（Young generation）和老生代（Old generation）。新生代用以保存生存周期短的对象，而老生代则是保存生存周期长的对象。</p>
+<p>新生代区域被进一步划分为三个子区域：Eden，Survivor1，Survivor2。</p>
+<p>简要描述一下垃圾回收的过程：如果Eden区满了，则会在Eden区启动一个 minor GC，生存下来（没有被回收掉）的Eden中的对象和Survivor1区中的对象一并复制到Survivor2中，这个时候Eden区和Survivor1区就会空下来。两个Survivor区域是互相切换使用的（就是说，下次从Eden和Survivor2中复制到Survivor1中，，这个时候Eden区和Survivor2区就会空下来）。如果某个对象的年龄（每次GC所有生存下来的对象长一岁）超过某个阈值，或者Survivor2（下次是Survivor1）区域满了，则将对象移到老生代（Old区）。最终如果老生代也快满了，full GC(全局GC)就会启动。</p>
+<p>Spark GC调优的目标就是确保老生代（Old generation ）只保存生命周期长的RDD，而同时新生代（Young generation ）的空间又能足够保存生命周期短的对象。这样就能在任务执行期间，避免启动full GC来收集任务执行期间创建的临时对象。<br>
+一些可能有帮助的步骤如下：</p>
+<ul>
+<li>收集GC统计信息，检查是否有过多的GC。如果在任务完成前full GC发生了多次，这意味着没有足够多的可用内存提供给该正在执行的任务。</li>
+<li>如果有很多minor GC却没有很多major GC，分配更多内存给Eden区可以改善这个问题。你可以将Eden区的大小调为高于每个任务所需内存。如果Eden区的小大为E，你可以通过参数 -Xmn=4/3*E 设置新生代的大小。(增大为4/3倍是因为Survivor分区也需要空间。)</li>
+<li>在打印出来的GC统计信息中，如果老生代接近用满，降低 spark.memory.fraction 来减少RDD缓存占用的内存。缓存少一点对象总比拖慢任务执行要好。或者考虑减小新生代分区的大小也是可以的。这意味着将 -Xmn 调低，如果你已经按照上文做了的话。如果没有的话，尝试改变JVM的NewRatio参数。许多JVM默认将此参数设为2，意味这老生代占据堆大小的2/3。这个值应该足够大应该要超过 spark.memory.fraction。</li>
+<li>尝试设置参数 -XX:+UseG1GC 应用G1GC垃圾收集器。在某些情况下，当垃圾回收成为瓶颈时它可以提高性能。注意在executor的堆空间比较大的情况下，使用 –XX:G1HeapRegionSize 参数提高G1分区大小是很重要的。</li>
+<li>举例，如果你的任务从HDFS读取数据，可以通过读取的数据块大小估算任务使用的内存大小。注意解压后的数据块大小通常是原来大小的2至3倍。所以如果希望给3或4个任务分配工作空间，而且HDFS块大小为128M，我们可以估计Eden区大概需要 43128MB 的空间。</li>
+<li>更新设置后，监控GC发生的频率以及消耗时间的变化。</li>
+</ul>
+<p>根据经验我们认为GC调优的效果取决于具体应用程序(比如说代码)和可提供内存的大小。不过总体来说，控制full GC发生的频率能有效减少垃GC成本。</p>
+<p>Executor的GC调优可以通过设置任务配置中的 spark.executor.extraJavaOptions 来指定。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">这里面几篇文章很好的讲述了GC调优：</span><br><span class="line">https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html</span><br></pre></td></tr></table></figure>
+<h2 id="估算内存消耗">估算内存消耗</h2>
+<p>方式一：<br>
+计算一个数据集需要的内存大小的最好的方式是，创建一个RDD并把它放进缓存，查看web UI界面的”Storage”页面。这个页面会告诉你这个RDD占用了多少内存。</p>
+<p>方式二：<br>
+要估算某个特定对象的内存消耗，可以使用 SizeEstimator 的 estimate 方法。这个方法对试验哪种数据结构能够裁剪内存占用量比较有用，同时，也可以计算确定 广播变量在每个执行器堆上占用的内存空间的大小。<br>
+先把<font color="#FF0000" size="2.5" face="黑体"> import org.apache.spark.util.SizeEstimator</font>包导进来，然后创建一个RDD，然后调用SizeEstimator.estimate(RDD)来估算这个RDD占用的大小大概是多少。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SizeEstimator.estimate(....)</span><br><span class="line"></span><br><span class="line">放一个文件路径就行</span><br></pre></td></tr></table></figure>
+<h2 id="数据结构调优">数据结构调优</h2>
+<p>If you have less than 32 GB of RAM, set the JVM flag -XX:+UseCompressedOops to make pointers be four bytes instead of eight. You can add these options in <a href="http://spark-env.sh" target="_blank" rel="noopener">spark-env.sh</a>.<br>
+可以使用</p>
+<p>（稍微了解，这个对性能提升帮助不大）<br>
+如果内存不足32GB，设置JVM选项 -XX:+UseCompressedOops 将指针由默认8字节改为4字节。你可以将这些选项加到 <a href="http://spark-en.sh" target="_blank" rel="noopener">spark-en.sh</a> 中。</p>
+<h2 id="rdd序列化存储">RDD序列化存储</h2>
+<p>使用 RDD persistence API 的序列化存储级别(StorageLevels)，比如 MEMORY_ONLY_SER。之后Spark会将RDD的每个分区存为一个大字节数组。以序列化格式存储的唯一缺点是访问数据会变慢，因为需要在访问时进行反序列化。如果你打算以序列化方式缓存数据，我们强烈推荐使用Kryo，因为它序列化的结果比Java序列化要小很多(当然也比原始Java对象小很多)。</p>
+<h2 id="并行度">并行度</h2>
+<p>sc.textFile（路径，并行度），这个并行度可以不写，就默认，也可以按照需要自己写。<br>
+reduceByKey（函数，并行度），这个并行度可以不写，就默认，也可以按照需要自己写。<br>
+groupByKey（并行度），这个并行度可以不写，就默认，也可以按照需要自己写。</p>
+<p>当然也可以这样：设置配置属性 spark.default.parallelism 来改变默认值。一般来说，我们推荐集群内每个CPU(每个core)执行2至3个任务。这样的话可以充分利用CPU,一个core很快就能跑完，生产上拿到的就是core。</p>
+<h2 id="reduce任务的内存使用">Reduce任务的内存使用</h2>
+<p>（了解）<br>
+有时发生内存溢出错误并不是因为内存放不下RDD，而是其中一个task处理的数据集太大了，比如在 groupByKey 的reduce任务中就可能出现这种情况。Spark的shuffle操作(sortByKey， groupByKey， reduceByKey， join等等)为了进行分组操作，在每个task中都构建一个哈希表，哈希表可能会非常大。最简单的修复办法是提高并行度，这样每个task的输入都会变小。 Spark能够非常有效的支持短时间任务（例如200ms)，因为它可以跨许多task复用一个executor JVM，并且task的启动成本都较低，所以你可以安全地将并行度提高到集群cpu核数以上。<br>
+但是这种增加并行度并不能解决数据倾斜。</p>
+<h2 id="广播大变量">广播大变量</h2>
+<p>（了解）<br>
+使用SparkContext中的广播函数可以显著减小每个序列化task的大小，还有在集群上启动作业的成本。如果任务需要从Driver程序获取大对象(比如静态的扫表)，你可以考虑将这个对象转变为广播变量。Spark将每个task序列化后的大小打印在master上，你可以根据这个来判断task是不是太大。通常来说task大于20KB就可能需要优化。</p>
+<h2 id="数据本地化">数据本地化</h2>
+<p>（了解即可，实际生产环境中很难保证的）<br>
+如果数据和处理它的代码在一起，在同一节点，计算会快一些。不过如果数据和代码是分开的，那么其中一个必须移动到另外一个那里。一般来说，移动序列化后的代码比移动一大堆数据要快，因为代码远比数据小。但这都是理想情况，代码是driver端发过去的，发给各个executor，实际情况，作业启动后，作业代码已经确定好了，在哪些executor上了，所以正常情况下是移动数据的。<br>
+driver端发送各个任务到各个executor上面去。executor所在的机器会有相应的DataNode和NameNode。</p>
+<p>exe:run  tasks and cache data</p>
+<ul>
+<li>PROCESS_LOCAL(进程本地)：executor运行任务和cache数据，现在这个executor把数据cache住了，计算时可以直接拿来用，都在同一个JVM里面，这是最好的本地性。</li>
+<li>NODE_LOCAL(节点本地)：数据在同一个机器上。例如在同一个机器的HDFS上，或者在同一机器的另外一个executor上。</li>
+<li>RACK_LOCAL(机架本地)： 数据在同一个机架的节点上。</li>
+<li>ANY(任何) 数据在网络上其他地方，但数据和代码不在同一机架上。</li>
+</ul>
+<p>生产中，能达到RACK_LOCAL 这个情况已经很好了。</p>
+<h1 id="总结">总结</h1>
+<p>最重要的是，数据序列化和内存调优。对于大多数程序来说，切换到Kryo序列化和将数据序列化存储会解决大部分常见的性能问题。</p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/82Spark-Core之共享变量/" data-toggle="tooltip" data-placement="top" title="[Spark-Core之共享变量]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/80Spark之Monitor 官网翻译/" data-toggle="tooltip" data-placement="top" title="[Spark之Monitor 官网翻译]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#数据序列化重要"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x6570;&#x636E;&#x5E8F;&#x5217;&#x5316;&#xFF08;&#x91CD;&#x8981;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#如何序列化及注册"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">&#x5982;&#x4F55;&#x5E8F;&#x5217;&#x5316;&#x53CA;&#x6CE8;&#x518C;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#内存调优重要"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">&#x5185;&#x5B58;&#x8C03;&#x4F18;&#xFF08;&#x91CD;&#x8981;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#统一内存管理"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">&#x7EDF;&#x4E00;&#x5185;&#x5B58;&#x7BA1;&#x7406;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#垃圾回收gc调优重要"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">&#x5783;&#x573E;&#x56DE;&#x6536;(GC)&#x8C03;&#x4F18;&#xFF08;&#x91CD;&#x8981;&#xFF09;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#估算gc的影响"><span class="toc-nav-number">3.1.</span> <span class="toc-nav-text">&#x4F30;&#x7B97;GC&#x7684;&#x5F71;&#x54CD;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#高级gc调优"><span class="toc-nav-number">3.2.</span> <span class="toc-nav-text">&#x9AD8;&#x7EA7;GC&#x8C03;&#x4F18;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#估算内存消耗"><span class="toc-nav-number">3.3.</span> <span class="toc-nav-text">&#x4F30;&#x7B97;&#x5185;&#x5B58;&#x6D88;&#x8017;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#数据结构调优"><span class="toc-nav-number">3.4.</span> <span class="toc-nav-text">&#x6570;&#x636E;&#x7ED3;&#x6784;&#x8C03;&#x4F18;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#rdd序列化存储"><span class="toc-nav-number">3.5.</span> <span class="toc-nav-text">RDD&#x5E8F;&#x5217;&#x5316;&#x5B58;&#x50A8;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#并行度"><span class="toc-nav-number">3.6.</span> <span class="toc-nav-text">&#x5E76;&#x884C;&#x5EA6;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#reduce任务的内存使用"><span class="toc-nav-number">3.7.</span> <span class="toc-nav-text">Reduce&#x4EFB;&#x52A1;&#x7684;&#x5185;&#x5B58;&#x4F7F;&#x7528;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#广播大变量"><span class="toc-nav-number">3.8.</span> <span class="toc-nav-text">&#x5E7F;&#x64AD;&#x5927;&#x53D8;&#x91CF;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#数据本地化"><span class="toc-nav-number">3.9.</span> <span class="toc-nav-text">&#x6570;&#x636E;&#x672C;&#x5730;&#x5316;</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-number">4.</span> <span class="toc-nav-text">&#x603B;&#x7ED3;</span></a></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

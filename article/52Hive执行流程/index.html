@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success">
+    <meta name="keyword"  content="Fangwuzhou,BigData, Hadoop,Java,Python,Spark,Flink,Kafka">
+    <link rel="shortcut icon" href="/img/ironman-draw.png">
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <title>
+        
+          [Hive执行流程]   - Leo@FWZ| Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://leofwz.github.io/article/52Hive执行流程/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS --> 
+    <link rel="stylesheet" href="/css/beantech.min.css">
+
+    <link rel="stylesheet" href="/css/donate.css">
+    
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <link rel="stylesheet" href="/css/widget.css">
+
+    <link rel="stylesheet" href="/css/rocket.css">
+
+    <link rel="stylesheet" href="/css/signature.css">
+
+    <link rel="stylesheet" href="/css/toc.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+	<!-- Modified by Yu-Hsuan Yen -->
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        
+            background-image: url('/img/article_header/article_header.png')
+            /*post*/
+        
+    }
+    
+</style>
+
+<header class="intro-header" >
+    <!-- Signature -->
+    <div id="signature">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                            
+                        </div>
+                        <h1>[Hive执行流程]  </h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by FWZ on
+                            2018-05-13
+                        </span>
+                    </div>
+                
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+	
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Leo@FWZ</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archive/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    <!-- Modify by Yu-Hsuan Yen -->
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h1 id="前言">前言</h1>
+<ul>
+<li>当你去执行一个HiveQL的时候，其实它里面做了好多东西。<br>
+现在有一批数据，数据量不算太大，当你对它们执行一个SQL，但是执行起来特别慢，为什么会这么慢？是不是要分析这个SQL它内部做了些什么？怎么去调优？让它跑起来更快呢？这些的前提是你对hive内部的机制非常了解的情况下，才会知道问题的所在。<br>
+你输入一个sql字符串，那么也就是一串字符串，hive怎么认识这个字符串？它又怎么去运行这个字符串？是不是要去解析它?是不是要检查语法有没有问题？</li>
+<li>不管是Hive，还是其它SQL的大数据的框架，比如Spark等等，它底层的执行逻辑流程，大部分都是类似的，只是每个框架都加入了自己的东西。</li>
+<li>要达到一个什么层度？<br>
+看到一个SQL语句，就知道它内部实现的一个过程，在脑海中映射出MR流程,在哪儿进行map，combiner，shuffle，reduce，而不是简简单单的SQL，如果你把Hive理解成就是写SQL，是很low的。比如用MR的思想把它描述出来，再比如什么join有reduce什么join没有，什么SQL有shuffle什么SQL没有等等等等。<br>
+这个不可能一次性就学会，肯定需要一个过程，一步一步来，慢慢的去训练。</li>
+<li>这些都是面试必问的。</li>
+</ul>
+<p>面试的时候写SQL，无外乎就是全量求增量，增量求全量</p>
+<h2 id="hiveql执行计划">HiveQL执行计划</h2>
+<p>官网执行计划介绍:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://cwiki.apache.org/confluence/display/Hive/LanguageManual+Explain</span><br></pre></td></tr></table></figure>
+<p>大部分写的HiveQL，最后基本上都可以落到这两个SQL的角度，区别只是有的业务逻辑简单一些，有的复杂一些而已：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select yyy, 聚合函数 from xxx group by yyy;</span><br><span class="line">select a.*, b.* from a join b on a.id=b.id;</span><br></pre></td></tr></table></figure>
+<p>下面简单介绍执行计划：</p>
+<p><img src="https://img-blog.csdnimg.cn/20191112155146960.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>SQL on Hadoop：SQL on Hadoop的引擎，底层会做一系列的事情，会把SQL作业提交到集群上去运行，最后出来结果。这个框架对于使用者来说它是一个黑盒子，不知道里面做了些什么操作。一般情况，你在hive上执行一个SQL，然后出来结果，仅仅是这样，这种想法是绝对要不得的。</p>
+<p>下面简单说一下执行计划。其实每个部分都需要去拆开进行仔细分析的。</p>
+<ul>
+<li>1）parser：进来一个SQL字符串，将SQL解析，解析的结果是AST（抽象语法树见官网详细解释以及使用），会进行语法校验，AST本质还是字符串</li>
+<li>2）Analyzer:语法分析，这里面还要去Meta Info里面关联查找校验，比如表存不存在、字段对不对等。然后生成QB（query block）</li>
+<li>3）Logicl Plan:逻辑执行计划解析，进来是QB，生成一堆Opertator Tree（操作，比如select）</li>
+<li>4）Logicl Optimizer:进行逻辑执行计划优化，生成的还是一堆Opertator Tree</li>
+<li>5）Phsical plan:物理执行计划解析，生成 tasktree</li>
+<li>6）Phsical Optimizer:进行物理执行计划优化，生成tasktree</li>
+<li>7）优化后生成TaskTree，根据类别比如，是Hive SQL还是SparkSQL还是其它的，会各自提交到集群上去运行</li>
+</ul>
+<p>重点是 ==逻辑执行计划优化和物理执行计划优化==。比如图上这两个优化发生在哪里？比如是在逻辑执行计划里面还是在物理执行计划里面？</p>
+<h2 id="hiveql与mapreduce">HiveQL与MapReduce</h2>
+<p>☆☆☆☆☆<br>
+面试：join用SQL来描述比较简单，就是几个表之间的关联操作，现在有个join的SQL，要你用MapReduce的代码功能来开发，你可以不会写这个代码（仅仅知道思想就行），但是要知道怎么把它的逻辑它的思想说出来，考察的点是MR的思想，你了不了解MR，join有好多种，不同的join实现的不一样，有的join有shuffle，有的join没有shuffle，这些如果用MR的路线来描述出来怎么去说？所以说一个SQL，你不能仅仅知道它就是一个join。<br>
+要到达的层度，看到一个SQL语句，脑子中就知道它内部实现的一个过程，这样理解才会更彻底。</p>
+<h3 id="简单过滤类-查询sql底层mr执行原理">简单过滤类-查询SQL底层MR执行原理</h3>
+<p>这是一个简单过滤的查询SQL：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select a.id,a.city, a.cate form access a where a.day=’20190414’ and a.cate= ‘奔驰’</span><br></pre></td></tr></table></figure>
+<p>这个SQL没有shuffle、仅仅就是过滤而已。类似之前的etl离线作业一样。</p>
+<p><img src="https://img-blog.csdnimg.cn/20191112155318646.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>day分区在一开始从HDFS上的目录上面读的时候就已经去掉了，分区在HDFS上就是一个目录。<br>
+在map里面要做的事情：<br>
+①拆分，比如按tab键拆分，分成各个字段。<br>
+②对上面的字段，<a href="http://a.id" target="_blank" rel="noopener">a.id</a>,a.city, a.cate分别对应0、1、2，现在要过滤a.cate= ‘奔驰’这个，split(2)，如果2这个字段为’奔驰’，就collect起来。<br>
+这个SQL是没有shuffle的，因为我们现在就是查询出a.cate= ‘奔驰’这个条件，这个条件在map阶段就已经做好了，然后就直接输出了。和之前的ETL一样，在map里做完数据清洗就直接输出了。</p>
+<h3 id="group-by聚合类-sql底层mr执行原理">group by聚合类-SQL底层MR执行原理</h3>
+<p>这是一个group by聚合类的SQL：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">--按照城市分组，每个城市对大奔的访问次数</span><br><span class="line">select city, count(1) cnt from access  </span><br><span class="line">where day=&apos;20190414&apos; and cate=&apos;大奔&apos;</span><br><span class="line">group by city</span><br></pre></td></tr></table></figure>
+<p>思考：用MapReduce的思想如何实现？<br>
+其实和Wordcount完全没有区别。工作中，很多类似的都是Wordcount的一个变种。<br>
+MapReduce中Wordcount如何执行？<br>
+①在map里面split过后，每个单词都会这样：(word, 1)<br>
+面试题：map类进来几个参数？map类中的map方法接收几个参数？<br>
+② shuffle:map来的 (word,1) ，根据partitioner分到reduce上面去</p>
+<blockquote>
+<p>Hadoop中的Partitioner浅析：<br>
+<a href="https://www.cnblogs.com/zhangjxblog/p/6636765.html" target="_blank" rel="noopener">https://www.cnblogs.com/zhangjxblog/p/6636765.html</a></p>
+</blockquote>
+<p>③reduce: (word, 可迭代的(1,1,1,1…))<br>
+==&gt; (word, sum(可迭代的))<br>
+面试题：map类进来几个参数？map类中的map方法接收几个参数？</p>
+<p>下面针对上面SQL进行图解析：</p>
+<p><img src="https://img-blog.csdnimg.cn/20191112155411290.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MzIxMjM2NQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>city_id、类别cate这两个字段。<br>
+从HDFS上读文件，划分split，比如输入是两个split，读数据，然后进入两个map里面来，在map里拿到(city_id, 1)。<br>
+然后map之后，进行先进行本地的一个聚合combiner，算出每个task的结果，它是一个本地的reduce，好处是减少shuffle的数据量，但不是任何场景都会发生combiner，如求平均数。。<br>
+经过shuffle，根据每个特征的key，按照partitioner的一个定义分配到相应的reduce上面去执行，执行完之后把结果输出。</p>
+<h3 id="join类-sql底层mr执行原理">join类-SQL底层MR执行原理</h3>
+<p>执行计划优化</p>
+<p><strong>扩展1</strong>：reducebykey和groupbykey的区别，前者会发生combiner 局部聚合，而后者不会，前者获得的是相同key对应的一个元素，后者是获取元素集合。reducebykey更加适合大数据，少用groupbykey（全数据shuffle）<br>
+<strong>扩展2</strong>：map task数是由数据文件分片数决定的分片数即是map任务数，程序员只能给个期望值<br>
+<strong>扩展3</strong>：reduce task数是由输入reduce的数据的分区（partitions）数决定的即分区数为map任务数，默认是1,程序员可直接设置reduce个数来改变reduce task数，reduce task数决定来 生成的文件数。<br>
+<strong>扩展4</strong>： MR数据shuffle确定数据发往哪一个reduce分区的规则是：取key的hashcode值对分区数模。<br>
+<strong>扩展5</strong>：explain sql ;查看某sql语句的执行计划</p>
+<p>本文结合自己学习，以及参考大佬博客来写的：<a href="https://blog.csdn.net/qq_32641659/article/details/89421655" target="_blank" rel="noopener">hive执行计划解析</a></p>
+
+                
+
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/article/53HiveQL执行过程续/" data-toggle="tooltip" data-placement="top" title="[HiveQL执行过程续]  ">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/article/51Hadoop的block Size和split Size是什么关系/" data-toggle="tooltip" data-placement="top" title="[Hadoop的block Size和split Size是什么关系]  ">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                <br>
+
+                <!--打赏-->
+                
+                <!--打赏-->
+
+                <br>
+                <!--分享-->
+                
+                    <div class="social-share"  data-wechat-qrcode-helper="" align="center"></div>
+                    <!--  css & js -->
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+                
+                <!--分享-->
+                <br>                       
+                
+                <!-- require APlayer -->
+                
+
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
+                <!-- disqus comment end -->
+
+                
+
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
+
+  
+    
+      <aside id="sidebar">
+        <div id="toc" class="toc-article">
+        <strong class="toc-title">Contents</strong>
+        
+          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#前言"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">&#x524D;&#x8A00;</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#hiveql执行计划"><span class="toc-nav-number">1.1.</span> <span class="toc-nav-text">HiveQL&#x6267;&#x884C;&#x8BA1;&#x5212;</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#hiveql与mapreduce"><span class="toc-nav-number">1.2.</span> <span class="toc-nav-text">HiveQL&#x4E0E;MapReduce</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#简单过滤类-查询sql底层mr执行原理"><span class="toc-nav-number">1.2.1.</span> <span class="toc-nav-text">&#x7B80;&#x5355;&#x8FC7;&#x6EE4;&#x7C7B;-&#x67E5;&#x8BE2;SQL&#x5E95;&#x5C42;MR&#x6267;&#x884C;&#x539F;&#x7406;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#group-by聚合类-sql底层mr执行原理"><span class="toc-nav-number">1.2.2.</span> <span class="toc-nav-text">group by&#x805A;&#x5408;&#x7C7B;-SQL&#x5E95;&#x5C42;MR&#x6267;&#x884C;&#x539F;&#x7406;</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#join类-sql底层mr执行原理"><span class="toc-nav-number">1.2.3.</span> <span class="toc-nav-text">join&#x7C7B;-SQL&#x5E95;&#x5C42;MR&#x6267;&#x884C;&#x539F;&#x7406;</span></a></li></ol></li></ol></li></ol>
+        
+        </div>
+      </aside>
+    
+
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Hive" title="Hive">Hive</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="https://sxwanggit126.github.io" target="_blank">DoubleHappy</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'rz'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+<!-- chrome Firefox 中文锚点定位失效-->
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<!-- smooth scroll behavior polyfill  -->
+<script type="text/javascript" src="/js/smoothscroll.js"></script>
+<script>
+        $('#toc').on('click','a',function(a){
+            // var isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1;
+            // console.log(window.navigator.userAgent,isChrome)
+                // if(isChrome) {
+                    // console.log(a.currentTarget.outerHTML);
+                    // console.log($(a.currentTarget).attr("href"));
+                    //跳转到指定锚点
+                    // document.getElementById(a.target.innerText.toLowerCase()).scrollIntoView(true);
+                    document.getElementById($(a.currentTarget).attr("href").replace("#","")).scrollIntoView({behavior: 'smooth' });
+                // }
+        })  
+</script>
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                
+
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/LeoFWZ">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; FWZ 2020 
+                    By <a href="https://leofwz.github.io/">LeoFWZ</a> | BigData
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://leofwz.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-XXXXXXXX-X';
+    var _gaDomain = 'yoursite';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'xxx';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+
+
+	<a id="rocket" href="#top" class=""></a>
+	<script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+    <script type="text/javascript" src="/js/toc.js?v=1.0.0" async=""></script>
+<!-- Image to hack wechat -->
+<img src="https://leofwz.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
